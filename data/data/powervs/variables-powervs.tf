@@ -40,6 +40,12 @@ variable "cloud_instance_id" {
   default     = ""
 }
 
+variable "cloud_resource_group" {
+    type        = string
+    description = "The cloud instance resource group"
+    default     = ""
+}
+
 ################################################################
 # Configure instances
 ################################################################
