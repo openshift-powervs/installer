@@ -48,13 +48,25 @@ type MachinePool struct {
 	SystemType string `json:systemType"`
 }
 
-// Sets values taken from passed MachinePool.
-/*
+
 func (a *MachinePool) Set(required *MachinePool) {
 	if required == nil || a == nil {
 		return
 	}
-
+	if required.ImageID != ""{
+		a.ImageID = required.ImageID
+	}
+	if required.ServiceInstance != ""{
+		a.ServiceInstance = required.ServiceInstance
+	}
+	if required.KeyPair != ""{
+		a.KeyPair = required.KeyPair
+	}
+	if len(required.Networks) > 0 {
+		a.Networks = required.Networks
+	}
+	// Sets values taken from passed MachinePool.
+	/*
 	if len(required.Zones) > 0 {
 		a.Zones = required.Zones
 	}
@@ -76,5 +88,6 @@ func (a *MachinePool) Set(required *MachinePool) {
 			a.EncryptionKey = &EncryptionKeyReference{}
 		}
 		a.EncryptionKey.Set(required.EncryptionKey)
+	}*/
 	}
-}*/
+
