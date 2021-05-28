@@ -26,11 +26,19 @@ variable "ibmcloud_region" {
   }
 }
 
-# TODO(cklokman): Ultimatly this should be named similarly to our virtual machines
-variable "service_instance_name" {
-  type        = string
-  description = "A name for our resource instance (service)."
-  default     = "ipi-powervs-iaas"
+variable "cluster_id" {
+    type    = string
+    default = ""
+
+    validation {
+        condition     = can(regex("^$|^[a-z0-9]+[a-zA-Z0-9_\\-.]*[a-z0-9]+$", var.cluster_id))
+        error_message = "The cluster_id value must be a lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character."
+    }
+
+    validation {
+        condition     = length(var.cluster_id) <= 14
+        error_message = "The cluster_id value shouldn't be greater than 14 characters."
+    }
 }
 
 variable "service_tags" {
