@@ -142,3 +142,20 @@ module "dns" {
   load_balancer_hostname     = module.loadbalancer.powervs_lb_hostname
   load_balancer_int_hostname = module.loadbalancer.powervs_lb_int_hostname
 }
+
+data "ibm_is_subnet" "vpc_subnet" {
+  name = var.powervs_vpc_subnet_name
+}
+
+module "loadbalancer" {
+  source = "./loadbalancer"
+
+  cluster_id    = var.cluster_id
+  vpc_name      = var.powervs_vpc_name
+  vpc_subnet_id = data.ibm_is_subnet.vpc_subnet.id
+  bootstrap_ip  = module.bootstrap.bootstrap_ip
+
+  # TODO add resources for master/controller
+  master_ips = {}
+
+}
