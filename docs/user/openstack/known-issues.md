@@ -2,10 +2,6 @@
 
 We have been tracking a few issues and FAQs from our users, and are documenting them here along with the known workarounds and solutions. For issues that still have open bugs, we have attached the links to where the engineering team is tracking their progress. As changes occur, we will update both this document and the issue trackers with the latest information.
 
-## Long Cluster Names
-
-If the mDNS service name of a server is too long, it will exceed the character limit and cause the installer to fail. To prevent this from happening, please restrict the `metadata.name` field in the `install-config.yaml` to 14 characters. The installer validates this in your install config and throws an error to prevent you from triggering this install time bug. This is being tracked in this [github issue](https://github.com/openshift/installer/issues/2243).
-
 ## Resources With Duplicate Names
 
 Since the installer requires the *Name* of your external network and Red Hat Core OS image, if you have other networks or images with the same name, it will choose one randomly from the set. This is not a reliable way to run the installer. We highly recommend that you resolve this with your cluster administrator by creating unique names for your resources in openstack.
@@ -86,6 +82,15 @@ volumeBindingMode: WaitForFirstConsumer
 ```
 
 [nova-az-setting]: ../openstack#setting-nova-availability-zones
+
+## Problems when changing the Machine spec for master node
+
+Changing the Machine spec (e.g. the image name) for master node will delete the instance in OpenStack and the machine status will change to `phase: failed with errorMessage: Can't find created instance`.
+This is a known limitation in cluster-api-provider-openstack where we don't support that action.
+To recover from a scenario where one or multiple master nodes are in failed status, you will have to follow the [restore procedure](https://docs.openshift.com/container-platform/4.6/backup_and_restore/replacing-unhealthy-etcd-member.html#restore-replace-stopped-etcd-member_replacing-unhealthy-etcd-member) to scale-up master nodes to reach quorum again.
+
+Even if master node was removed in Nova, it can still appear when you run `oc get machines -n openshift-machine-api`.
+To delete it, you can run: `oc delete machine --force=true -n openshift-machine-api <$NODE-NAME>`
 
 # Known Issues specific to User-Provisioned Installations
 
