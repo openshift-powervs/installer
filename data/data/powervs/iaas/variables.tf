@@ -1,28 +1,28 @@
-variable "ibmcloud_api_key" {
+variable "powervs_api_key" {
   type        = string
   description = "IBM Cloud API key associated with user's identity"
   default     = "<key>"
 
   validation{
-    condition = var.ibmcloud_api_key != "" && lower(var.ibmcloud_api_key) != "<key>"
-    error_message   = "The ibmcloud_api_key is required and cannot be empty."
+    condition = var.powervs_api_key != "" && lower(var.powervs_api_key) != "<key>"
+    error_message   = "The powervs_api_key is required and cannot be empty."
   }
 }
 
-variable "cloud_resource_group" {
+variable "powervs_resource_group" {
   type        = string
   description = "The cloud instance resource group"
   default     = ""
 }
 
-variable "ibmcloud_region" {
+variable "powervs_region" {
   type        = string
   description = "The IBM Cloud region where you want to create the resources"
   default     = ""
 
   validation{
-    condition       = var.ibmcloud_region != "" && lower(var.ibmcloud_region) != "<region>"
-    error_message   = "The ibmcloud_region is required and cannot be empty."
+    condition       = var.powervs_region != "" && lower(var.powervs_region) != "<region>"
+    error_message   = "The powervs_region is required and cannot be empty."
   }
 }
 
