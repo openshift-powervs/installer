@@ -5,6 +5,8 @@ import (
     "os"
     "time"
 
+    survey "github.com/AlecAivazis/survey/v2"
+
 	"github.com/pkg/errors"
 
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
@@ -84,4 +86,20 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
     // @TOOD: query if region is multi-zone? or just pass through err... 
     // @TODO: pass through debug?
 	return ibmpisession.New(passwd,region, false, defSessionTimeout, id, zone)
+}
+
+func getUserCredentials() error {
+  var keyID string
+  err := survey.Ask([]*survey.Question{
+    {
+      Prompt: &survey.Input{
+        Message: "IBM Cloud API Key",
+        Help:    "The api key installation.\nhttps://cloud.ibm.com/iam/apikeys",
+      },
+    },
+  }, &keyID)
+  if err != nil {
+    return err
+  }
+  
 }
