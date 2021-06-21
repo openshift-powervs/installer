@@ -277,8 +277,8 @@ func TestPowerVSWorker(t *testing.T) {
 							PowerVS: &powervstypes.MachinePool{
 								ServiceInstance: "dummy-service-instance",
 								ImageID:         "dummy-image-id",
-								Networks:        []string{"dummy-network"},
-								KeyPair:         "dummy-keypair",
+								NetworkIDs:      []string{"dummy-network"},
+								KeyPairName:     "dummy-keypair",
 							},
 						},
 					},

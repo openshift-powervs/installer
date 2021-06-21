@@ -1388,6 +1388,10 @@ github.com/openshift/cluster-api-provider-openstack v0.0.0-20210302164104-849824
 github.com/openshift/cluster-api-provider-openstack v0.0.0-20210302164104-8498241fa4bd/go.mod h1:ONl4R7ziQtgnsBjR59fcZbOLjBEPVeZ69C1TPKevynw=
 github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210406154451-1ea59ab6b543 h1:rzPiPUccXtMbXuOlgIXU8Qhhn9zQpTLeuyDcOfZc2MA=
 github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210406154451-1ea59ab6b543/go.mod h1:PDoRQIKJb/XT14ebzBoNH0I6ZV2yA7G+jJCk1gCsXB0=
+github.com/openshift/cluster-api-provider-powervs v0.0.1 h1:pR6QsaAjE7xtdGkOQY9n6wdtUpyRPKLvmE7HLqza/jU=
+github.com/openshift/cluster-api-provider-powervs v0.0.1/go.mod h1:x5nYjnU1wbGljlwWJ8XYiyA9jgAZQkyoe2Y6HGwWyyM=
+github.com/openshift/cluster-api-provider-powervs v0.0.2-0.20210621075832-a5ccc9c865e7 h1:xSb1HWSXjLfZT9CR7nkaxiHL4EXFWQ7bqH+qcJhti94=
+github.com/openshift/cluster-api-provider-powervs v0.0.2-0.20210621075832-a5ccc9c865e7/go.mod h1:uVmfaEVW8m3dkvNqZY/Z071Ea8H++HpuZIO8kvYBKAg=
 github.com/openshift/cluster-autoscaler-operator v0.0.0-20190521201101-62768a6ba480/go.mod h1:/XmV44Fh28Vo3Ye93qFrxAbcFJ/Uy+7LPD+jGjmfJYc=
 github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3 h1:XuAys09+XqT5/FjdR23G/UtbBLII89dFe9XIi73EKIQ=
 github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3/go.mod h1:GDjWl0tX6FNIj82vIxeudWeSx2Ff6nDZ8uJn0ohUFvo=
@@ -1485,6 +1489,7 @@ github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSg
 github.com/posener/complete/v2 v2.0.1-alpha.12/go.mod h1://JlL91cS2JV7rOl6LVHrRqBXoBUecJu3ILQPgbJiMQ=
 github.com/posener/script v1.0.4/go.mod h1:Rg3ijooqulo05aGLyGsHoLmIOUzHUVK19WVgrYBPU/E=
 github.com/ppc64le-cloud/powervs-utils v0.0.0-20210106101518-5d3f965b0344/go.mod h1:KImYgHmvBVtAczNhyDBDSN54PGIdz0+QiPVQMmObEQY=
+github.com/ppc64le-cloud/powervs-utils v0.0.0-20210415051532-4cdd6a79c8fa/go.mod h1:KImYgHmvBVtAczNhyDBDSN54PGIdz0+QiPVQMmObEQY=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/pquerna/ffjson v0.0.0-20181028064349-e517b90714f7/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=

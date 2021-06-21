@@ -18,34 +18,34 @@ type MachinePool struct {
 	//
 	Memory int `json:"memory"`
 
-    // CPU defines the processing units for the instance.
+    // Processors defines the processing units for the instance.
     // @TODO: 
-	CPU float32 `json:"cpu"`
+	Processors float32 `json:"processors"`
 
-    // ProcShare defines the processor sharing model for the instance.
+    // ProcType defines the processor sharing model for the instance.
 	//
     // +optional
-    ProcShare string `json:"procShare"`
+	ProcType string `json:"procType"`
 
     // ImageID defines the ImageID for the instance.
 	//
 	// +optional (does this mean user-optional, or completely?)
     ImageID string `json:"imageID"`
 
-    // Networks defines the network IDs of the instance.
+    // NetworkIDs defines the network IDs of the instance.
 	//
 	// +optional
-    Networks []string `json:"networks"`
+	NetworkIDs []string `json:"networkIDs"`
 
-    // KeyPair defines the keypair name for instance.
+    // KeyPairName defines the keyPairName name for instance.
 	//
 	// +optional
-	KeyPair string `json:"keypair"`
+	KeyPairName string `json:"keyPairName"`
 
-	// SystemType defines the system type for instance.
+	// SysType defines the system type for instance.
 	//
 	// +optional
-	SystemType string `json:systemType"`
+	SysType string `json:sysType"`
 }
 
 
@@ -59,11 +59,11 @@ func (a *MachinePool) Set(required *MachinePool) {
 	if required.ServiceInstance != ""{
 		a.ServiceInstance = required.ServiceInstance
 	}
-	if required.KeyPair != ""{
-		a.KeyPair = required.KeyPair
+	if required.KeyPairName != ""{
+		a.KeyPairName = required.KeyPairName
 	}
-	if len(required.Networks) > 0 {
-		a.Networks = required.Networks
+	if len(required.NetworkIDs) > 0 {
+		a.NetworkIDs = required.NetworkIDs
 	}
 	// Sets values taken from passed MachinePool.
 	/*

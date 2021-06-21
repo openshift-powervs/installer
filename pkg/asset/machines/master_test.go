@@ -193,7 +193,7 @@ spec:
 	}
 }
 
-func TestPowerVSMaster(t *testing.T){
+func TestPowerVSMaster(t *testing.T) {
 	t.Log("Testing powerVS platform master")
 	parents := asset.Parents{}
 	parents.Add(
@@ -218,8 +218,8 @@ func TestPowerVSMaster(t *testing.T){
 						PowerVS: &powervstypes.MachinePool{
 							ServiceInstance: "dummy-service-instance",
 							ImageID:         "dummy-image-id",
-							Networks:        []string{"dummy-network"},
-							KeyPair:         "dummy-keypair",
+							NetworkIDs:      []string{"dummy-network"},
+							KeyPairName:     "dummy-keypair",
 						},
 					},
 				},
@@ -239,7 +239,7 @@ func TestPowerVSMaster(t *testing.T){
 	}
 
 	_, err := master.Machines()
-	if err != nil{
+	if err != nil {
 		t.Fatalf("failed to get master machine set: %v", err)
 	}
 }

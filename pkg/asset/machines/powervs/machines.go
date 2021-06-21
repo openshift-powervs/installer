@@ -62,23 +62,21 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 
 	//Setting only the mandatory parameters
 	config := &powervsprovider.PowerVSMachineProviderConfig{
-		TypeMeta:          metav1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "PowerVSMachineProviderConfig",
 			APIVersion: powervsprovider.GroupVersion.String(),
 		},
 		ObjectMeta:        metav1.ObjectMeta{},
-		Spec:              powervsprovider.PowerVSMachineProviderConfigSpec{},
-		Status:            powervsprovider.PowerVSMachineProviderConfigStatus{},
 		ServiceInstanceID: mpool.ServiceInstance,
 		ImageID:           mpool.ImageID,
 		UserDataSecret:    &corev1.LocalObjectReference{Name: userDataSecret},
 		CredentialsSecret: &corev1.LocalObjectReference{Name: "powervs-credentials-secret"},
-		MachineType:       mpool.SystemType, //TODO(Doubt): should we rename either of the variable for better understanding
-		ProcessorType:     mpool.ProcShare, //TODO(Doubt): should we rename either of the variable for better understanding
-		Cores:             fmt.Sprintf("%f", mpool.CPU), //TODO(Doubt): should we rename either of the variable for better understanding
+		SysType:           mpool.SysType,
+		ProcType:          mpool.ProcType,
+		Processors:        fmt.Sprintf("%f", mpool.Processors),
 		Memory:            fmt.Sprintf("%d", mpool.Memory),
-		Subnets:           mpool.Networks,
-		KeyName:           &mpool.KeyPair,
+		NetworkIDs:        mpool.NetworkIDs,
+		KeyPairName:       &mpool.KeyPairName,
 	}
 	return config, nil
 }
