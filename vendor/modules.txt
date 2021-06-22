@@ -558,7 +558,7 @@ github.com/go-openapi/runtime/middleware/untyped
 github.com/go-openapi/runtime/security
 # github.com/go-openapi/spec v0.19.9 => github.com/go-openapi/spec v0.19.4
 github.com/go-openapi/spec
-# github.com/go-openapi/strfmt v0.19.5
+# github.com/go-openapi/strfmt v0.19.10
 github.com/go-openapi/strfmt
 # github.com/go-openapi/swag v0.19.9
 github.com/go-openapi/swag
@@ -572,6 +572,8 @@ github.com/go-playground/universal-translator
 # github.com/go-playground/validator/v10 v10.2.0
 ## explicit
 github.com/go-playground/validator/v10
+# github.com/go-stack/stack v1.8.0
+github.com/go-stack/stack
 # github.com/gobuffalo/flect v0.2.0
 github.com/gobuffalo/flect
 # github.com/gofrs/uuid v3.2.0+incompatible
@@ -810,7 +812,7 @@ github.com/hashicorp/go-multierror
 ## explicit
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
-# github.com/hashicorp/go-retryablehttp v0.6.4
+# github.com/hashicorp/go-retryablehttp v0.6.6
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-safetemp v1.0.0
 github.com/hashicorp/go-safetemp
@@ -1213,6 +1215,10 @@ github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig
 ## explicit
 github.com/openshift/cluster-api-provider-ovirt/pkg/apis
 github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1
+# github.com/openshift/cluster-api-provider-powervs v0.0.2-0.20210621075832-a5ccc9c865e7
+## explicit
+github.com/openshift/cluster-api-provider-powervs/pkg/apis
+github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1
 # github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3
 github.com/openshift/custom-resource-status/conditions/v1
 # github.com/openshift/library-go v0.0.0-20201215165635-4ee79b1caed5
@@ -1796,9 +1802,10 @@ github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/set
 # github.com/zclconf/go-cty-yaml v1.0.2
 github.com/zclconf/go-cty-yaml
-# go.mongodb.org/mongo-driver v1.1.2
+# go.mongodb.org/mongo-driver v1.4.2
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
+go.mongodb.org/mongo-driver/bson/bsonoptions
 go.mongodb.org/mongo-driver/bson/bsonrw
 go.mongodb.org/mongo-driver/bson/bsontype
 go.mongodb.org/mongo-driver/bson/primitive
