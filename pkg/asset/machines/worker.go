@@ -159,7 +159,7 @@ func defaultKubevirtMachinePoolPlatform() kubevirttypes.MachinePool {
 func defaultPowerVSMachinePoolPlatform() powervstypes.MachinePool {
 	return powervstypes.MachinePool{
 		Memory:     32,
-		Processors: 0.25,
+		Processors: 0.5,
 		ProcType:   "shared",
 		SysType:    "s922",
 	}
