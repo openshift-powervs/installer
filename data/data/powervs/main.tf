@@ -111,12 +111,12 @@ data "ibm_is_subnet" "vpc_subnet" {
 module "loadbalancer" {
   source = "./loadbalancer"
 
-  cluster_id    = var.cluster_id
+  cluster_id    = var.powervs_cluster_id
   vpc_name      = var.powervs_vpc_name
   vpc_subnet_id = data.ibm_is_subnet.vpc_subnet.id
   bootstrap_ip  = module.bootstrap.bootstrap_ip
 
   # TODO add resources for master/controller
-  master_ips = {}
+  master_ips = []
 
 }
