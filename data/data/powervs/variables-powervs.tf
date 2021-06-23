@@ -76,6 +76,27 @@ variable "powervs_cos_storage_class" {
 }
 
 ################################################################
+# Configure storage
+################################################################
+variable "powervs_cos_instance_location" {
+    type        = string
+    description = "The location of your COS instance"
+    default     = "global"
+}
+
+variable "powervs_cos_bucket_location" {
+    type       = string
+    description = "The location to create your COS bucket"
+    default = "us-east"
+}
+
+variable "powervs_cos_storage_class" {
+    type        = string
+    description = "The plan used for your COS instance"
+    default     = "smart"
+}
+
+################################################################
 # Configure instances
 ################################################################
 variable "powervs_image_name" {
@@ -135,7 +156,7 @@ variable "powervs_bootstrap_ignition" {
   description = "Contents of ignition file used by the bootstrap node."
 }
 
-variable "proc_type" {
+variable "powervs_proc_type" {
   type        = string
   description = "The type of processor mode for all nodes (shared/dedicated)"
   default     = "shared"
