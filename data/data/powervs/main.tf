@@ -118,5 +118,15 @@ module "loadbalancer" {
 
   # TODO add resources for master/controller
   master_ips = []
+}
 
+
+module "dns" {
+  source = "./dns"
+
+  base_domain                = var.powervs_base_domain
+  cluster_id                 = var.powervs_cluster_id
+  cluster_domain             = var.powervs_cluster_domain
+  load_balancer_hostname     = module.loadbalancer.powervs_lb_hostname
+  load_balancer_int_hostname = module.loadbalancer.powervs_lb_int_hostname
 }
