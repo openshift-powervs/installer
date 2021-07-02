@@ -17,6 +17,12 @@ resource "ibm_pi_key" "cluster_key" {
   pi_cloud_instance_id = var.powervs_cloud_instance_id
 }
 
+resource "ibm_pi_key" "cluster_key" {
+  pi_key_name          = "${var.cluster_id}-key"
+  pi_ssh_key           = var.powervs_ssh_key
+  pi_cloud_instance_id = var.powervs_cloud_instance_id
+}
+
 module "bootstrap" {
   providers = {
     ibm = ibm.powervs
@@ -115,9 +121,7 @@ module "loadbalancer" {
   vpc_name      = var.powervs_vpc_name
   vpc_subnet_id = data.ibm_is_subnet.vpc_subnet.id
   bootstrap_ip  = module.bootstrap.bootstrap_ip
-
-  # TODO add resources for master/controller
-  master_ips = []
+  master_ips = module.master.master_ips
 }
 
 
