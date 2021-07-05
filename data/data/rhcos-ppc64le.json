@@ -44,6 +44,11 @@
             "sha256": "f29256fed1804d33b98d0178f17ae4fc54ea9473ec182efdd449f78782245591",
             "size": 902328320
         },
+	"powervs": {
+            "path": "rhcos-48.84.202105182221-0-powervs-ppc64le.ova",
+            "sha256": "02addcf3150a34ea76c8e5b86db3a78fd8925ce2ff7dd4507d8895d5dd139030",
+            "size": 2463334400
+	},
         "qemu": {
             "path": "rhcos-48.84.202105182221-0-qemu.ppc64le.qcow2.gz",
             "sha256": "6be7e4e037c21907195d73f3a8f0cab1b7edd891c452b8539d3f778f6bab981d",
@@ -57,5 +62,15 @@
         "image": "quay.io/openshift-release-dev/ocp-v4.0-art-dev"
     },
     "ostree-commit": "be4bcbb4ae3cfd25c4e12d567c790e606295e86b1fe528837d0eed83e58a315e",
-    "ostree-version": "48.84.202105182221-0"
+    "ostree-version": "48.84.202105182221-0",
+    "powervs": {
+	"us-east": {
+	    "url": "https://ocp-on-powervs-public-bucket-pubpublic.s3.direct.us-east.cloud-object-storage.appdomain.cloud/rhcos-48-83-202105181429-0.ova",
+	    "bucket": "ocp-on-powervs-public-bucket-pubpublic"
+	},
+	"eu-gb": {
+	    "url": "https://ocp-on-powervs-public-bucket-pubpublic.s3.direct.us-east.cloud-object-storage.appdomain.cloud/rhcos-48-83-202105181429-0.ova",
+	    "bucket": "ocp-on-powervs-public-bucket-pubpublic"
+	}
+    }
 }

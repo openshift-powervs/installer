@@ -1,25 +1,64 @@
 provider "ibm" {
-  ibmcloud_api_key = var.ibmcloud_api_key
-  region           = var.ibmcloud_region
-  zone             = var.ibmcloud_zone
+  ibmcloud_api_key      = var.ibmcloud_api_key
+  region                = var.ibmcloud_region
+  zone                  = var.ibmcloud_zone
+  iaas_classic_username = "apikey"
+  iaas_classic_api_key  = var.ibmcloud_api_key
+}
+
+resource "ibm_pi_key" "cluster_key" {
+  pi_key_name          = "${var.cluster_id}-key"
+  pi_ssh_key           = var.powervs_ssh_key
+  pi_cloud_instance_id = var.powervs_cloud_instance_id
 }
 
 module "bootstrap" {
   source            = "./bootstrap"
-  cloud_instance_id = var.cloud_instance_id
-  cluster_id        = var.cluster_id
+  cloud_instance_id = var.powervs_cloud_instance_id
+  cluster_id        = var.powervs_cluster_id
+  resource_group    = var.powervs_resource_group
 
-  bootstrap = var.bootstrap
-  sys_type  = var.sys_type
-  proc_type = var.proc_type
+  cos_instance_location = var.powervs_cos_instance_location
+  cos_bucket_location   = var.powervs_cos_bucket_location
+  cos_storage_class     = var.powervs_cos_storage_class
+
+  memory     = var.powervs_bootstrap_memory
+  processors = var.powervs_bootstrap_processors
+  ignition   = var.powervs_bootstrap_ignition
+  sys_type   = var.powervs_sys_type
+  proc_type  = var.powervs_proc_type
+  key_id     = ibm_pi_key.cluster_key.key_id
+
   # TODO(mjturek): image and network IDs are not derived during terraform
   #                for other providers. Need to investigate and follow how
   #                other providers do this. cnorman's branch has some work
   #                towards this already.
-
-  image_name   = var.image_name
-  network_name = var.network_name
+  image_name   = var.powervs_image_name
+  network_name = var.powervs_network_name
 }
+
+module "master" {
+  source            = "./master"
+  cloud_instance_id = var.powervs_cloud_instance_id
+  cluster_id        = var.powervs_cluster_id
+  resource_group    = var.powervs_resource_group
+  instance_count    = var.master_count
+
+  memory     = var.powervs_master_memory
+  processors = var.powervs_master_processors
+  ignition   = var.powervs_master_ignition
+  sys_type   = var.powervs_sys_type
+  proc_type  = var.powervs_proc_type
+  key_id     = ibm_pi_key.cluster_key.key_id
+
+  # TODO(mjturek): image and network IDs are not derived during terraform
+  #                for other providers. Need to investigate and follow how
+  #                other providers do this. cnorman's branch has some work
+  #                towards this already.
+  image_name   = var.powervs_image_name
+  network_name = var.powervs_network_name
+}
+
 
 data "ibm_is_subnet" "vpc_subnet" {
   name = var.powervs_vpc_subnet_name
@@ -28,12 +67,20 @@ data "ibm_is_subnet" "vpc_subnet" {
 module "loadbalancer" {
   source = "./loadbalancer"
 
-  cluster_id    = var.cluster_id
+  cluster_id    = var.powervs_cluster_id
   vpc_name      = var.powervs_vpc_name
   vpc_subnet_id = data.ibm_is_subnet.vpc_subnet.id
   bootstrap_ip  = module.bootstrap.bootstrap_ip
+  master_ips = module.master.master_ips
+}
 
-  # TODO add resources for master/controller
-  master_ips = {}
 
+module "dns" {
+  source = "./dns"
+
+  base_domain                = var.powervs_base_domain
+  cluster_id                 = var.powervs_cluster_id
+  cluster_domain             = var.powervs_cluster_domain
+  load_balancer_hostname     = module.loadbalancer.powervs_lb_hostname
+  load_balancer_int_hostname = module.loadbalancer.powervs_lb_int_hostname
 }
