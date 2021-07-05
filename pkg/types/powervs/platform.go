@@ -8,6 +8,9 @@ type Platform struct {
 	// Region specifies the IBM Cloud region where the cluster will be created.
 	Region string `json:"region"`
 
+	// Zone specifies the IBM Cloud zone where the cluster will be created
+	Zone string `json:"zone"`
+
 	// Subnets specifies existing subnets (by ID) where cluster
 	// resources will be created.  Leave unset to have the installer
 	// create subnets in a new VPC on your behalf.

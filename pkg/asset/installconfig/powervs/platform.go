@@ -51,7 +51,7 @@ func Platform() (*powervs.Platform, error) {
 		return nil, err
 	}
 
-	defaultRegionPointer := ssn.Config.Region
+	defaultRegionPointer := ssn.region
 	if defaultRegionPointer != nil && *defaultRegionPointer != "" {
 		if IsKnownRegion(*defaultRegionPointer) {
 			defaultRegion = *defaultRegionPointer
@@ -87,6 +87,16 @@ func Platform() (*powervs.Platform, error) {
 		return nil, err
 	}
 
+	zones := knownZones(region)
+	defaultZone := zones[0]
+
+	longZones := make([]string, 0, len(regions))
+        shortZones := make([]string, 0, len(regions))
+        for id, location := range regions {
+                longZones = append(longZones, fmt.Sprintf("%s (%s)", id, location))
+                shortZones = append(shortZones, id)
+        }
+	
         var zoneTransform survey.Transformer = func(ans interface{}) interface{} {
                 switch v := ans.(type) {
                 case core.OptionAnswer:
@@ -107,7 +117,7 @@ func Platform() (*powervs.Platform, error) {
 				Options: longZones,
 			},
 			Validate: survey.ComposeValidators(survey.Required, func(ans interface{}) error {
-				choice := zoneTransform(ans).(core.OptionAnser).Value
+				choice := zoneTransform(ans).(core.OptionAnswer).Value
 				i := sort.SearchStrings(shortZones, choice)
 				if i == len(shortRegions) || shortRegions[i] != choice {
 					return errors.Errorf("invalid zone %q", choice)
