@@ -156,7 +156,7 @@ data "ibm_is_subnet" "vpc_subnet" {
 module "loadbalancer" {
   source = "./loadbalancer"
 
-  cluster_id    = var.powervs_cluster_id
+  cluster_id    = var.cluster_id
   vpc_name      = var.powervs_vpc_name
   vpc_subnet_id = data.ibm_is_subnet.vpc_subnet.id
   bootstrap_ip  = module.bootstrap.bootstrap_ip
@@ -168,7 +168,7 @@ module "dns" {
   source = "./dns"
 
   base_domain                = var.powervs_base_domain
-  cluster_id                 = var.powervs_cluster_id
+  cluster_id                 = var.cluster_id
   cluster_domain             = var.powervs_cluster_domain
   load_balancer_hostname     = module.loadbalancer.powervs_lb_hostname
   load_balancer_int_hostname = module.loadbalancer.powervs_lb_int_hostname
