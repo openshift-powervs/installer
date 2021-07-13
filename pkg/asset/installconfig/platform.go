@@ -18,6 +18,7 @@ import (
 	openstackconfig "github.com/openshift/installer/pkg/asset/installconfig/openstack"
 	ovirtconfig "github.com/openshift/installer/pkg/asset/installconfig/ovirt"
 	vsphereconfig "github.com/openshift/installer/pkg/asset/installconfig/vsphere"
+	powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/aws"
 	"github.com/openshift/installer/pkg/types/azure"
@@ -29,6 +30,7 @@ import (
 	"github.com/openshift/installer/pkg/types/openstack"
 	"github.com/openshift/installer/pkg/types/ovirt"
 	"github.com/openshift/installer/pkg/types/vsphere"
+	"github.com/openshift/installer/pkg/types/powervs"
 )
 
 // Platform is an asset that queries the user for the platform on which to install
@@ -96,6 +98,11 @@ func (a *platform) Generate(asset.Parents) error {
 		}
 	case kubevirt.Name:
 		a.Kubevirt, err = kubevirtconfig.Platform()
+		if err != nil {
+			return err
+		}
+	case powervs.Name:
+		_, err = powervsconfig.Platform()
 		if err != nil {
 			return err
 		}

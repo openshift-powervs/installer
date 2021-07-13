@@ -8,7 +8,6 @@ import (
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/openshift/installer/pkg/types/powervs"
 )
@@ -41,24 +40,24 @@ func Platform() (*powervs.Platform, error) {
 
         // TODO(cklokman): We need to verify that us_south is the correct defaultRegion to use
         //
-	defaultRegion := "us_south"
+	defaultRegion := "us-south"
 	if !IsKnownRegion(defaultRegion) {
 		panic(fmt.Sprintf("installer bug: invalid default powervs region %q", defaultRegion))
 	}
 
-	ssn, err := GetSession()
+	_, err := GetSession()
 	if err != nil {
-		return nil, err
+	 	return nil, err
 	}
 
-	defaultRegionPointer := ssn.region
-	if defaultRegionPointer != nil && *defaultRegionPointer != "" {
-		if IsKnownRegion(*defaultRegionPointer) {
-			defaultRegion = *defaultRegionPointer
-		} else {
-			logrus.Warnf("Unrecognized powervs region %q, defaulting to %s", *defaultRegionPointer, defaultRegion)
-		}
-	}
+	// defaultRegionPointer := ssn.Region
+	// if defaultRegionPointer != nil && *defaultRegionPointer != "" {
+	// 	if IsKnownRegion(*defaultRegionPointer) {
+	//		defaultRegion = *defaultRegionPointer
+	//	} else {
+	//		logrus.Warnf("Unrecognized powervs region %q, defaulting to %s", *defaultRegionPointer, defaultRegion)
+	//	}
+	//}
 
 	sort.Strings(longRegions)
 	sort.Strings(shortRegions)
@@ -90,13 +89,6 @@ func Platform() (*powervs.Platform, error) {
 	zones := knownZones(region)
 	defaultZone := zones[0]
 
-	longZones := make([]string, 0, len(regions))
-        shortZones := make([]string, 0, len(regions))
-        for id, location := range regions {
-                longZones = append(longZones, fmt.Sprintf("%s (%s)", id, location))
-                shortZones = append(shortZones, id)
-        }
-	
         var zoneTransform survey.Transformer = func(ans interface{}) interface{} {
                 switch v := ans.(type) {
                 case core.OptionAnswer:
@@ -114,12 +106,12 @@ func Platform() (*powervs.Platform, error) {
 				Message: "Zone",
 				Help:    "The powervs zone within the region to be used for installation.",
 				Default: fmt.Sprintf("%s", defaultZone),
-				Options: longZones,
+				Options: zones,
 			},
 			Validate: survey.ComposeValidators(survey.Required, func(ans interface{}) error {
 				choice := zoneTransform(ans).(core.OptionAnswer).Value
-				i := sort.SearchStrings(shortZones, choice)
-				if i == len(shortRegions) || shortRegions[i] != choice {
+				i := sort.SearchStrings(zones, choice)
+				if i == len(zones) || zones[i] != choice {
 					return errors.Errorf("invalid zone %q", choice)
 				}
 				return nil
