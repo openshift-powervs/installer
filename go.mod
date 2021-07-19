@@ -12,7 +12,13 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-ntlmssp v0.0.0-20191115210519-2b2be6cc8ed4 // indirect
 	github.com/ChrisTrenkamp/goxpath v0.0.0-20190607011252-c5096ec8773d // indirect
+	github.com/IBM-Cloud/bluemix-go v0.0.0-20210611051827-cdc80c935c05 // indirect
 	github.com/IBM-Cloud/power-go-client v1.0.56
+	github.com/IBM-Cloud/terraform-provider-ibm v1.26.2
+	github.com/IBM/go-sdk-core/v5 v5.4.3 // indirect
+	github.com/IBM/networking-go-sdk v0.14.0 // indirect
+	github.com/IBM/platform-services-go-sdk v0.18.13 // indirect
+	github.com/IBM/vpc-go-sdk v1.0.1 // indirect
 	github.com/Netflix/go-expect v0.0.0-20190729225929-0e00d9168667 // indirect
 	github.com/antchfx/xpath v1.1.2 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0
@@ -26,13 +32,12 @@ require (
 	github.com/coreos/stream-metadata-go v0.0.0-20210225230131-70edb9eb47b3
 	github.com/dmacvicar/terraform-provider-libvirt v0.6.4-0.20201216193629-2b60d7626ff8
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/frankban/quicktest v1.7.2 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/google/martian v2.1.1-0.20190517191504-25dcb96d9e51+incompatible // indirect
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.2.0
 	github.com/gophercloud/gophercloud v0.17.0
 	github.com/gophercloud/utils v0.0.0-20210323225332-7b186010c04f
 	github.com/h2non/filetype v1.0.12
@@ -79,7 +84,7 @@ require (
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/terraform-provider-openstack/terraform-provider-openstack v1.37.0
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20200807230610-d5346d47e3af
 	github.com/terraform-providers/terraform-provider-azurerm v1.44.1-0.20200911233120-57b2bfc9d42c
@@ -90,7 +95,7 @@ require (
 	github.com/ulikunitz/xz v0.5.8
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	github.com/vmware/govmomi v0.24.0
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 	golang.org/x/mod v0.4.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
@@ -117,6 +122,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.57.0
+	github.com/IBM-Cloud/terraform-provider-ibm => github.com/openshift/terraform-provider-ibm v1.26.2-openshift-2
 	github.com/go-log/log => github.com/go-log/log v0.1.1-0.20181211034820-a514cf01a3eb // Pinned by MCO
 	github.com/hashicorp/terraform => github.com/openshift/terraform v0.12.20-openshift-4 // Pin to fork with deduplicated rpc types v0.12.20-openshift-4
 	github.com/hashicorp/terraform-plugin-sdk => github.com/openshift/hashicorp-terraform-plugin-sdk v1.14.0-openshift // Pin to fork with public rpc types
@@ -143,9 +149,12 @@ replace (
 // Prevent the following modules from upgrading version as result of terraform-provider-kubernetes module
 // The following modules need to be locked to compile correctly with terraform-provider-azure and terraform-provider-google
 replace (
+	github.com/IBM/vpc-go-sdk => github.com/IBM/vpc-go-sdk v0.7.0
 	github.com/apparentlymart/go-cidr => github.com/apparentlymart/go-cidr v1.0.1
 	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.32.3
+	github.com/go-openapi/errors => github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.4
+	github.com/go-openapi/validate => github.com/go-openapi/validate v0.19.8
 	github.com/hashicorp/go-plugin => github.com/hashicorp/go-plugin v1.2.2
 	github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.7
 	google.golang.org/api => google.golang.org/api v0.25.0

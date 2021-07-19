@@ -5,33 +5,18 @@ variable "ibmcloud_api_key" {
   type        = string
   description = "IBM Cloud API key associated with user's identity"
   default     = "<key>"
-
-  validation {
-    condition     = var.ibmcloud_api_key != "" && lower(var.ibmcloud_api_key) != "<key>"
-    error_message = "The ibmcloud_api_key is required and cannot be empty."
-  }
 }
 
 variable "ibmcloud_region" {
   type        = string
   description = "The IBM Cloud region where you want to create the resources"
   default     = ""
-
-  validation {
-    condition     = var.ibmcloud_region != "" && lower(var.ibmcloud_region) != "<region>"
-    error_message = "The ibmcloud_region is required and cannot be empty."
-  }
 }
 
 variable "ibmcloud_zone" {
   type        = string
   description = "The zone of an IBM Cloud region where you want to create Power System resources"
   default     = ""
-
-  validation {
-    condition     = var.ibmcloud_zone != "" && lower(var.ibmcloud_zone) != "<zone>"
-    error_message = "The ibmcloud_zone is required and cannot be empty."
-  }
 }
 
 variable "powervs_resource_group" {

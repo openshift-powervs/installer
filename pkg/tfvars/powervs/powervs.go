@@ -19,7 +19,9 @@ type config struct {
 	IBMCloud             `json:",inline"`
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
 	ImageID              string `json:"powervs_image_id"`
-	NetworkName          string `json:"powervs_network_ids"`
+	ImageName            string `json:"powervs_image_name`
+	NetworkIDs           []string `json:"powervs_network_ids`
+	NetworkName          string `json:"powervs_network_name"`
 	BootstrapMemory      string `json:"powervs_bootstrap_memory"`
 	BootstrapProcessors  string `json:"powervs_bootstrap_processors"`
 	MasterMemory         string `json:"powervs_master_memory"`
@@ -45,6 +47,9 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		IBMCloud:             sources.IBMCloud,
 		PowerVSResourceGroup: "powervs-ipi-resourcegroup",
 		ImageID:              masterConfig.ImageID,
+		ImageName:            "rhcos-48-05132021-tier1",
+		NetworkIDs:           masterConfig.NetworkIDs,
+		NetworkName:          "pvs-ipi-net",
 		BootstrapMemory:      masterConfig.Memory,
 		BootstrapProcessors:  masterConfig.Processors,
 		MasterMemory:         masterConfig.Memory,

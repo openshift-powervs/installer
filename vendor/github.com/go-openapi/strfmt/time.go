@@ -67,18 +67,23 @@ const (
 	ISO8601TimeWithReducedPrecision = "2006-01-02T15:04Z"
 	// ISO8601TimeWithReducedPrecisionLocaltime represents a ISO8601 format with reduced precision and no timezone (dropped seconds + no timezone)
 	ISO8601TimeWithReducedPrecisionLocaltime = "2006-01-02T15:04"
+	// ISO8601TimeUniversalSortableDateTimePattern represents a ISO8601 universal sortable date time pattern.
+	ISO8601TimeUniversalSortableDateTimePattern = "2006-01-02 15:04:05"
 	// DateTimePattern pattern to match for the date-time format from http://tools.ietf.org/html/rfc3339#section-5.6
 	DateTimePattern = `^([0-9]{2}):([0-9]{2}):([0-9]{2})(.[0-9]+)?(z|([+-][0-9]{2}:[0-9]{2}))$`
 )
 
 var (
 	rxDateTime = regexp.MustCompile(DateTimePattern)
+
 	// DateTimeFormats is the collection of formats used by ParseDateTime()
-	DateTimeFormats = []string{RFC3339Micro, RFC3339MicroNoColon, RFC3339Millis, RFC3339MillisNoColon, time.RFC3339, time.RFC3339Nano, ISO8601LocalTime, ISO8601TimeWithReducedPrecision, ISO8601TimeWithReducedPrecisionLocaltime}
+	DateTimeFormats = []string{RFC3339Micro, RFC3339MicroNoColon, RFC3339Millis, RFC3339MillisNoColon, time.RFC3339, time.RFC3339Nano, ISO8601LocalTime, ISO8601TimeWithReducedPrecision, ISO8601TimeWithReducedPrecisionLocaltime, ISO8601TimeUniversalSortableDateTimePattern}
+
 	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds)
 	MarshalFormat = RFC3339Millis
 
-	// NormalizeTimeForMarshal
+	// NormalizeTimeForMarshal provides a normalization function on time befeore marshalling (e.g. time.UTC).
+	// By default, the time value is not changed.
 	NormalizeTimeForMarshal = func(t time.Time) time.Time { return t }
 )
 
@@ -268,4 +273,9 @@ func (t *DateTime) UnmarshalBinary(data []byte) error {
 	*t = DateTime(original)
 
 	return nil
+}
+
+// Equal checks if two DateTime instances are equal using time.Time's Equal method
+func (t DateTime) Equal(t2 DateTime) bool {
+	return time.Time(t).Equal(time.Time(t2))
 }
