@@ -626,6 +626,11 @@ github.com/go-openapi/swag v0.19.7/go.mod h1:ao+8BpOPyKdpQz3AOJfbeEVpLmWAvlT1IfT
 github.com/go-openapi/swag v0.19.9/go.mod h1:ao+8BpOPyKdpQz3AOJfbeEVpLmWAvlT1IfTe5McPyhY=
 github.com/go-openapi/swag v0.19.14 h1:gm3vOOXfiuw5i9p5N9xJvfjvuofpyvLA9Wr6QfK5Fng=
 github.com/go-openapi/swag v0.19.14/go.mod h1:QYRuS/SOXUCsnplDa677K7+DxSOj6IPNl/eQntq43wQ=
+github.com/go-openapi/validate v0.18.0/go.mod h1:Uh4HdOzKt19xGIGm1qHf/ofbX1YQ4Y+MYsct2VUrAJ4=
+github.com/go-openapi/validate v0.19.2/go.mod h1:1tRCw7m3jtI8eNWEEliiAqUIcBztB2KDnRCRMUi7GTA=
+github.com/go-openapi/validate v0.19.3/go.mod h1:90Vh6jjkTn+OT1Eefm0ZixWNFjhtOH7vS9k0lo6zwJo=
+github.com/go-openapi/validate v0.19.5/go.mod h1:8DJv2CVJQ6kGNpFW6eV9N3JviE1C85nY1c2z52x1Gk4=
+github.com/go-openapi/validate v0.19.6/go.mod h1:8DJv2CVJQ6kGNpFW6eV9N3JviE1C85nY1c2z52x1Gk4=
 github.com/go-openapi/validate v0.19.8 h1:YFzsdWIDfVuLvIOF+ZmKjVg1MbPJ1QgY9PihMwei1ys=
 github.com/go-openapi/validate v0.19.8/go.mod h1:8DJv2CVJQ6kGNpFW6eV9N3JviE1C85nY1c2z52x1Gk4=
 github.com/go-playground/assert/v2 v2.0.1 h1:MsBgLAaY856+nPRTKrp3/OZK38U/wa0CcBYNjji3q3A=
@@ -1406,6 +1411,11 @@ github.com/opencontainers/runtime-spec v0.1.2-0.20190507144316-5b71a03e2700/go.m
 github.com/opencontainers/selinux v1.5.2/go.mod h1:yTcKuYAh6R95iDpefGLQaPaRwJFwyzAJufJyiTt7s0g=
 github.com/openshift-metal3/terraform-provider-ironic v0.2.6 h1:R48DOxq2z6NpFkRs/OHzbkWA8aLZMIXljMK2aq1VvbM=
 github.com/openshift-metal3/terraform-provider-ironic v0.2.6/go.mod h1:ux2W6gsCIYsY/fX5N0V0ZgwFEBNN7P8g6RlH6ACi97k=
+github.com/openshift-powervs/api v0.0.0-20210629204614-9530389b4a36 h1:mFAYEkF7fqheV7bq92/6Yxy08QlSUfw4IATLFzgBQ28=
+github.com/openshift-powervs/api v0.0.0-20210629204614-9530389b4a36/go.mod h1:izBmoXbUu3z5kUa4FjZhvekTsyzIWiOoaIgJiZBBMQs=
+github.com/openshift-powervs/api v0.0.0-20210729234416-b883aff9d9db h1:LUI17rrx7qfoDDbGb7AwBLK6UDYR60qJWI/wOBbO+2A=
+github.com/openshift-powervs/api v0.0.0-20210729234416-b883aff9d9db/go.mod h1:wf/SnvIX5Aq1NkALk26b2extjOGm3Q781gEgvr0+CDY=
+github.com/openshift/api v0.0.0-20191219222812-2987a591a72c/go.mod h1:dh9o4Fs58gpFXGSYfnVxGR9PnV53I8TW84pQaJDdGiY=
 github.com/openshift/api v0.0.0-20200326160804-ecb9283fe820/go.mod h1:RKMJ5CBnljLfnej+BJ/xnOWc3kZDvJUaIAEq2oKSPtE=
 github.com/openshift/api v0.0.0-20200424083944-0422dc17083e/go.mod h1:VnbEzX8SAaRj7Yfl836NykdQIlbEjfL6/CD+AaJQg5Q=
 github.com/openshift/api v0.0.0-20200827090112-c05698d102cf/go.mod h1:M3xexPhgM8DISzzRpuFUy+jfPjQPIcs9yqEYj17mXV8=
@@ -1429,6 +1439,7 @@ github.com/openshift/build-machinery-go v0.0.0-20200424080330-082bf86082cc/go.mo
 github.com/openshift/build-machinery-go v0.0.0-20200819073603-48aa266c95f7/go.mod h1:b1BuldmJlbA/xYtdZvKi+7j5YGB44qJUJDZ9zwiNCfE=
 github.com/openshift/build-machinery-go v0.0.0-20200917070002-f171684f77ab/go.mod h1:b1BuldmJlbA/xYtdZvKi+7j5YGB44qJUJDZ9zwiNCfE=
 github.com/openshift/build-machinery-go v0.0.0-20210209125900-0da259a2c359/go.mod h1:b1BuldmJlbA/xYtdZvKi+7j5YGB44qJUJDZ9zwiNCfE=
+github.com/openshift/build-machinery-go v0.0.0-20210423112049-9415d7ebd33e/go.mod h1:b1BuldmJlbA/xYtdZvKi+7j5YGB44qJUJDZ9zwiNCfE=
 github.com/openshift/build-machinery-go v0.0.0-20210712174854-1bb7fd1518d3/go.mod h1:b1BuldmJlbA/xYtdZvKi+7j5YGB44qJUJDZ9zwiNCfE=
 github.com/openshift/client-go v0.0.0-20200929181438-91d71ef2122c h1:DQTWW8DGRN7fu5qwEPcbdP9hAxXi7dm5cvi0hrdR3UE=
 github.com/openshift/client-go v0.0.0-20200929181438-91d71ef2122c/go.mod h1:MwESrlhzumQGcGtPCpz/WjDrlvhu1fMNlLBcNYjO0fY=
@@ -1458,6 +1469,10 @@ github.com/openshift/cluster-api-provider-openstack v0.0.0-20210302164104-849824
 github.com/openshift/cluster-api-provider-openstack v0.0.0-20210302164104-8498241fa4bd/go.mod h1:ONl4R7ziQtgnsBjR59fcZbOLjBEPVeZ69C1TPKevynw=
 github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210817084941-2262c7c6cece h1:w32C7hy52lkIpDvJqz/tRyYCIZmhE/8bSIVt+L0c9Mg=
 github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210817084941-2262c7c6cece/go.mod h1:lrKTKMpd3OERMlQgVJi6VKcE57EvtUORGSFIoE7BEAs=
+github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210622084102-c4f9f269bcb7 h1:kvgOB+332tlunQ7WtuF8T1shPBz2NI4/qyzMs7+bBo8=
+github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210622084102-c4f9f269bcb7/go.mod h1:XnfUsLLjdZcchZZk2LGluGDjggXQNyF2mHqVc20RBcI=
+github.com/openshift/cluster-api-provider-powervs v0.0.2-0.20210621075832-a5ccc9c865e7 h1:xSb1HWSXjLfZT9CR7nkaxiHL4EXFWQ7bqH+qcJhti94=
+github.com/openshift/cluster-api-provider-powervs v0.0.2-0.20210621075832-a5ccc9c865e7/go.mod h1:uVmfaEVW8m3dkvNqZY/Z071Ea8H++HpuZIO8kvYBKAg=
 github.com/openshift/cluster-autoscaler-operator v0.0.0-20190521201101-62768a6ba480/go.mod h1:/XmV44Fh28Vo3Ye93qFrxAbcFJ/Uy+7LPD+jGjmfJYc=
 github.com/openshift/hashicorp-terraform-plugin-sdk v1.14.0-openshift h1:CuH9qNELLH3y0QoSaLchdG+7We75AO4kNBy6P3+oLug=
 github.com/openshift/hashicorp-terraform-plugin-sdk v1.14.0-openshift/go.mod h1:t62Xy+m7Zjq5tA2vrs8Wuo/TQ0sc9Mx9MjXL3+7MHBQ=
