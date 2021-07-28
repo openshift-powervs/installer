@@ -18,6 +18,7 @@ resource "ibm_pi_key" "cluster_key" {
 }
 
 resource "ibm_pi_key" "cluster_key" {
+  provider = "ibm.powervs"
   pi_key_name          = "${var.cluster_id}-key"
   pi_ssh_key           = var.powervs_ssh_key
   pi_cloud_instance_id = var.powervs_cloud_instance_id
@@ -115,6 +116,9 @@ data "ibm_is_subnet" "vpc_subnet" {
 }
 
 module "loadbalancer" {
+  providers = {
+    ibm = "ibm.vpc"
+  }
   source = "./loadbalancer"
 
   cluster_id    = var.cluster_id
@@ -126,6 +130,9 @@ module "loadbalancer" {
 
 
 module "dns" {
+  providers = {
+    ibm = "ibm.vpc"
+  }
   source = "./dns"
 
   base_domain                = var.powervs_base_domain
