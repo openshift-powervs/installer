@@ -8,6 +8,9 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 // +kubebuilder:subresource:status
 
 // Infrastructure holds cluster-wide information about Infrastructure.  The canonical name is `cluster`
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type Infrastructure struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -85,6 +88,7 @@ type InfrastructureStatus struct {
 	// The 'External' mode indicates that the control plane is hosted externally to the cluster and that
 	// its components are not visible within the cluster.
 	// +kubebuilder:default=HighlyAvailable
+	// +kubebuilder:validation:Enum=HighlyAvailable;SingleReplica;External
 	ControlPlaneTopology TopologyMode `json:"controlPlaneTopology"`
 
 	// infrastructureTopology expresses the expectations for infrastructure services that do not run on control
@@ -93,12 +97,16 @@ type InfrastructureStatus struct {
 	// The default is 'HighlyAvailable', which represents the behavior operators have in a "normal" cluster.
 	// The 'SingleReplica' mode will be used in single-node deployments
 	// and the operators should not configure the operand for highly-available operation
+	// NOTE: External topology mode is not applicable for this field.
 	// +kubebuilder:default=HighlyAvailable
+	// +kubebuilder:validation:Enum=HighlyAvailable;SingleReplica
 	InfrastructureTopology TopologyMode `json:"infrastructureTopology"`
 }
 
 // TopologyMode defines the topology mode of the control/infra nodes.
-// +kubebuilder:validation:Enum=HighlyAvailable;SingleReplica;External
+// NOTE: Enum validation is specified in each field that uses this type,
+// given that External value is not applicable to the InfrastructureTopology
+// field.
 type TopologyMode string
 
 const (
@@ -116,7 +124,7 @@ const (
 )
 
 // PlatformType is a specific supported infrastructure provider.
-// +kubebuilder:validation:Enum="";AWS;Azure;BareMetal;GCP;Libvirt;OpenStack;None;VSphere;oVirt;IBMCloud;KubeVirt;EquinixMetal
+// +kubebuilder:validation:Enum="";AWS;Azure;BareMetal;GCP;Libvirt;OpenStack;None;VSphere;oVirt;IBMCloud;KubeVirt;EquinixMetal;PowerVS
 type PlatformType string
 
 const (
@@ -180,9 +188,9 @@ type PlatformSpec struct {
 	// balancers, dynamic volume provisioning, machine creation and deletion, and
 	// other integrations are enabled. If None, no infrastructure automation is
 	// enabled. Allowed values are "AWS", "Azure", "BareMetal", "GCP", "Libvirt",
-	// "OpenStack", "VSphere", "oVirt", "KubeVirt", "EquinixMetal", and "None". Individual components may not support
-	// all platforms, and must handle unrecognized platforms as None if they do
-	// not support that platform.
+	// "OpenStack", "VSphere", "oVirt", "KubeVirt", "EquinixMetal", "PowerVS", and "None".
+	// Individual components may not support all platforms, and must handle unrecognized
+	// platforms as None if they do not support that platform.
 	//
 	// +unionDiscriminator
 	Type PlatformType `json:"type"`
@@ -240,9 +248,9 @@ type PlatformStatus struct {
 	// balancers, dynamic volume provisioning, machine creation and deletion, and
 	// other integrations are enabled. If None, no infrastructure automation is
 	// enabled. Allowed values are "AWS", "Azure", "BareMetal", "GCP", "Libvirt",
-	// "OpenStack", "VSphere", "oVirt", "EquinixMetal", and "None". Individual components may not support
-	// all platforms, and must handle unrecognized platforms as None if they do
-	// not support that platform.
+	// "OpenStack", "VSphere", "oVirt", "EquinixMetal", "PowerVS", and "None".
+	// Individual components may not support all platforms, and must handle unrecognized
+	// platforms as None if they do not support that platform.
 	//
 	// This value will be synced with to the `status.platform` and `status.platformStatus.type`.
 	// Currently this value cannot be changed once set.
@@ -272,8 +280,7 @@ type PlatformStatus struct {
 	// +optional
 	Ovirt *OvirtPlatformStatus `json:"ovirt,omitempty"`
 
-	// PowerVS contains settings specific to the Power Systems Virtual Server infrastructure
-	// provider, which is an offering inside of IBM Cloud.
+	// PowerVS contains settings specific to the IBM Power Systems Virtual Server infrastructure.
 	// +optional
 	PowerVS *PowerVSPlatformStatus `json:"powervs,omitempty"`
 
@@ -579,8 +586,7 @@ type EquinixMetalPlatformStatus struct {
 // PowervsServiceEndpoint store the configuration of a custom url to
 // override existing defaults of PowerVS Services.
 type PowerVSServiceEndpoint struct {
-	// name is the name of the PowerVS service.
-	// The list of all the service names can be found at https://cloud.ibm.com/docs/vpc?topic=vpc-service-endpoints-for-vpc
+	// Name is the name of the Power VS services.
 	// Note that not all locations incude Power VS.
 	//
 	// +kubebuilder:validation:Pattern=`^[a-z0-9-]+$`
@@ -596,14 +602,7 @@ type PowerVSServiceEndpoint struct {
 
 // PowerVSPlatformSpec holds the desired state of the Power Systems Virtual Servers infrastructure provider.
 // This only includes fields that can be modified in the cluster.
-type PowerVSPlatformSpec struct {
-	// serviceEndpoints list contains custom endpoints which will override default
-	// service endpoint of PowerVS Services.
-	// There must be only one ServiceEndpoint for a service.
-	// +optional
-	// @TODO: Should this be a list, or would we only allow one?
-	ServiceEndpoints []PowerVSServiceEndpoint `json:"serviceEndpoints,omitempty"`
-}
+type PowerVSPlatformSpec struct{}
 
 // PowerVSPlatformStatus holds the current status of the Power VS infrastructure provider.
 type PowerVSPlatformStatus struct {
@@ -623,6 +622,9 @@ type PowerVSPlatformStatus struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureList is
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type InfrastructureList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`

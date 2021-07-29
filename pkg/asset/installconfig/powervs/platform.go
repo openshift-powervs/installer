@@ -132,3 +132,16 @@ func Platform() (*powervs.Platform, error) {
 
 	return &p, nil
 }
+
+//ValidateAccountPermissions function validates account type and returns error
+func ValidateAccountPermissions(client *Client) error {
+	accType, err := client.GetAccountType()
+	if err != nil {
+		return err
+	}
+
+	if accType == "TRIAL" {
+		return fmt.Errorf("Provided account is Trial account")
+	}
+	return nil
+}
