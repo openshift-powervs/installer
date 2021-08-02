@@ -26,7 +26,7 @@ type Session struct {
 }
 
 type UserCredentials struct {
-        ApiKey string
+        APIKey string
         UserID string
 }
 // GetSession returns an IBM Cloud session by using credentials found in default locations in order:
@@ -62,7 +62,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 	var (
 		id, passwd, apikey, region, zone string
 	)
-
+	
 	if id = os.Getenv("IBMID"); len(id) == 0 {
 		err := survey.Ask([]*survey.Question{
 			{
@@ -73,7 +73,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 			},
 		}, &id)
 		if err != nil {
-			return nil, nil, errors.New("empty IBMID environment variable")
+			return nil, nil, errors.New("Error saving the IBMID variable")
 		}
 	}
 	if passwd = os.Getenv("IBMID_PASSWORD"); len(passwd) == 0 {
@@ -86,7 +86,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
                         },
                 }, &passwd)
                 if err != nil {
-                        return nil, nil, errors.New("empty IBMID_PASSWORD environment variable")
+                        return nil, nil, errors.New("Error saving the IBMID_PASSWORD variable")
                 }
         }
         if apikey = os.Getenv("API_KEY"); len(apikey) == 0 {
@@ -99,7 +99,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
                         },
                 }, &apikey)
                 if err != nil {
-                        return nil, nil, errors.New("empty API_KEY environment variable")
+                        return nil, nil, errors.New("Error saving the API_KEY variable")
                 }
         }
         
@@ -121,6 +121,6 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 	// @TOOD: query if region is multi-zone? or just pass through err...
 	// @TODO: pass through debug?
 	s, err := ibmpisession.New(passwd, region, false, defSessionTimeout, id, zone)
-	uc     := &UserCredentials{UserID: id, ApiKey: apikey}
+	uc     := &UserCredentials{UserID: id, APIKey: apikey}
 	return s, uc, err
 }

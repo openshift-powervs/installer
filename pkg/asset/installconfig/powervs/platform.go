@@ -45,7 +45,7 @@ func Platform() (*powervs.Platform, error) {
 
 	var region string
 
-	sessionRegion := ssn.session.Region
+	sessionRegion := ssn.Session.Region
 	if sessionRegion != "" {
 		if IsKnownRegion( sessionRegion ) {
 			region = sessionRegion
@@ -120,7 +120,7 @@ func Platform() (*powervs.Platform, error) {
 	return &powervs.Platform{
 		Region: region,
                 Zone:   zone,
-		ApiKey: ssn.Creds.ApiKey,
-		UserID: ssn.Creds.UserID
+		APIKey: ssn.Creds.APIKey,
+		UserID: ssn.Creds.UserID,
 	}, nil
 }

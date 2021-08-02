@@ -12,7 +12,7 @@ type Platform struct {
 	Zone string `json:"zone"`
 
 	UserID string `json:"userid"`
-	ApiKey string `json:"apikey"`
+	APIKey string `json:"apikey"`
 
 	// Subnets specifies existing subnets (by ID) where cluster
 	// resources will be created.  Leave unset to have the installer
