@@ -18,8 +18,8 @@ import (
 	libvirtconfig "github.com/openshift/installer/pkg/asset/installconfig/libvirt"
 	openstackconfig "github.com/openshift/installer/pkg/asset/installconfig/openstack"
 	ovirtconfig "github.com/openshift/installer/pkg/asset/installconfig/ovirt"
-	vsphereconfig "github.com/openshift/installer/pkg/asset/installconfig/vsphere"
 	powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
+	vsphereconfig "github.com/openshift/installer/pkg/asset/installconfig/vsphere"
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/aws"
 	"github.com/openshift/installer/pkg/types/azure"
@@ -31,8 +31,8 @@ import (
 	"github.com/openshift/installer/pkg/types/none"
 	"github.com/openshift/installer/pkg/types/openstack"
 	"github.com/openshift/installer/pkg/types/ovirt"
-	"github.com/openshift/installer/pkg/types/vsphere"
 	"github.com/openshift/installer/pkg/types/powervs"
+	"github.com/openshift/installer/pkg/types/vsphere"
 )
 
 // Platform is an asset that queries the user for the platform on which to install
