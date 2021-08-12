@@ -156,7 +156,7 @@ data "ibm_is_subnet" "vpc_subnet" {
 
 module "loadbalancer" {
   providers = {
-    ibm = "ibm.vpc"
+    ibm = ibm.vpc
   }
   source = "./loadbalancer"
 
@@ -171,7 +171,7 @@ module "loadbalancer" {
 
 module "dns" {
   providers = {
-    ibm = "ibm.vpc"
+    ibm = ibm.vpc
   }
   source = "./dns"
 
