@@ -25,7 +25,7 @@ type Session struct {
 	Creds   *UserCredentials
 }
 
-// UserCredentials is an object representing the credentials used for IBM Power VS during 
+// UserCredentials is an object representing the credentials used for IBM Power VS during
 // the creation of the install_config.yaml
 type UserCredentials struct {
 	APIKey string

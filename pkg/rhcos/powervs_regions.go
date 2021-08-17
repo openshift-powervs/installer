@@ -1,4 +1,5 @@
 package rhcos
+
 // TODO(cklokman): This entire file should be programatically generated similar to aws
 
 // PowerVSZones holds the zones cooresponding to each region found in PowerVS Regions
