@@ -51,7 +51,7 @@ func Platform() (*powervs.Platform, error) {
 		if IsKnownRegion(sessionRegion) {
 			region = sessionRegion
 		} else {
-			logrus.Warnf("Unrecognized Power VS region %s, ignoring sessionRegion", sessionRegion)
+			logrus.Warnf("Unrecognized Power VS region %s, ignoring IC_REGION", sessionRegion)
 		}
 	}
 
@@ -62,7 +62,7 @@ func Platform() (*powervs.Platform, error) {
 			{
 				Prompt: &survey.Select{
 					Message: "Region",
-					Help:    "The PowerVS region to be used for installation.",
+					Help:    "The Power VS region to be used for installation.",
 					// Default: fmt.Sprintf("%s (%s)", defaultRegion, regions[defaultRegion]),
 					Options: longRegions,
 				},
