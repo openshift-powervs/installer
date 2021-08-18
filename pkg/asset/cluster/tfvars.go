@@ -654,10 +654,11 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 
 		data, err = powervstfvars.TFVars(
 			powervstfvars.TFVarsSources{
-				MasterConfigs: masterConfigs,
-				PowerVSRegion: session.Session.Region,
-				APIKey:        session.Session.IAMToken,
-				SSHKey:        installConfig.Config.SSHKey,
+				MasterConfigs:  masterConfigs,
+				PowerVSRegion:  session.Session.Region,
+				APIKey:         session.Session.IAMToken,
+				SSHKey:         installConfig.Config.SSHKey,
+				CISInstanceCRN: installConfig.Config.Platform.PowerVS.CISInstanceCRN,
 			},
 		)
 		if err != nil {

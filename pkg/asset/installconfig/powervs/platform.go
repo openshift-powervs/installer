@@ -119,6 +119,19 @@ func Platform() (*powervs.Platform, error) {
 		return nil, err
 	}
 
+	var cisInstanceCRN string
+	err = survey.Ask([]*survey.Question{
+		{
+			Prompt: &survey.Input{
+				Message: "CIS Instance CRN",
+				Help:    "The CRN of the CIS Instance containing the base domain you want to use.",
+			},
+		},
+	}, &cisInstanceCRN)
+	if err != nil {
+		return nil, err
+	}
+
 	var p powervs.Platform
 	if osOverride := os.Getenv("OPENSHIFT_INSTALL_OS_IMAGE_OVERRIDE"); len(osOverride) != 0 {
 		p.BootstrapOSImage = osOverride
@@ -127,6 +140,7 @@ func Platform() (*powervs.Platform, error) {
 
 	p.Region = region
 	p.Zone = zone
+	p.CISInstanceCRN = cisInstanceCRN
 	p.APIKey = ssn.Creds.APIKey
 	p.UserID = ssn.Creds.UserID
 

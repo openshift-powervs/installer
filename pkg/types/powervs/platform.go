@@ -11,6 +11,9 @@ type Platform struct {
 	// Required for multi-zone regions.
 	Zone string `json:"zone"`
 
+	// CRN of CIS Instance containing base domain
+	CISInstanceCRN string `json:"cis_crn"`
+
 	UserID string `json:"userid"`
 	APIKey string `json:"apikey"`
 
