@@ -1444,6 +1444,8 @@ github.com/openshift-powervs/api v0.0.0-20210629204614-9530389b4a36 h1:mFAYEkF7f
 github.com/openshift-powervs/api v0.0.0-20210629204614-9530389b4a36/go.mod h1:izBmoXbUu3z5kUa4FjZhvekTsyzIWiOoaIgJiZBBMQs=
 github.com/openshift-powervs/api v0.0.0-20210729234416-b883aff9d9db h1:LUI17rrx7qfoDDbGb7AwBLK6UDYR60qJWI/wOBbO+2A=
 github.com/openshift-powervs/api v0.0.0-20210729234416-b883aff9d9db/go.mod h1:wf/SnvIX5Aq1NkALk26b2extjOGm3Q781gEgvr0+CDY=
+github.com/openshift-powervs/api v0.0.0-20210819212007-9fa84e9963cd h1:3tzi1L2wkJsiq+DVAZs+7pepk1l8fGv2XXNQyNCJ5nU=
+github.com/openshift-powervs/api v0.0.0-20210819212007-9fa84e9963cd/go.mod h1:wf/SnvIX5Aq1NkALk26b2extjOGm3Q781gEgvr0+CDY=
 github.com/openshift/api v0.0.0-20191219222812-2987a591a72c/go.mod h1:dh9o4Fs58gpFXGSYfnVxGR9PnV53I8TW84pQaJDdGiY=
 github.com/openshift/api v0.0.0-20200326160804-ecb9283fe820/go.mod h1:RKMJ5CBnljLfnej+BJ/xnOWc3kZDvJUaIAEq2oKSPtE=
 github.com/openshift/api v0.0.0-20200424083944-0422dc17083e/go.mod h1:VnbEzX8SAaRj7Yfl836NykdQIlbEjfL6/CD+AaJQg5Q=
