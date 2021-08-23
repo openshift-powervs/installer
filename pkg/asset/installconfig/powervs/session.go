@@ -2,18 +2,17 @@ package powervs
 
 import (
 	"fmt"
-	"sort"
 	"os"
-	"time"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
-        "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	survey "github.com/AlecAivazis/survey/v2"
-        "github.com/AlecAivazis/survey/v2/core"
+	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
-	
 )
 
 var (
@@ -26,8 +25,8 @@ var (
 
 // Session is an object representing a session for the IBM Power VS API.
 type Session struct {
-	Session *ibmpisession.IBMPISession
-	Creds   *UserCredentials
+	Session    *ibmpisession.IBMPISession
+	Creds      *UserCredentials
 	OsOverride string
 }
 
@@ -57,65 +56,65 @@ type UserCredentials struct {
 func GetSession() (*Session, error) {
 	region, zone, err := getRegionInfo()
 	if err != nil {
-                return nil, errors.Wrap(err, "failed to get region info")
-        }
-	
+		return nil, errors.Wrap(err, "failed to get region info")
+	}
+
 	uc, err := getUserCreds()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load credentials")
 	}
 
-        s, err := getPISession( region, zone, uc )
+	s, err := getPISession(region, zone, uc)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create ")
 	}
-        
+
 	oso := os.Getenv("OPENSHIFT_INSTALL_OS_IMAGE_OVERRIDE")
 
 	return &Session{Session: s, Creds: uc, OsOverride: oso}, nil
 }
 
-func getUserCreds()  (*UserCredentials, error) {
+func getUserCreds() (*UserCredentials, error) {
 	var apikey, id string
 	var err error
-	
+
 	if id = os.Getenv("IBMID"); len(id) == 0 {
-                err = survey.Ask([]*survey.Question{
-                        {
-                                Prompt: &survey.Input{
-                                        Message: "IBM Cloud User ID",
-                                        Help:    "The login for \nhttps://cloud.ibm.com/",
-                                },
-                        },
-                }, &id)
-                if err != nil {
-                        return nil, errors.New("Error saving the IBMID variable")
-                }
-        }
-	
-        if apikey = os.Getenv("API_KEY"); len(apikey) == 0 {
-                err = survey.Ask([]*survey.Question{
-                        {
-                                Prompt: &survey.Password{
-                                        Message: "IBM Cloud API Key",
-                                        Help:    "The api key installation.\nhttps://cloud.ibm.com/iam/apikeys",
-                                },
-                        },
-                }, &apikey)
-                if err != nil {
-                        return nil, errors.New("Error saving the API_KEY variable")
-                }
-        }
-	
+		err = survey.Ask([]*survey.Question{
+			{
+				Prompt: &survey.Input{
+					Message: "IBM Cloud User ID",
+					Help:    "The login for \nhttps://cloud.ibm.com/",
+				},
+			},
+		}, &id)
+		if err != nil {
+			return nil, errors.New("Error saving the IBMID variable")
+		}
+	}
+
+	if apikey = os.Getenv("API_KEY"); len(apikey) == 0 {
+		err = survey.Ask([]*survey.Question{
+			{
+				Prompt: &survey.Password{
+					Message: "IBM Cloud API Key",
+					Help:    "The api key installation.\nhttps://cloud.ibm.com/iam/apikeys",
+				},
+			},
+		}, &apikey)
+		if err != nil {
+			return nil, errors.New("Error saving the API_KEY variable")
+		}
+	}
+
 	uc := &UserCredentials{UserID: id, APIKey: apikey}
 
-	return uc, err	
+	return uc, err
 }
 
 /*
 //  https://github.com/IBM-Cloud/power-go-client/blob/master/ibmpisession/ibmpowersession.go
 */
-func getPISession( region string, zone string, uc *UserCredentials ) (*ibmpisession.IBMPISession, error) {
+func getPISession(region string, zone string, uc *UserCredentials) (*ibmpisession.IBMPISession, error) {
 
 	// @TOOD: query if region is multi-zone? or just pass through err...
 	// @TODO: pass through debug?
@@ -130,7 +129,7 @@ func getPISession( region string, zone string, uc *UserCredentials ) (*ibmpisess
 func getRegionInfo() (string, string, error) {
 	var region, sessionRegion, zone, sessionZone string
 	var err error
-	
+
 	// -------------------------
 	// Region
 	// -------------------------
@@ -213,12 +212,12 @@ func getRegionInfo() (string, string, error) {
 	sessionZone = os.Getenv("IBMCLOUD_ZONE")
 
 	if len(sessionZone) > 0 {
-                if IsKnownZone(region, sessionZone) {
-                        zone = sessionZone
-                } else {
-                        logrus.Warnf("Unrecognized Power VS zone %s, ignoring IBMCLOUD_ZONE", sessionZone)
-                }
-        }
+		if IsKnownZone(region, sessionZone) {
+			zone = sessionZone
+		} else {
+			logrus.Warnf("Unrecognized Power VS zone %s, ignoring IBMCLOUD_ZONE", sessionZone)
+		}
+	}
 
 	// Prompt the user if zone was not found in the current enviornment context
 	if zone == "" {
@@ -258,6 +257,6 @@ func getRegionInfo() (string, string, error) {
 			return "", "", err
 		}
 	}
-	
+
 	return region, zone, err
 }
