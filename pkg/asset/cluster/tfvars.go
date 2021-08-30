@@ -656,7 +656,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			powervstfvars.TFVarsSources{
 				MasterConfigs: masterConfigs,
 				PowerVSRegion: session.Session.Region,
-				APIKey:        session.Session.IAMToken,
+				APIKey:        session.Creds.APIKey,
 				SSHKey:        installConfig.Config.SSHKey,
 			},
 		)
