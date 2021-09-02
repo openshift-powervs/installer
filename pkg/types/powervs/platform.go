@@ -14,6 +14,9 @@ type Platform struct {
 	UserID string `json:"userid"`
 	APIKey string `json:"apikey"`
 
+	DNSDomainName   string `json:"dnsdomainname"`
+	CISInstanceCRN  string `json:"cisinstancecrn"`
+	ResourceGroupID string `json:"resourcegroupid"`
 	// Subnets specifies existing subnets (by ID) where cluster
 	// resources will be created.  Leave unset to have the installer
 	// create subnets in a new VPC on your behalf.

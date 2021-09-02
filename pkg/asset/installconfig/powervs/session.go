@@ -9,6 +9,8 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
+
+	icibmcloud "github.com/openshift/installer/pkg/asset/installconfig/ibmcloud"
 )
 
 var (
@@ -23,6 +25,7 @@ var (
 type Session struct {
 	Session *ibmpisession.IBMPISession
 	Creds   *UserCredentials
+	Zone    *icibmcloud.Zone
 }
 
 // UserCredentials is an object representing the credentials used for IBM Power VS during
@@ -53,8 +56,12 @@ func GetSession() (*Session, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load credentials")
 	}
-
-	return &Session{Session: s, Creds: uc}, nil
+	os.Setenv("IC_API_KEY", uc.APIKey)
+	zone, err := icibmcloud.GetDNSZone()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get dns zone")
+	}
+	return &Session{Session: s, Creds: uc, Zone: zone}, nil
 }
 
 /*

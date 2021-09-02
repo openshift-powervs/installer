@@ -130,5 +130,9 @@ func Platform() (*powervs.Platform, error) {
 	p.APIKey = ssn.Creds.APIKey
 	p.UserID = ssn.Creds.UserID
 
+	p.DNSDomainName = ssn.Zone.Name
+	p.CISInstanceCRN = ssn.Zone.CISInstanceCRN
+	p.ResourceGroupID = ssn.Zone.ResourceGroupID
+
 	return &p, nil
 }
