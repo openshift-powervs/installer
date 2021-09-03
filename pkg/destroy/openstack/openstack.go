@@ -644,6 +644,46 @@ func clearRouterInterfaces(opts *clientconfig.ClientOpts, filter Filter, logger 
 	tags := filterTags(filter)
 	networkListOpts := networks.ListOpts{
 		Tags: strings.Join(tags, ","),
+=======
+
+		allPagesPort, err := ports.List(conn, portListOpts).AllPages()
+		if err != nil {
+			logger.Error(err)
+			return routerPorts, nil
+		}
+
+		routerPorts, err = ports.ExtractPorts(allPagesPort)
+		if err != nil {
+			logger.Error(err)
+			return routerPorts, nil
+		}
+
+		if len(routerPorts) != 0 {
+			logger.Debugf("Found Port %q connected to Router", routerPorts[0].ID)
+			return routerPorts, nil
+		}
+	}
+	return routerPorts, nil
+}
+
+func clearRouterInterfaces(opts *clientconfig.ClientOpts, filter Filter, logger logrus.FieldLogger) (bool, error) {
+	logger.Debugf("Removing interfaces from router")
+	defer logger.Debug("Exiting removal of interfaces from router")
+	conn, err := clientconfig.NewServiceClient("network", opts)
+	if err != nil {
+		logger.Error(err)
+		return false, nil
+	}
+
+	// Find the machines Network by the master machines Ports.
+	// Any worker nodes ports, including the ones used for additionalNetworks,
+	// are tagged with cluster-api-provider-openstack and should be excluded
+	// to ensure only the primary Network ports are filtered.
+	tags := filterTags(filter)
+	networkListOpts := networks.ListOpts{
+		Tags:    strings.Join(tags, ","),
+		NotTags: "cluster-api-provider-openstack",
+>>>>>>> ceed48e85 (Bug 1993364: openstack/destroy: fix Kuryr/BYON)
 	}
 
 	allNetworksPages, err := networks.List(conn, networkListOpts).AllPages()
