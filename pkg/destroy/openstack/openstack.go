@@ -644,7 +644,6 @@ func clearRouterInterfaces(opts *clientconfig.ClientOpts, filter Filter, logger 
 	tags := filterTags(filter)
 	networkListOpts := networks.ListOpts{
 		Tags: strings.Join(tags, ","),
-=======
 
 		allPagesPort, err := ports.List(conn, portListOpts).AllPages()
 		if err != nil {
