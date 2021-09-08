@@ -20,6 +20,8 @@ import (
 	libvirtprovider "github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1"
 	ovirtproviderapi "github.com/openshift/cluster-api-provider-ovirt/pkg/apis"
 	ovirtprovider "github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1"
+	powervsapi "github.com/openshift/cluster-api-provider-powervs/pkg/apis"
+	powervsprovider "github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 	machineapi "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
 	vsphereapi "github.com/openshift/machine-api-operator/pkg/apis/vsphereprovider"
 	vsphereprovider "github.com/openshift/machine-api-operator/pkg/apis/vsphereprovider/v1beta1"
@@ -48,6 +50,7 @@ import (
 	"github.com/openshift/installer/pkg/asset/machines/machineconfig"
 	"github.com/openshift/installer/pkg/asset/machines/openstack"
 	"github.com/openshift/installer/pkg/asset/machines/ovirt"
+	"github.com/openshift/installer/pkg/asset/machines/powervs"
 	"github.com/openshift/installer/pkg/asset/machines/vsphere"
 	"github.com/openshift/installer/pkg/asset/rhcos"
 	rhcosutils "github.com/openshift/installer/pkg/rhcos"
@@ -64,6 +67,7 @@ import (
 	nonetypes "github.com/openshift/installer/pkg/types/none"
 	openstacktypes "github.com/openshift/installer/pkg/types/openstack"
 	ovirttypes "github.com/openshift/installer/pkg/types/ovirt"
+	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 	vspheretypes "github.com/openshift/installer/pkg/types/vsphere"
 )
 
@@ -402,6 +406,26 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects for kubevirt provider")
 		}
+	case powervstypes.Name:
+		mpool := defaultPowerVSMachinePoolPlatform()
+		mpool.Set(ic.Platform.PowerVS.DefaultMachinePlatform)
+		mpool.Set(pool.Platform.PowerVS)
+		// TODO: Temporary patch to link to the deployed machines in the backend, later should be removed
+		hardcode := &powervstypes.MachinePool{
+			ServiceInstance: "e449d86e-c3a0-4c07-959e-8557fdf55482",
+			ImageID:         "11b3470c-e747-4f92-ba70-428054ca4672",
+			KeyPairName:     clusterID.InfraID + "-key",
+			NetworkIDs:      []string{"daf2b616-542b-47ed-8cec-ceaec1e90f4d"},
+		}
+		mpool.Set(hardcode)
+		pool.Platform.PowerVS = &mpool
+		//TODO: Should we set get and set service instanceid, imageid, subnetid here?
+		//TODO: Revisit later to find, from where we can get values for the these variables
+		machines, err = powervs.Machines(clusterID.InfraID, ic, &pool, "master", "master-user-data", installConfig.Config.Platform.PowerVS.UserTags)
+		if err != nil {
+			return errors.Wrap(err, "failed to create master machine objects")
+		}
+		powervs.ConfigMasters(machines, clusterID.InfraID)
 	case nonetypes.Name:
 	default:
 		return fmt.Errorf("invalid Platform")
@@ -532,6 +556,7 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 	ovirtproviderapi.AddToScheme(scheme)
 	vsphereapi.AddToScheme(scheme)
 	kubevirtproviderapi.AddToScheme(scheme)
+	powervsapi.AddToScheme(scheme)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
 		awsprovider.SchemeGroupVersion,
 		azureprovider.SchemeGroupVersion,
@@ -543,6 +568,7 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 		vsphereprovider.SchemeGroupVersion,
 		ovirtprovider.SchemeGroupVersion,
 		kubevirtprovider.SchemeGroupVersion,
+		powervsprovider.GroupVersion,
 	)
 
 	machines := []machineapi.Machine{}

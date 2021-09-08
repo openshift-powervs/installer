@@ -44,6 +44,11 @@
             "sha256": "2387066fe638c276c2ec89e2a4ab66a526bb70cc039fecadd4d9ed563df7e8cf",
             "size": 909711360
         },
+	"powervs": {
+            "path": "rhcos-48.84.202105182221-0-powervs-ppc64le.ova",
+            "sha256": "02addcf3150a34ea76c8e5b86db3a78fd8925ce2ff7dd4507d8895d5dd139030",
+            "size": 2463334400
+	},
         "qemu": {
             "path": "rhcos-49.84.202107010047-0-qemu.ppc64le.qcow2.gz",
             "sha256": "9145e08f39baf2df968ea6803303ccb1fc2941f8eae60d41ba91c9016e13ba33",
