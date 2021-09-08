@@ -106,6 +106,11 @@ func (a *platform) Generate(asset.Parents) error {
 		if err != nil {
 			return err
 		}
+	case powervs.Name:
+		a.PowerVS, err = powervsconfig.Platform()
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unknown platform type %q", platform)
 	}

@@ -165,10 +165,16 @@ func defaultPowerVSMachinePoolPlatform() powervstypes.MachinePool {
 		SysType:    "s922",
 	}
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
+func defaultPowerVSMachinePoolPlatform() powervstypes.MachinePool {
+	return powervstypes.MachinePool{
+		Memory:     32,
+		Processors: 0.5,
+		ProcType:   "shared",
+		SysType:    "s922",
+	}
+}
+
 func awsDefaultWorkerMachineTypes(region string, arch types.Architecture) []string {
 	classes := awsdefaults.InstanceClasses(region, arch)
 
@@ -449,35 +455,10 @@ func (w *Worker) Generate(dependencies asset.Parents) error {
 			for _, set := range sets {
 				machineSets = append(machineSets, set)
 			}
-<<<<<<< HEAD
-<<<<<<< HEAD
-		case kubevirttypes.Name:
-			mpool := defaultKubevirtMachinePoolPlatform()
-			mpool.Set(ic.Platform.Kubevirt.DefaultMachinePlatform)
-			mpool.Set(pool.Platform.Kubevirt)
-			pool.Platform.Kubevirt = &mpool
-
-			imageName, _ := rhcosutils.GenerateOpenStackImageName(string(*rhcosImage), clusterID.InfraID)
-
-			sets, err := kubevirt.MachineSets(clusterID.InfraID, ic, &pool, imageName, "worker", "worker-user-data")
-			if err != nil {
-				return errors.Wrap(err, "failed to create worker machine objects for kubevirt provider")
-			}
-			for _, set := range sets {
-				machineSets = append(machineSets, set)
-			}
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 		case powervstypes.Name:
 			mpool := defaultPowerVSMachinePoolPlatform()
 			mpool.Set(ic.Platform.PowerVS.DefaultMachinePlatform)
 			mpool.Set(pool.Platform.PowerVS)
-<<<<<<< HEAD
-			pool.Platform.PowerVS = &mpool
-			sets, err := powervs.MachineSets(clusterID.InfraID, ic, &pool, "worker", "worker-user-data", installConfig.Config.Platform.PowerVS.UserTags)
-			if err != nil {
-				return errors.Wrap(err, "failed to create worker machine objects for powervs provider")
-=======
 			// TODO: Temporary patch to bring up the worker nodes, later should be removed
 			hardcode := &powervstypes.MachinePool{
 				ServiceInstance: "e449d86e-c3a0-4c07-959e-8557fdf55482",
@@ -490,16 +471,30 @@ func (w *Worker) Generate(dependencies asset.Parents) error {
 			sets, err := powervs.MachineSets(clusterID.InfraID, ic, &pool, "worker", "worker-user-data", installConfig.Config.Platform.PowerVS.UserTags)
 			if err != nil {
 				return errors.Wrap(err, "failed to create worker machine objects for ovirt provider")
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 			}
 			for _, set := range sets {
 				machineSets = append(machineSets, set)
 			}
-<<<<<<< HEAD
-=======
->>>>>>> a13695ad4 (Remove kubevirt platform from the installer)
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
+		case powervstypes.Name:
+			mpool := defaultPowerVSMachinePoolPlatform()
+			mpool.Set(ic.Platform.PowerVS.DefaultMachinePlatform)
+			mpool.Set(pool.Platform.PowerVS)
+			// TODO: Temporary patch to bring up the worker nodes, later should be removed
+			hardcode := &powervstypes.MachinePool{
+				ServiceInstance: "e449d86e-c3a0-4c07-959e-8557fdf55482",
+				ImageID:         "11b3470c-e747-4f92-ba70-428054ca4672",
+				KeyPairName:     clusterID.InfraID + "-key",
+				NetworkIDs:      []string{"daf2b616-542b-47ed-8cec-ceaec1e90f4d"},
+			}
+			mpool.Set(hardcode)
+			pool.Platform.PowerVS = &mpool
+			sets, err := powervs.MachineSets(clusterID.InfraID, ic, &pool, "worker", "worker-user-data", installConfig.Config.Platform.PowerVS.UserTags)
+			if err != nil {
+				return errors.Wrap(err, "failed to create worker machine objects for ovirt provider")
+			}
+			for _, set := range sets {
+				machineSets = append(machineSets, set)
+			}
 		case nonetypes.Name:
 		default:
 			return fmt.Errorf("invalid Platform")
@@ -585,15 +580,7 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 	openstackapi.AddToScheme(scheme)
 	ovirtproviderapi.AddToScheme(scheme)
 	vsphereproviderapi.AddToScheme(scheme)
-<<<<<<< HEAD
-<<<<<<< HEAD
-	kubevirtproviderapi.AddToScheme(scheme)
 	powervsapi.AddToScheme(scheme)
-=======
->>>>>>> a13695ad4 (Remove kubevirt platform from the installer)
-=======
-	powervsapi.AddToScheme(scheme)
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
 		awsprovider.SchemeGroupVersion,
 		azureprovider.SchemeGroupVersion,
@@ -604,15 +591,7 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 		openstackprovider.SchemeGroupVersion,
 		ovirtprovider.SchemeGroupVersion,
 		vsphereprovider.SchemeGroupVersion,
-<<<<<<< HEAD
-<<<<<<< HEAD
-		kubevirtprovider.SchemeGroupVersion,
 		powervsprovider.GroupVersion, //TODO: Should we rename from GroupVersion to SchemeGroupVersion
-=======
->>>>>>> a13695ad4 (Remove kubevirt platform from the installer)
-=======
-		powervsprovider.GroupVersion, //TODO: Should we rename from GroupVersion to SchemeGroupVersion
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	)
 
 	machineSets := []machineapi.MachineSet{}
