@@ -647,6 +647,13 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		if err != nil {
 			return err
 		}
+
+		// Get CISInstanceCRN from InstallConfig metadata
+		crn, err := installConfig.PowerVS.CISInstanceCRN(ctx)
+		if err != nil {
+			return err
+		}
+
 		masterConfigs := make([]*powervsprovider.PowerVSMachineProviderConfig, len(masters))
 		for i, m := range masters {
 			masterConfigs[i] = m.Spec.ProviderSpec.Value.Object.(*powervsprovider.PowerVSMachineProviderConfig)
@@ -654,10 +661,11 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 
 		data, err = powervstfvars.TFVars(
 			powervstfvars.TFVarsSources{
-				MasterConfigs: masterConfigs,
-				PowerVSRegion: session.Session.Region,
-				APIKey:        session.Session.IAMToken,
-				SSHKey:        installConfig.Config.SSHKey,
+				MasterConfigs:  masterConfigs,
+				PowerVSRegion:  session.Session.Region,
+				APIKey:         session.Session.IAMToken,
+				SSHKey:         installConfig.Config.SSHKey,
+				CISInstanceCRN: crn,
 			},
 		)
 		if err != nil {

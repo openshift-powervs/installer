@@ -96,7 +96,7 @@ func (m *Metadata) Generate(parents asset.Parents) (err error) {
 	case kubevirttypes.Name:
 		metadata.ClusterPlatformMetadata.Kubevirt = kubevirt.Metadata(clusterID.InfraID, installConfig.Config)
 	case powervstypes.Name:
-		metadata.ClusterPlatformMetadata.PowerVS = powervs.Metadata(installConfig.Config)
+		metadata.ClusterPlatformMetadata.PowerVS = powervs.Metadata(installConfig.Config, installConfig.PowerVS)
 	case nonetypes.Name:
 	default:
 		return errors.Errorf("no known platform")

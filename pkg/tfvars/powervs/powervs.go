@@ -29,6 +29,7 @@ type config struct {
 	PowerVSRegion        string `json:"powervs_region"`
 	VPCRegion            string `json:"powervs_vpc_region"`
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
+	CISInstanceCRN       string `json:"powervs_cis_crn"`
 	SSHKey               string `json:"powervs_ssh_key"`
 	ImageID              string `json:"powervs_image_name"`
 	NetworkIDs           string `json:"powervs_network_name"`
@@ -42,10 +43,11 @@ type config struct {
 
 // TFVarsSources contains the parameters to be converted into Terraform variables
 type TFVarsSources struct {
-	MasterConfigs []*v1alpha1.PowerVSMachineProviderConfig
-	APIKey        string
-	SSHKey        string
-	PowerVSRegion string
+	MasterConfigs  []*v1alpha1.PowerVSMachineProviderConfig
+	APIKey         string
+	SSHKey         string
+	PowerVSRegion  string
+	CISInstanceCRN string
 }
 
 // TFVars generates Power VS-specific Terraform variables launching the cluster.
@@ -60,6 +62,7 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		PowerVSRegion:        sources.PowerVSRegion,
 		VPCRegion:            powervsRegionToIBMRegion[sources.PowerVSRegion],
 		PowerVSResourceGroup: "powervs-ipi-resource-group",
+		CISInstanceCRN:       sources.CISInstanceCRN,
 		SSHKey:               sources.SSHKey,
 		ImageID:              masterConfig.ImageID,
 		NetworkIDs:           masterConfig.NetworkIDs[0],
