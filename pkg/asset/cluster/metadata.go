@@ -92,11 +92,7 @@ func (m *Metadata) Generate(parents asset.Parents) (err error) {
 	case vspheretypes.Name:
 		metadata.ClusterPlatformMetadata.VSphere = vsphere.Metadata(installConfig.Config)
 	case powervstypes.Name:
-<<<<<<< HEAD
 		metadata.ClusterPlatformMetadata.PowerVS = powervs.Metadata(installConfig.Config, installConfig.PowerVS)
-=======
-		metadata.ClusterPlatformMetadata.PowerVS = powervs.Metadata(installConfig.Config)
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	case nonetypes.Name:
 	default:
 		return errors.Errorf("no known platform")

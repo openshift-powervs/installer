@@ -608,10 +608,6 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			Data:     data,
 		})
 	case powervs.Name:
-<<<<<<< HEAD
-		// @TODO: Can we just use the install config for all these values?
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 		session, err := powervsconfig.GetSession()
 		if err != nil {
 			return err
@@ -621,7 +617,6 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		if err != nil {
 			return err
 		}
-<<<<<<< HEAD
 
 		// Get CISInstanceCRN from InstallConfig metadata
 		crn, err := installConfig.PowerVS.CISInstanceCRN(ctx)
@@ -629,8 +624,6 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return err
 		}
 
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 		masterConfigs := make([]*powervsprovider.PowerVSMachineProviderConfig, len(masters))
 		for i, m := range masters {
 			masterConfigs[i] = m.Spec.ProviderSpec.Value.Object.(*powervsprovider.PowerVSMachineProviderConfig)
@@ -638,23 +631,11 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 
 		data, err = powervstfvars.TFVars(
 			powervstfvars.TFVarsSources{
-<<<<<<< HEAD
-				MasterConfigs:        masterConfigs,
-				PowerVSZone:          session.Session.Zone,
-				APIKey:               session.Session.IAMToken,
-				SSHKey:               installConfig.Config.SSHKey,
-				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
-				NetworkName:          installConfig.Config.PowerVS.PVSNetworkName,
-				ImageName:            installConfig.Config.PowerVS.ImageName,
-				CISInstanceCRN:       crn,
-				VPCSubnetName:        installConfig.Config.PowerVS.Subnets[0],
-				VPCName:              installConfig.Config.PowerVS.VPC,
-=======
-				MasterConfigs: masterConfigs,
-				PowerVSRegion: session.Session.Region,
-				APIKey:        session.Session.IAMToken,
-				SSHKey:        installConfig.Config.SSHKey,
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
+				MasterConfigs:  masterConfigs,
+				PowerVSRegion:  session.Session.Region,
+				APIKey:         session.Session.IAMToken,
+				SSHKey:         installConfig.Config.SSHKey,
+				CISInstanceCRN: crn,
 			},
 		)
 		if err != nil {
