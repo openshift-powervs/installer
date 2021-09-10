@@ -126,5 +126,4 @@ variable "powervs_vpc_subnet_name" {
 variable "powervs_cis_crn" {
   type        = string
   description = "The CRN of CIS instance to use."
-  default     = "crn:v1:bluemix:public:internet-svcs:global:a/65b64c1f1c29460e8c2e4bbfbd893c2c:453c4cff-2ee0-4309-95f1-2e9384d9bb96::"
 }

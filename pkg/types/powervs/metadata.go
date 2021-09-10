@@ -2,6 +2,7 @@ package powervs
 
 // Metadata contains Power VS metadata (e.g. for uninstalling the cluster).
 type Metadata struct {
-	Region string `json:"region"`
-	Zone   string `json:"zone"`
+	CISInstanceCRN string `json:"cisInstanceCRN"`
+	Region         string `json:"region"`
+	Zone           string `json:"zone"`
 }
