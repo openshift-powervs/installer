@@ -56,6 +56,12 @@ type Platform struct {
 	// @TODO: make this +optional when we have TF support
 	PVSNetworkID string `json:"pvsNetworkID,omitempty"`
 
+	// Zone in the region used to create VPC resources. Leave unset
+	// to allow installer to randomly select a zone.
+	//
+	// +optional
+	VPCZone string `json:"vpcRegion,omitempty"`
+
 	// UserTags additional keys and values that the installer will add
 	// as tags to all resources that it creates. Resources created by the
 	// cluster itself may not include these tags.
