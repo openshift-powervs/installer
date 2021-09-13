@@ -25,14 +25,18 @@ var powervsRegionToIBMRegion = map[string]string{
 }
 
 type config struct {
+	ServiceInstanceID    string `json:"powervs_cloud_instance_id"`
 	APIKey               string `json:"powervs_api_key"`
 	PowerVSRegion        string `json:"powervs_region"`
+	PowerVSZone          string `json:"powervs_zone"`
 	VPCRegion            string `json:"powervs_vpc_region"`
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
 	CISInstanceCRN       string `json:"powervs_cis_crn"`
 	SSHKey               string `json:"powervs_ssh_key"`
 	ImageID              string `json:"powervs_image_name"`
 	NetworkIDs           string `json:"powervs_network_name"`
+	VPCID                string `json:"powervs_vpc_id"`
+	VPCSubnetName        string `json:"powervs_vpc_subnet_name"`
 	BootstrapMemory      string `json:"powervs_bootstrap_memory"`
 	BootstrapProcessors  string `json:"powervs_bootstrap_processors"`
 	MasterMemory         string `json:"powervs_master_memory"`
@@ -43,11 +47,13 @@ type config struct {
 
 // TFVarsSources contains the parameters to be converted into Terraform variables
 type TFVarsSources struct {
-	MasterConfigs  []*v1alpha1.PowerVSMachineProviderConfig
-	APIKey         string
-	SSHKey         string
-	PowerVSRegion  string
-	CISInstanceCRN string
+	MasterConfigs        []*v1alpha1.PowerVSMachineProviderConfig
+	APIKey               string
+	PowerVSZone          string
+	PowerVSResourceGroup string
+	CISInstanceCRN       string
+	VPCID                string
+	VPCSubnetName        string
 }
 
 // TFVars generates Power VS-specific Terraform variables launching the cluster.
@@ -55,17 +61,19 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	masterConfig := sources.MasterConfigs[0]
 
 	//@TODO: Add resource group to platform
-	//  -- change ImageID to ImageURL here?
-	//  --
 	cfg := &config{
+		ServiceInstanceID:    masterConfig.ServiceInstanceID,
 		APIKey:               sources.APIKey,
-		PowerVSRegion:        sources.PowerVSRegion,
-		VPCRegion:            powervsRegionToIBMRegion[sources.PowerVSRegion],
-		PowerVSResourceGroup: "powervs-ipi-resource-group",
+		PowerVSRegion:        masterConfig.Region,
+		PowerVSZone:          sources.PowerVSZone,
+		VPCRegion:            powervsRegionToIBMRegion[masterConfig.Region],
+		PowerVSResourceGroup: sources.PowerVSResourceGroup,
 		CISInstanceCRN:       sources.CISInstanceCRN,
-		SSHKey:               sources.SSHKey,
+		SSHKey:               *masterConfig.KeyPairName,
 		ImageID:              masterConfig.ImageID,
 		NetworkIDs:           masterConfig.NetworkIDs[0],
+		VPCID:                sources.VPCID,
+		VPCSubnetName:        sources.VPCSubnetName,
 		BootstrapMemory:      masterConfig.Memory,
 		BootstrapProcessors:  masterConfig.Processors,
 		MasterMemory:         masterConfig.Memory,
