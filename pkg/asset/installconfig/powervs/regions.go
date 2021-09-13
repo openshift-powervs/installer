@@ -77,14 +77,13 @@ func GetRegion() (string, error) {
 			Prompt: &survey.Select{
 				Message: "Region",
 				Help:    "The Power VS region to be used for installation.",
-				// Default: fmt.Sprintf("%s (%s)", defaultRegion, regions[defaultRegion]),
 				Options: longRegions,
 			},
 			Validate: survey.ComposeValidators(survey.Required, func(ans interface{}) error {
 				choice := regionTransform(ans).(core.OptionAnswer).Value
 				i := sort.SearchStrings(shortRegions, choice)
 				if i == len(shortRegions) || shortRegions[i] != choice {
-					return errors.Errorf("invalid region %q", choice)
+					return errors.Errorf("Invalid region %q", choice)
 				}
 				return nil
 			}),
@@ -118,7 +117,7 @@ func GetZone(region string) (string, error) {
 		{
 			Prompt: &survey.Select{
 				Message: "Zone",
-				Help:    "The powervs zone within the region to be used for installation.",
+				Help:    "The Power VS zone within the region to be used for installation.",
 				Default: fmt.Sprintf("%s", defaultZone),
 				Options: zones,
 			},
@@ -126,7 +125,7 @@ func GetZone(region string) (string, error) {
 				choice := zoneTransform(ans).(core.OptionAnswer).Value
 				i := sort.SearchStrings(zones, choice)
 				if i == len(zones) || zones[i] != choice {
-					return errors.Errorf("invalid zone %q", choice)
+					return errors.Errorf("Invalid zone %q", choice)
 				}
 				return nil
 			}),

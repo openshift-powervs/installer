@@ -54,7 +54,7 @@ func GetSession() (*Session, error) {
 func getPISession() (*ibmpisession.IBMPISession, error) {
 
 	var (
-		id, passwd, apikey, region, zone string
+		id, iamtoken, apikey, region, zone string
 	)
 
 	var err error
@@ -69,7 +69,7 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 			},
 		}, &id)
 		if err != nil {
-			return nil, errors.New("Error saving the IBMID variable")
+			return nil, errors.New("Error saving the IBM Cloud User ID")
 		}
 	}
 
@@ -87,7 +87,7 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 			},
 		}, &apikey)
 		if err != nil {
-			return nil, errors.New("Error finding the API_KEY variable")
+			return nil, errors.New("Error saving the API Key")
 		}
 	}
 
@@ -97,7 +97,7 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 	if len(region) == 0 {
 		region, err = GetRegion()
 		if err != nil {
-			return nil, errors.New("Error finding the region")
+			return nil, err
 		}
 	}
 
@@ -106,15 +106,15 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 	if len(zone) == 0 {
 		zone, err = GetZone(region)
 		if err != nil {
-			return nil, errors.New("Error finding the zone")
+			return nil, err
 		}
 	}
 
-	s, err := ibmpisession.New(passwd, region, false, defSessionTimeout, id, zone)
+	iamtoken = apikey
+	s, err := ibmpisession.New(iamtoken, region, false, defSessionTimeout, id, zone)
 	if err != nil {
 		return nil, err
 	}
-	s.IAMToken = apikey
 
 	return s, err
 }
