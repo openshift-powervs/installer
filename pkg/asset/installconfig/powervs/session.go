@@ -1,7 +1,6 @@
 package powervs
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -22,14 +21,6 @@ var (
 // Session is an object representing a session for the IBM Power VS API.
 type Session struct {
 	Session *ibmpisession.IBMPISession
-	Creds   *UserCredentials
-}
-
-// UserCredentials is an object representing the credentials used for IBM Power VS during
-// the creation of the install_config.yaml
-type UserCredentials struct {
-	APIKey string
-	UserID string
 }
 
 // GetSession returns an IBM Cloud session by using credentials found in default locations in order:
@@ -49,25 +40,27 @@ type UserCredentials struct {
      4) put it into Platform {userid: , iamtoken: , ...}
 */
 func GetSession() (*Session, error) {
-	s, uc, err := getPISession()
+	s, err := getPISession()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load credentials")
 	}
 
-	return &Session{Session: s, Creds: uc}, nil
+	return &Session{Session: s}, nil
 }
 
 /*
 //  https://github.com/IBM-Cloud/power-go-client/blob/master/ibmpisession/ibmpowersession.go
 */
-func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
+func getPISession() (*ibmpisession.IBMPISession, error) {
 
 	var (
-		id, passwd, apikey, region, zone string
+		id, iamtoken, apikey, region, zone string
 	)
 
+	var err error
+
 	if id = os.Getenv("IBMID"); len(id) == 0 {
-		err := survey.Ask([]*survey.Question{
+		err = survey.Ask([]*survey.Question{
 			{
 				Prompt: &survey.Input{
 					Message: "IBM Cloud User ID",
@@ -76,7 +69,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 			},
 		}, &id)
 		if err != nil {
-			return nil, nil, errors.New("Error saving the IBMID variable")
+			return nil, errors.New("Error saving the IBM Cloud User ID")
 		}
 	}
 
@@ -85,7 +78,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 	apikey = getEnv(APIKeyEnvVars)
 
 	if len(apikey) == 0 {
-		err := survey.Ask([]*survey.Question{
+		err = survey.Ask([]*survey.Question{
 			{
 				Prompt: &survey.Password{
 					Message: "IBM Cloud API Key",
@@ -94,31 +87,37 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 			},
 		}, &apikey)
 		if err != nil {
-			return nil, nil, errors.New("Error saving the API_KEY variable")
+			return nil, errors.New("Error saving the API Key")
 		}
 	}
 	os.Setenv("IC_API_KEY", apikey)
 
-	region = os.Getenv("IBMCLOUD_REGION")
 	// this can also be pulled from  ~/bluemix/config.json
-	if r2 := os.Getenv("IC_REGION"); len(r2) > 0 {
-		if len(region) > 0 && region != r2 {
-			return nil, nil, errors.New(fmt.Sprintf("conflicting values for IBM Cloud Region: IBMCLOUD_REGION: %s and IC_REGION: %s", region, r2))
-		}
-		if len(region) == 0 {
-			region = r2
+	var regionEnvVars = []string{"IBMCLOUD_REGION", "IC_REGION"}
+	region = getEnv(regionEnvVars)
+	if len(region) == 0 {
+		region, err = GetRegion()
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	if zone = os.Getenv("IBMCLOUD_ZONE"); len(zone) == 0 {
-		zone = region
+	var zoneEnvVars = []string{"IBMCLOUD_ZONE"}
+	zone = getEnv(zoneEnvVars)
+	if len(zone) == 0 {
+		zone, err = GetZone(region)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	// @TOOD: query if region is multi-zone? or just pass through err...
-	// @TODO: pass through debug?
-	s, err := ibmpisession.New(passwd, region, false, defSessionTimeout, id, zone)
-	uc := &UserCredentials{UserID: id, APIKey: apikey}
-	return s, uc, err
+	iamtoken = apikey
+	s, err := ibmpisession.New(iamtoken, region, false, defSessionTimeout, id, zone)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, err
 }
 
 func getEnv(envs []string) string {
