@@ -59,6 +59,8 @@ func GetRegion() (string, error) {
 		longRegions = append(longRegions, fmt.Sprintf("%s (%s)", id, location))
 		shortRegions = append(shortRegions, id)
 	}
+	sort.Strings(longRegions)
+	sort.Strings(shortRegions)
 
 	var regionTransform survey.Transformer = func(ans interface{}) interface{} {
 		switch v := ans.(type) {
