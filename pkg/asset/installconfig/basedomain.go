@@ -73,11 +73,11 @@ func (a *baseDomain) Generate(parents asset.Parents) error {
 		return nil
 	case powervs.Name:
 		zone, err := ibmcloudconfig.GetDNSZone()
-                if err != nil {
-                        return err
-                }
-                a.BaseDomain = zone.Name
-                return nil
+		if err != nil {
+			return err
+		}
+		a.BaseDomain = zone.Name
+		return nil
 	default:
 		//Do nothing
 	}
