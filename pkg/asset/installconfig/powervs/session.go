@@ -97,6 +97,7 @@ func getPISession() (*ibmpisession.IBMPISession, *UserCredentials, error) {
 			return nil, nil, errors.New("Error saving the API_KEY variable")
 		}
 	}
+	os.Setenv("IC_API_KEY", apikey)
 
 	region = os.Getenv("IBMCLOUD_REGION")
 	// this can also be pulled from  ~/bluemix/config.json
