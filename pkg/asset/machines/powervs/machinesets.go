@@ -1,8 +1,9 @@
-// Package powervs generates Machine objects for powerVS.
+// Package powervs generates Machine objects for IBM Power VS.
 package powervs
 
 import (
 	"fmt"
+
 	"github.com/openshift/installer/pkg/types/powervs"
 
 	machineapi "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
@@ -24,6 +25,16 @@ func MachineSets(clusterID string, config *types.InstallConfig, pool *types.Mach
 
 	platform := config.Platform.PowerVS
 	mpool := pool.Platform.PowerVS
+
+	if platform.PVSNetworkID != "" {
+		mpool.NetworkIDs = append([]string{platform.PVSNetworkID})
+	}
+	if platform.ClusterOSImage != "" {
+		mpool.ImageID = platform.ClusterOSImage
+	}
+	if mpool.ImageID == "" {
+		mpool.ImageID = fmt.Sprintf("rhcos-%s", clusterID)
+	}
 
 	total := int32(0)
 	if pool.Replicas != nil {

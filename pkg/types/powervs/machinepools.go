@@ -37,11 +37,6 @@ type MachinePool struct {
 	// +optional
 	NetworkIDs []string `json:"networkIDs"`
 
-	// KeyPairName defines the keyPairName name for instance.
-	//
-	// +optional
-	KeyPairName string `json:"keyPairName"`
-
 	// SysType defines the system type for instance.
 	//
 	// +optional
@@ -59,34 +54,10 @@ func (a *MachinePool) Set(required *MachinePool) {
 	if required.ServiceInstance != "" {
 		a.ServiceInstance = required.ServiceInstance
 	}
-	if required.KeyPairName != "" {
-		a.KeyPairName = required.KeyPairName
-	}
 	if len(required.NetworkIDs) > 0 {
 		a.NetworkIDs = required.NetworkIDs
 	}
-	// Sets values taken from passed MachinePool.
-	/*
-		if len(required.Zones) > 0 {
-			a.Zones = required.Zones
-		}
-
-		if required.InstanceType != "" {
-			a.InstanceType = required.InstanceType
-		}
-
-		if required.OSDisk.DiskSizeGB > 0 {
-			a.OSDisk.DiskSizeGB = required.OSDisk.DiskSizeGB
-		}
-
-		if required.OSDisk.DiskType != "" {
-			a.OSDisk.DiskType = required.OSDisk.DiskType
-		}
-
-		if required.EncryptionKey != nil {
-			if a.EncryptionKey == nil {
-				a.EncryptionKey = &EncryptionKeyReference{}
-			}
-			a.EncryptionKey.Set(required.EncryptionKey)
-		}*/
+	if required.ServiceInstance != "" {
+		a.ServiceInstance = required.ServiceInstance
+	}
 }
