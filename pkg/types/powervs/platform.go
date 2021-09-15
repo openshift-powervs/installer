@@ -45,7 +45,7 @@ type Platform struct {
 	Subnets []string `json:"subnets,omitempty"`
 
 	// PVSNetworkName specifies an existing network within the Power VS Service Instance.
-	// @TODO: make this +optional when we have TF support
+	// +optional
 	PVSNetworkName string `json:pvsNetworkName,omitempty"`
 
 	// PVSNetworkID is the associated ID for the PVSNetworkName. This is currently required
@@ -67,8 +67,8 @@ type Platform struct {
 	// takes an ID instead of a name, we're using this for TF Creation,
 	// and the other two for machine-config.
 	//
+	// +optional
 	// @TODO: Remove when provider resolves ID from name
-	// @TODO: make this +optional when we have TF support
 	ImageName string `json:"imageName,omitempty"`
 
 	// BootstrapOSImage is a URL to override the default OS image
