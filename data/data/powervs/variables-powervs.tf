@@ -98,7 +98,7 @@ variable "powervs_sys_type" {
 variable "powervs_key_name" {
   type        = string
   description = "The name for the SSH key created in the Service Instance"
-  default     = "${var.cluster_id}-key"
+  default     = ""
 }
 
 variable "powervs_ssh_key" {

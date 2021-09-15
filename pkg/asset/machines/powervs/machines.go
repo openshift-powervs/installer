@@ -88,7 +88,6 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 		Region:            platform.Region,
 		ServiceInstanceID: platform.ServiceInstanceID,
 		ImageID:           mpool.ImageID,
-		KeyPairName:       &mpool.KeyPairName,
 		UserDataSecret:    &corev1.LocalObjectReference{Name: userDataSecret},
 		CredentialsSecret: &corev1.LocalObjectReference{Name: "powervs-credentials"},
 		SysType:           mpool.SysType,
