@@ -85,9 +85,9 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 			APIVersion: powervsprovider.GroupVersion.String(),
 		},
 		ObjectMeta:        metav1.ObjectMeta{},
+		Region:            platform.Region,
 		ServiceInstanceID: platform.ServiceInstanceID,
 		ImageID:           mpool.ImageID,
-		KeyPairName:       &mpool.KeyPairName,
 		UserDataSecret:    &corev1.LocalObjectReference{Name: userDataSecret},
 		CredentialsSecret: &corev1.LocalObjectReference{Name: "powervs-credentials"},
 		SysType:           mpool.SysType,
@@ -95,6 +95,7 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 		Processors:        fmt.Sprintf("%f", mpool.Processors),
 		Memory:            fmt.Sprintf("%d", mpool.Memory),
 		NetworkIDs:        mpool.NetworkIDs,
+		KeyPairName:       &mpool.KeyPairName,
 	}
 	return config, nil
 }

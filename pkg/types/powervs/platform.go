@@ -42,7 +42,13 @@ type Platform struct {
 	// +optional
 	Subnets []string `json:"subnets,omitempty"`
 
-	// PVSNetworkID specifies an existing network withing the Power VS Service Instance.
+	// PVSNetworkName specifies an existing network within the Power VS Service Instance.
+	// +optional
+	PVSNetworkName string `json:pvsNetworkName,omitempty"`
+
+	// PVSNetworkID is the associated ID for the PVSNetworkName. This is currently required
+	// For the machine config.
+	// @TODO: Remove when machine config resolves the ID from name.
 	// Leave unset to have the installer create the network.
 	//
 	// +optional
@@ -53,6 +59,15 @@ type Platform struct {
 	// cluster itself may not include these tags.
 	// +optional
 	UserTags map[string]string `json:"userTags,omitempty"`
+
+	// ImageName is equivalent to BootStrap/ClusterOSImage.
+	// Until the machine provider config in cluster-api-provider-powervs
+	// takes an ID instead of a name, we're using this for TF Creation,
+	// and the other two for machine-config.
+	//
+	// +optional
+	// @TODO: Remove when provider resolves ID from name
+	ImageName string `json:"imageName,omitempty"`
 
 	// BootstrapOSImage is a URL to override the default OS image
 	// for the bootstrap node. The URL must contain a sha256 hash of the image
