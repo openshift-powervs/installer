@@ -16,7 +16,7 @@ import (
 )
 
 // Machines returns a list of machines for a machinepool.
-func Machines(clusterID string, config *types.InstallConfig, pool *types.MachinePool, role, userDataSecret string, userTags map[string]string) ([]machineapi.Machine, error) {
+func Machines(clusterID string, config *types.InstallConfig, pool *types.MachinePool, role, userDataSecret string) ([]machineapi.Machine, error) {
 	if poolPlatform := pool.Platform.Name(); poolPlatform != powervs.Name {
 		return nil, fmt.Errorf("non-PowerVS machine-pool: %q", poolPlatform)
 	}
@@ -26,6 +26,11 @@ func Machines(clusterID string, config *types.InstallConfig, pool *types.Machine
 	// Only the service instance is guaranteed to exist and be passed via the install config
 	// The other two, we should standardize a name including the cluster id.
 
+	if platform.SSHKeyName != "" {
+		mpool.KeyPairName = platform.SSHKeyName
+	} else {
+		mpool.KeyPairName = fmt.Sprintf("%s-key", clusterID)
+	}
 	if platform.PVSNetworkID != "" {
 		mpool.NetworkIDs = append([]string{platform.PVSNetworkID})
 	}
@@ -42,7 +47,7 @@ func Machines(clusterID string, config *types.InstallConfig, pool *types.Machine
 	}
 	var machines []machineapi.Machine
 	for idx := int64(0); idx < total; idx++ {
-		provider, err := provider(clusterID, platform, mpool, userDataSecret, userTags)
+		provider, err := provider(clusterID, platform, mpool, userDataSecret, platform.UserTags)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create provider")
 		}
@@ -82,6 +87,7 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 		ObjectMeta:        metav1.ObjectMeta{},
 		ServiceInstanceID: platform.ServiceInstanceID,
 		ImageID:           mpool.ImageID,
+		KeyPairName:       &mpool.KeyPairName,
 		UserDataSecret:    &corev1.LocalObjectReference{Name: userDataSecret},
 		CredentialsSecret: &corev1.LocalObjectReference{Name: "powervs-credentials"},
 		SysType:           mpool.SysType,

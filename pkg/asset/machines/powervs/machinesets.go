@@ -26,6 +26,11 @@ func MachineSets(clusterID string, config *types.InstallConfig, pool *types.Mach
 	platform := config.Platform.PowerVS
 	mpool := pool.Platform.PowerVS
 
+	if platform.SSHKeyName != "" {
+		mpool.KeyPairName = platform.SSHKeyName
+	} else {
+		mpool.KeyPairName = fmt.Sprintf("%s-key", clusterID)
+	}
 	if platform.PVSNetworkID != "" {
 		mpool.NetworkIDs = append([]string{platform.PVSNetworkID})
 	}

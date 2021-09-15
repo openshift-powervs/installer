@@ -26,6 +26,9 @@ type Platform struct {
 	// +optional
 	APIKey string `json:"APIKey,omitempty"`
 
+	// SSHKeyName is the name of an SSH key stored in the Service Instance.
+	SSHKeyName string `json:"SSHKeyName,omitempty"`
+
 	// VPC is a VPC inside IBM Cloud. Needed in order to create VPC Load Balancers.
 	//
 	// +optional

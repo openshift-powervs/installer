@@ -32,7 +32,6 @@ type config struct {
 	VPCRegion            string `json:"powervs_vpc_region"`
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
 	CISInstanceCRN       string `json:"powervs_cis_crn"`
-	SSHKey               string `json:"powervs_ssh_key"`
 	ImageID              string `json:"powervs_image_name"`
 	NetworkIDs           string `json:"powervs_network_name"`
 	VPCID                string `json:"powervs_vpc_id"`
@@ -69,7 +68,6 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		VPCRegion:            powervsRegionToIBMRegion[masterConfig.Region],
 		PowerVSResourceGroup: sources.PowerVSResourceGroup,
 		CISInstanceCRN:       sources.CISInstanceCRN,
-		SSHKey:               *masterConfig.KeyPairName,
 		ImageID:              masterConfig.ImageID,
 		NetworkIDs:           masterConfig.NetworkIDs[0],
 		VPCID:                sources.VPCID,

@@ -95,6 +95,12 @@ variable "powervs_sys_type" {
   default     = "s922"
 }
 
+variable "powervs_key_name" {
+  type        = string
+  description = "The name for the SSH key created in the Service Instance"
+  default     = "${var.cluster_id}-key"
+}
+
 variable "powervs_ssh_key" {
   type        = string
   description = "Public key for keypair used to access cluster. Required when creating 'ibm_pi_instance' resources."
