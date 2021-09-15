@@ -33,11 +33,9 @@ type config struct {
 	VPCRegion            string `json:"powervs_vpc_region"`
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
 	CISInstanceCRN       string `json:"powervs_cis_crn"`
-	ImageName            string `json:"powervs_image_name"`
-	ImageID              string `json:"powervs_image_id"`
-	NetworkName          string `json:"powervs_network_name"`
-	NetworkIDs           string `json:"powervs_network_id"`
-	VPCName              string `json:"powervs_vpc_name"`
+	ImageID              string `json:"powervs_image_name"`
+	NetworkIDs           string `json:"powervs_network_name"`
+	VPCID                string `json:"powervs_vpc_id"`
 	VPCSubnetName        string `json:"powervs_vpc_subnet_name"`
 	BootstrapMemory      string `json:"powervs_bootstrap_memory"`
 	BootstrapProcessors  string `json:"powervs_bootstrap_processors"`
@@ -75,7 +73,6 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		VPCRegion:            powervsRegionToIBMRegion[masterConfig.Region],
 		PowerVSResourceGroup: sources.PowerVSResourceGroup,
 		CISInstanceCRN:       sources.CISInstanceCRN,
-		ImageName:            sources.ImageName,
 		ImageID:              masterConfig.ImageID,
 		NetworkName:          sources.NetworkName,
 		NetworkIDs:           masterConfig.NetworkIDs[0],
