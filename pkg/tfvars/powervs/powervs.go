@@ -27,6 +27,7 @@ var powervsRegionToIBMRegion = map[string]string{
 type config struct {
 	ServiceInstanceID    string `json:"powervs_cloud_instance_id"`
 	APIKey               string `json:"powervs_api_key"`
+	SSHKey               string `json:"powervs_ssh_key"`
 	PowerVSRegion        string `json:"powervs_region"`
 	PowerVSZone          string `json:"powervs_zone"`
 	VPCRegion            string `json:"powervs_vpc_region"`
@@ -50,6 +51,7 @@ type config struct {
 type TFVarsSources struct {
 	MasterConfigs        []*v1alpha1.PowerVSMachineProviderConfig
 	APIKey               string
+	SSHKey               string
 	PowerVSZone          string
 	NetworkName          string
 	ImageName            string
@@ -67,6 +69,7 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	cfg := &config{
 		ServiceInstanceID:    masterConfig.ServiceInstanceID,
 		APIKey:               sources.APIKey,
+		SSHKey:               sources.SSHKey,
 		PowerVSRegion:        masterConfig.Region,
 		PowerVSZone:          sources.PowerVSZone,
 		VPCRegion:            powervsRegionToIBMRegion[masterConfig.Region],
