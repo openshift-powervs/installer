@@ -2,7 +2,9 @@ package powervs
 
 // Platform stores all the global configuration that all machinesets
 // use.
-/// used by the installconfig, and filled in by the installconfig/platform/powervs::Platform() func
+// Note: The subsequent mentions of future-TF support refer to work that is
+// undergoing and should be available to test well in time for 4.10 feature-
+// freeze. We do not plan to GA with these as required inputs.
 type Platform struct {
 
 	// ServiceInstanceID is the ID of the Power IAAS instance created from the IBM Cloud Catalog
@@ -26,9 +28,12 @@ type Platform struct {
 	// +optional
 	APIKey string `json:"APIKey,omitempty"`
 
+	// SSHKeyName is the name of an SSH key stored in the Service Instance.
+	SSHKeyName string `json:"SSHKeyName,omitempty"`
+
 	// VPC is a VPC inside IBM Cloud. Needed in order to create VPC Load Balancers.
 	//
-	// +optional
+	// @TODO: make this +optional when we have TF support
 	VPC string `json:"vpc,omitempty"`
 
 	// Subnets specifies existing subnets (by ID) where cluster
@@ -36,13 +41,19 @@ type Platform struct {
 	// create subnets in a new VPC on your behalf.
 	// @TODO: Rename VPCSubnetID & make into string
 	//
-	// +optional
+	// @TODO: make this +optional when we have TF support
 	Subnets []string `json:"subnets,omitempty"`
 
-	// PVSNetworkID specifies an existing network withing the Power VS Service Instance.
+	// PVSNetworkName specifies an existing network within the Power VS Service Instance.
+	// @TODO: make this +optional when we have TF support
+	PVSNetworkName string `json:pvsNetworkName,omitempty"`
+
+	// PVSNetworkID is the associated ID for the PVSNetworkName. This is currently required
+	// For the machine config.
+	// @TODO: Remove when machine config resolves the ID from name.
 	// Leave unset to have the installer create the network.
 	//
-	// +optional
+	// @TODO: make this +optional when we have TF support
 	PVSNetworkID string `json:"pvsNetworkID,omitempty"`
 
 	// UserTags additional keys and values that the installer will add
@@ -51,18 +62,27 @@ type Platform struct {
 	// +optional
 	UserTags map[string]string `json:"userTags,omitempty"`
 
+	// ImageName is equivalent to BootStrap/ClusterOSImage.
+	// Until the machine provider config in cluster-api-provider-powervs
+	// takes an ID instead of a name, we're using this for TF Creation,
+	// and the other two for machine-config.
+	//
+	// @TODO: Remove when provider resolves ID from name
+	// @TODO: make this +optional when we have TF support
+	ImageName string `json:"imageName,omitempty"`
+
 	// BootstrapOSImage is a URL to override the default OS image
 	// for the bootstrap node. The URL must contain a sha256 hash of the image
 	// e.g https://mirror.example.com/images/image.ova.gz?sha256=a07bd...
 	//
-	// +optional
+	// @TODO: make this +optional when we have TF support
 	BootstrapOSImage string `json:"bootstrapOSImage,omitempty"`
 
 	// ClusterOSImage is a URL to override the default OS image
 	// for cluster nodes. The URL must contain a sha256 hash of the image
 	// e.g https://mirror.example.com/images/powervs.ova.gz?sha256=3b5a8...
 	//
-	// +optional
+	// @TODO: make this +optional when we have TF support
 	ClusterOSImage string `json:"clusterOSImage,omitempty"`
 
 	// DefaultMachinePlatform is the default configuration used when

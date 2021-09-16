@@ -1,6 +1,6 @@
 package powervs
 
-// MachinePool stores the configuration for a machine pool installed on Ibm Power VS.
+// MachinePool stores the configuration for a machine pool installed on IBM Power VS.
 type MachinePool struct {
 	// ServiceInstance is Service Instance to install into.
 	//
@@ -9,6 +9,10 @@ type MachinePool struct {
 	// Name is the name of the instance
 	//
 	Name string `json:"name"`
+
+	// KeyPairName is the name of an SSH key pair stored in the Power VS
+	// Service Instance
+	KeyPairName string `json:"keypairname"`
 
 	// VolumeIDs is the list of volumes attached to the instance.
 	//
@@ -59,5 +63,8 @@ func (a *MachinePool) Set(required *MachinePool) {
 	}
 	if required.ServiceInstance != "" {
 		a.ServiceInstance = required.ServiceInstance
+	}
+	if required.KeyPairName != "" {
+		a.KeyPairName = required.KeyPairName
 	}
 }

@@ -27,15 +27,17 @@ var powervsRegionToIBMRegion = map[string]string{
 type config struct {
 	ServiceInstanceID    string `json:"powervs_cloud_instance_id"`
 	APIKey               string `json:"powervs_api_key"`
+	SSHKey               string `json:"powervs_ssh_key"`
 	PowerVSRegion        string `json:"powervs_region"`
 	PowerVSZone          string `json:"powervs_zone"`
 	VPCRegion            string `json:"powervs_vpc_region"`
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
 	CISInstanceCRN       string `json:"powervs_cis_crn"`
-	SSHKey               string `json:"powervs_ssh_key"`
-	ImageID              string `json:"powervs_image_name"`
-	NetworkIDs           string `json:"powervs_network_name"`
-	VPCID                string `json:"powervs_vpc_id"`
+	ImageName            string `json:"powervs_image_name"`
+	ImageID              string `json:"powervs_image_id"`
+	NetworkName          string `json:"powervs_network_name"`
+	NetworkIDs           string `json:"powervs_network_id"`
+	VPCName              string `json:"powervs_vpc_name"`
 	VPCSubnetName        string `json:"powervs_vpc_subnet_name"`
 	BootstrapMemory      string `json:"powervs_bootstrap_memory"`
 	BootstrapProcessors  string `json:"powervs_bootstrap_processors"`
@@ -49,10 +51,13 @@ type config struct {
 type TFVarsSources struct {
 	MasterConfigs        []*v1alpha1.PowerVSMachineProviderConfig
 	APIKey               string
+	SSHKey               string
 	PowerVSZone          string
+	NetworkName          string
+	ImageName            string
 	PowerVSResourceGroup string
 	CISInstanceCRN       string
-	VPCID                string
+	VPCName              string
 	VPCSubnetName        string
 }
 
@@ -64,15 +69,17 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	cfg := &config{
 		ServiceInstanceID:    masterConfig.ServiceInstanceID,
 		APIKey:               sources.APIKey,
+		SSHKey:               sources.SSHKey,
 		PowerVSRegion:        masterConfig.Region,
 		PowerVSZone:          sources.PowerVSZone,
 		VPCRegion:            powervsRegionToIBMRegion[masterConfig.Region],
 		PowerVSResourceGroup: sources.PowerVSResourceGroup,
 		CISInstanceCRN:       sources.CISInstanceCRN,
-		SSHKey:               *masterConfig.KeyPairName,
+		ImageName:            sources.ImageName,
 		ImageID:              masterConfig.ImageID,
+		NetworkName:          sources.NetworkName,
 		NetworkIDs:           masterConfig.NetworkIDs[0],
-		VPCID:                sources.VPCID,
+		VPCName:              sources.VPCName,
 		VPCSubnetName:        sources.VPCSubnetName,
 		BootstrapMemory:      masterConfig.Memory,
 		BootstrapProcessors:  masterConfig.Processors,

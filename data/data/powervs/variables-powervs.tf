@@ -95,9 +95,16 @@ variable "powervs_sys_type" {
   default     = "s922"
 }
 
+variable "powervs_key_name" {
+  type        = string
+  description = "The name for the SSH key created in the Service Instance"
+  default     = ""
+}
+
 variable "powervs_ssh_key" {
   type        = string
   description = "Public key for keypair used to access cluster. Required when creating 'ibm_pi_instance' resources."
+  default     = ""
 }
 
 ################################################################
@@ -106,19 +113,16 @@ variable "powervs_ssh_key" {
 variable "powervs_network_name" {
   type        = string
   description = "Name of the network within the Power VS instance."
-  default     = "pvs-net-${var.cluster_id}"
 }
 
 variable "powervs_vpc_name" {
   type        = string
   description = "Name of the IBM Cloud Virtual Private Cloud (VPC) to setup the load balancer."
-  default     = "vpc-${var.cluster_id}"
 }
 
 variable "powervs_vpc_subnet_name" {
   type        = string
   description = "Name of the VPC subnet connected via DirectLink to the Power VS private network."
-  default     = "vpc-subnet-${var.cluster_id}"
 }
 
 ################################################################
