@@ -251,6 +251,7 @@ resource "openstack_networking_secgroup_rule_v2" "master_ingress_vrrp" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "master_ingress_http" {
+  count             = var.masters_schedulable ? 1 : 0
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -262,6 +263,7 @@ resource "openstack_networking_secgroup_rule_v2" "master_ingress_http" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "master_ingress_https" {
+  count             = var.masters_schedulable ? 1 : 0
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -273,6 +275,7 @@ resource "openstack_networking_secgroup_rule_v2" "master_ingress_https" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "master_ingress_router" {
+  count             = var.masters_schedulable ? 1 : 0
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
