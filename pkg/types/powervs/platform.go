@@ -90,4 +90,25 @@ type Platform struct {
 	// platform configuration.
 	// +optional
 	DefaultMachinePlatform *MachinePool `json:"defaultMachinePlatform,omitempty"`
+
+	// ServiceEndpoints list contains custom endpoints which will override default
+	// service endpoint of Power VS/IBM Services.
+	// There must be only one ServiceEndpoint for a service.
+	// +optional
+	ServiceEndpoints []ServiceEndpoint `json:"serviceEndpoints,omitempty"`
+}
+
+// ServiceEndpoint store the configuration for services to
+// override existing defaults of Power VS/IBM Services.
+type ServiceEndpoint struct {
+	// Name is the name of the Power VS/IBM service.
+	// This must be provided and cannot be empty.
+	Name string `json:"name"`
+
+	// URL is fully qualified URI with scheme https, that overrides the default generated
+	// endpoint for a client.
+	// This must be provided and cannot be empty.
+	//
+	// +kubebuilder:validation:Pattern=`^https://`
+	URL string `json:"url"`
 }
