@@ -672,6 +672,8 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				CISInstanceCRN:       crn,
 				VPCSubnetName:        installConfig.Config.PowerVS.Subnets[0],
 				VPCName:              installConfig.Config.PowerVS.VPC,
+				//TODO:Update Power VS tfvars similar to aws: https://github.com/Karthik-K-N/installer/blob/0f8dcc3b6f87af00dae260a5c27ef964d6f5d317/pkg/tfvars/aws/aws.go#L71
+				Services:             installConfig.Config.PowerVS.ServiceEndpoints,
 			},
 		)
 		if err != nil {

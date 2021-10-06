@@ -8,6 +8,9 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 // +kubebuilder:subresource:status
 
 // Infrastructure holds cluster-wide information about Infrastructure.  The canonical name is `cluster`
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type Infrastructure struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -82,7 +85,10 @@ type InfrastructureStatus struct {
 	// The default is 'HighlyAvailable', which represents the behavior operators have in a "normal" cluster.
 	// The 'SingleReplica' mode will be used in single-node deployments
 	// and the operators should not configure the operand for highly-available operation
+	// The 'External' mode indicates that the control plane is hosted externally to the cluster and that
+	// its components are not visible within the cluster.
 	// +kubebuilder:default=HighlyAvailable
+	// +kubebuilder:validation:Enum=HighlyAvailable;SingleReplica;External
 	ControlPlaneTopology TopologyMode `json:"controlPlaneTopology"`
 
 	// infrastructureTopology expresses the expectations for infrastructure services that do not run on control
@@ -91,12 +97,16 @@ type InfrastructureStatus struct {
 	// The default is 'HighlyAvailable', which represents the behavior operators have in a "normal" cluster.
 	// The 'SingleReplica' mode will be used in single-node deployments
 	// and the operators should not configure the operand for highly-available operation
+	// NOTE: External topology mode is not applicable for this field.
 	// +kubebuilder:default=HighlyAvailable
+	// +kubebuilder:validation:Enum=HighlyAvailable;SingleReplica
 	InfrastructureTopology TopologyMode `json:"infrastructureTopology"`
 }
 
 // TopologyMode defines the topology mode of the control/infra nodes.
-// +kubebuilder:validation:Enum=HighlyAvailable;SingleReplica
+// NOTE: Enum validation is specified in each field that uses this type,
+// given that External value is not applicable to the InfrastructureTopology
+// field.
 type TopologyMode string
 
 const (
@@ -105,10 +115,16 @@ const (
 
 	// "SingleReplica" is for operators to avoid spending resources for high-availability purpose.
 	SingleReplicaTopologyMode TopologyMode = "SingleReplica"
+
+	// "External" indicates that the component is running externally to the cluster. When specified
+	// as the control plane topology, operators should avoid scheduling workloads to masters or assume
+	// that any of the control plane components such as kubernetes API server or etcd are visible within
+	// the cluster.
+	ExternalTopologyMode TopologyMode = "External"
 )
 
 // PlatformType is a specific supported infrastructure provider.
-// +kubebuilder:validation:Enum="";AWS;Azure;BareMetal;GCP;Libvirt;OpenStack;None;VSphere;oVirt;IBMCloud;KubeVirt;EquinixMetal
+// +kubebuilder:validation:Enum="";AWS;Azure;BareMetal;GCP;Libvirt;OpenStack;None;VSphere;oVirt;IBMCloud;KubeVirt;EquinixMetal;PowerVS
 type PlatformType string
 
 const (
@@ -147,6 +163,9 @@ const (
 
 	// EquinixMetalPlatformType represents Equinix Metal infrastructure.
 	EquinixMetalPlatformType PlatformType = "EquinixMetal"
+
+	// PowerVSPlatformType represents the IBM Power Virtual Systems offering (colo with IBM Cloud)
+	PowerVSPlatformType PlatformType = "PowerVS"
 )
 
 // IBMCloudProviderType is a specific supported IBM Cloud provider cluster type
@@ -169,9 +188,9 @@ type PlatformSpec struct {
 	// balancers, dynamic volume provisioning, machine creation and deletion, and
 	// other integrations are enabled. If None, no infrastructure automation is
 	// enabled. Allowed values are "AWS", "Azure", "BareMetal", "GCP", "Libvirt",
-	// "OpenStack", "VSphere", "oVirt", "KubeVirt", "EquinixMetal", and "None". Individual components may not support
-	// all platforms, and must handle unrecognized platforms as None if they do
-	// not support that platform.
+	// "OpenStack", "VSphere", "oVirt", "KubeVirt", "EquinixMetal", "PowerVS", and "None".
+	// Individual components may not support all platforms, and must handle unrecognized
+	// platforms as None if they do not support that platform.
 	//
 	// +unionDiscriminator
 	Type PlatformType `json:"type"`
@@ -215,6 +234,9 @@ type PlatformSpec struct {
 	// EquinixMetal contains settings specific to the Equinix Metal infrastructure provider.
 	// +optional
 	EquinixMetal *EquinixMetalPlatformSpec `json:"equinixMetal,omitempty"`
+
+	// PowerVS contains settings specific to the IBM Power Virtual Systems offering (colo with IBM Cloud)
+	PowerVS *PowerVSPlatformSpec `json:"powervs,omitempty"`
 }
 
 // PlatformStatus holds the current status specific to the underlying infrastructure provider
@@ -226,9 +248,9 @@ type PlatformStatus struct {
 	// balancers, dynamic volume provisioning, machine creation and deletion, and
 	// other integrations are enabled. If None, no infrastructure automation is
 	// enabled. Allowed values are "AWS", "Azure", "BareMetal", "GCP", "Libvirt",
-	// "OpenStack", "VSphere", "oVirt", "EquinixMetal", and "None". Individual components may not support
-	// all platforms, and must handle unrecognized platforms as None if they do
-	// not support that platform.
+	// "OpenStack", "VSphere", "oVirt", "EquinixMetal", "PowerVS", and "None".
+	// Individual components may not support all platforms, and must handle unrecognized
+	// platforms as None if they do not support that platform.
 	//
 	// This value will be synced with to the `status.platform` and `status.platformStatus.type`.
 	// Currently this value cannot be changed once set.
@@ -257,6 +279,10 @@ type PlatformStatus struct {
 	// Ovirt contains settings specific to the oVirt infrastructure provider.
 	// +optional
 	Ovirt *OvirtPlatformStatus `json:"ovirt,omitempty"`
+
+	// PowerVS contains settings specific to the IBM Power Systems Virtual Server infrastructure.
+	// +optional
+	PowerVS *PowerVSPlatformStatus `json:"powervs,omitempty"`
 
 	// VSphere contains settings specific to the VSphere infrastructure provider.
 	// +optional
@@ -517,6 +543,10 @@ type IBMCloudPlatformStatus struct {
 
 	// ProviderType indicates the type of cluster that was created
 	ProviderType IBMCloudProviderType `json:"providerType,omitempty"`
+
+	// CISInstanceCRN is the CRN of the Cloud Internet Services instance managing
+	// the DNS zone for the cluster's base domain
+	CISInstanceCRN string `json:"cisInstanceCRN,omitempty"`
 }
 
 // KubevirtPlatformSpec holds the desired state of the kubevirt infrastructure provider.
@@ -553,9 +583,48 @@ type EquinixMetalPlatformStatus struct {
 	IngressIP string `json:"ingressIP,omitempty"`
 }
 
+// PowervsServiceEndpoint store the configuration of a custom url to
+// override existing defaults of PowerVS Services.
+type PowerVSServiceEndpoint struct {
+	// Name is the name of the Power VS services.
+	// Note that not all locations incude Power VS.
+	//
+	// +kubebuilder:validation:Pattern=`^[a-z0-9-]+$`
+	Name string `json:"name"`
+
+	// url is fully qualified URI with scheme https, that overrides the default generated
+	// endpoint for a client.
+	// This must be provided and cannot be empty.
+	//
+	// +kubebuilder:validation:Pattern=`^https://`
+	URL string `json:"url"`
+}
+
+// PowerVSPlatformSpec holds the desired state of the Power Systems Virtual Servers infrastructure provider.
+// This only includes fields that can be modified in the cluster.
+type PowerVSPlatformSpec struct{}
+
+// PowerVSPlatformStatus holds the current status of the Power VS infrastructure provider.
+type PowerVSPlatformStatus struct {
+	// Region holds the default Power VS region for new Power VS resources created by the cluster.
+	Region string `json:"region"`
+
+	// Zone holds the default colo zone for the new Power VS resources created by the cluster.
+	// Note: Currently only single-zone OCP clusters are supported
+	Zone string `json:"zone"`
+
+	// ServiceEndpoints list contains custom endpoints which will override default
+	// service endpoint of Power VS Services.
+	// +optional
+	ServiceEndpoints []PowerVSServiceEndpoint `json:"serviceEndpoints,omitempty"`
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureList is
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type InfrastructureList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`

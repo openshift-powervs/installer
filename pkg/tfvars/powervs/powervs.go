@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
+	typepowervs "github.com/openshift/installer/pkg/types/powervs"
 )
 
 // powervsRegionToVPCRegion based on:
@@ -59,6 +60,7 @@ type TFVarsSources struct {
 	CISInstanceCRN       string
 	VPCName              string
 	VPCSubnetName        string
+	Services             []typepowervs.ServiceEndpoint
 }
 
 // TFVars generates Power VS-specific Terraform variables launching the cluster.

@@ -212,7 +212,6 @@ func (i *Infrastructure) Generate(dependencies asset.Parents) error {
 			Region: installConfig.Config.Platform.PowerVS.Region,
 			Zone:   installConfig.Config.Platform.PowerVS.Zone,
 		}
-
 	default:
 		config.Spec.PlatformSpec.Type = configv1.NonePlatformType
 	}
