@@ -6,7 +6,6 @@ import (
 	"github.com/openshift/installer/pkg/types/baremetal"
 	"github.com/openshift/installer/pkg/types/gcp"
 	"github.com/openshift/installer/pkg/types/ibmcloud"
-	"github.com/openshift/installer/pkg/types/kubevirt"
 	"github.com/openshift/installer/pkg/types/libvirt"
 	"github.com/openshift/installer/pkg/types/openstack"
 	"github.com/openshift/installer/pkg/types/ovirt"
@@ -101,9 +100,6 @@ type MachinePoolPlatform struct {
 
 	// PowerVS is the configuration used when installing on IBM Power VS.
 	PowerVS *powervs.MachinePool `json:"powervs,omitempty"`
-
-	// Kubevirt is the configuration used when installing on Kubevirt.
-	Kubevirt *kubevirt.MachinePool `json:"kubevirt,omitempty"`
 }
 
 // Name returns a string representation of the platform (e.g. "aws" if
@@ -133,8 +129,6 @@ func (p *MachinePoolPlatform) Name() string {
 		return ovirt.Name
 	case p.PowerVS != nil:
 		return powervs.Name
-	case p.Kubevirt != nil:
-		return kubevirt.Name
 	default:
 		return ""
 	}

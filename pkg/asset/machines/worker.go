@@ -16,8 +16,6 @@ import (
 	gcpprovider "github.com/openshift/cluster-api-provider-gcp/pkg/apis/gcpprovider/v1beta1"
 	ibmcloudapi "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis"
 	ibmcloudprovider "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis/ibmcloudprovider/v1beta1"
-	kubevirtproviderapi "github.com/openshift/cluster-api-provider-kubevirt/pkg/apis"
-	kubevirtprovider "github.com/openshift/cluster-api-provider-kubevirt/pkg/apis/kubevirtprovider/v1alpha1"
 	libvirtapi "github.com/openshift/cluster-api-provider-libvirt/pkg/apis"
 	libvirtprovider "github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1"
 	ovirtproviderapi "github.com/openshift/cluster-api-provider-ovirt/pkg/apis"
@@ -47,7 +45,6 @@ import (
 	"github.com/openshift/installer/pkg/asset/machines/baremetal"
 	"github.com/openshift/installer/pkg/asset/machines/gcp"
 	"github.com/openshift/installer/pkg/asset/machines/ibmcloud"
-	"github.com/openshift/installer/pkg/asset/machines/kubevirt"
 	"github.com/openshift/installer/pkg/asset/machines/libvirt"
 	"github.com/openshift/installer/pkg/asset/machines/machineconfig"
 	"github.com/openshift/installer/pkg/asset/machines/openstack"
@@ -63,7 +60,6 @@ import (
 	baremetaltypes "github.com/openshift/installer/pkg/types/baremetal"
 	gcptypes "github.com/openshift/installer/pkg/types/gcp"
 	ibmcloudtypes "github.com/openshift/installer/pkg/types/ibmcloud"
-	kubevirttypes "github.com/openshift/installer/pkg/types/kubevirt"
 	libvirttypes "github.com/openshift/installer/pkg/types/libvirt"
 	nonetypes "github.com/openshift/installer/pkg/types/none"
 	openstacktypes "github.com/openshift/installer/pkg/types/openstack"
@@ -160,14 +156,6 @@ func defaultVSphereMachinePoolPlatform() vspheretypes.MachinePool {
 	}
 }
 
-func defaultKubevirtMachinePoolPlatform() kubevirttypes.MachinePool {
-	return kubevirttypes.MachinePool{
-		CPU:         4,
-		Memory:      "16G",
-		StorageSize: "120Gi",
-	}
-}
-
 func defaultPowerVSMachinePoolPlatform() powervstypes.MachinePool {
 	return powervstypes.MachinePool{
 		Memory:     32,
@@ -176,7 +164,6 @@ func defaultPowerVSMachinePoolPlatform() powervstypes.MachinePool {
 		SysType:    "s922",
 	}
 }
-
 func awsDefaultWorkerMachineTypes(region string, arch types.Architecture) []string {
 	classes := awsdefaults.InstanceClasses(region, arch)
 
@@ -457,6 +444,7 @@ func (w *Worker) Generate(dependencies asset.Parents) error {
 			for _, set := range sets {
 				machineSets = append(machineSets, set)
 			}
+<<<<<<< HEAD
 		case kubevirttypes.Name:
 			mpool := defaultKubevirtMachinePoolPlatform()
 			mpool.Set(ic.Platform.Kubevirt.DefaultMachinePlatform)
@@ -484,6 +472,8 @@ func (w *Worker) Generate(dependencies asset.Parents) error {
 			for _, set := range sets {
 				machineSets = append(machineSets, set)
 			}
+=======
+>>>>>>> a13695ad4 (Remove kubevirt platform from the installer)
 		case nonetypes.Name:
 		default:
 			return fmt.Errorf("invalid Platform")
@@ -569,8 +559,11 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 	openstackapi.AddToScheme(scheme)
 	ovirtproviderapi.AddToScheme(scheme)
 	vsphereproviderapi.AddToScheme(scheme)
+<<<<<<< HEAD
 	kubevirtproviderapi.AddToScheme(scheme)
 	powervsapi.AddToScheme(scheme)
+=======
+>>>>>>> a13695ad4 (Remove kubevirt platform from the installer)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
 		awsprovider.SchemeGroupVersion,
 		azureprovider.SchemeGroupVersion,
@@ -581,8 +574,11 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 		openstackprovider.SchemeGroupVersion,
 		ovirtprovider.SchemeGroupVersion,
 		vsphereprovider.SchemeGroupVersion,
+<<<<<<< HEAD
 		kubevirtprovider.SchemeGroupVersion,
 		powervsprovider.GroupVersion, //TODO: Should we rename from GroupVersion to SchemeGroupVersion
+=======
+>>>>>>> a13695ad4 (Remove kubevirt platform from the installer)
 	)
 
 	machineSets := []machineapi.MachineSet{}
