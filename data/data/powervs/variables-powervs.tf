@@ -23,11 +23,20 @@ variable "powervs_region" {
 variable "powervs_resource_group" {
   type        = string
   description = "The cloud instance resource group"
+<<<<<<< HEAD
+=======
+  default     = ""
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 }
 
 variable "powervs_cloud_instance_id" {
   type        = string
   description = "The cloud instance ID of your account"
+<<<<<<< HEAD
+=======
+  ## TODO: erase default and set via install-config
+  default = "e449d86e-c3a0-4c07-959e-8557fdf55482"
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 }
 
 ################################################################
@@ -59,6 +68,15 @@ variable "powervs_image_name" {
   description = "Name of the image used by all nodes in the cluster."
 }
 
+<<<<<<< HEAD
+=======
+variable "powervs_network_name" {
+  type        = string
+  description = "Name of the network used by the all nodes in the cluster."
+  default     = "pvs-ipi-net"
+}
+
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 variable "powervs_bootstrap_memory" {
   type        = string
   description = "Amount of memory, in  GiB, used by the bootstrap node."
@@ -95,6 +113,7 @@ variable "powervs_sys_type" {
   default     = "s922"
 }
 
+<<<<<<< HEAD
 variable "powervs_key_name" {
   type        = string
   description = "The name for the SSH key created in the Service Instance"
@@ -118,19 +137,43 @@ variable "powervs_network_name" {
 variable "powervs_vpc_name" {
   type        = string
   description = "Name of the IBM Cloud Virtual Private Cloud (VPC) to setup the load balancer."
+=======
+variable "powervs_ssh_key" {
+  type        = string
+  description = "Public key for keypair used to access cluster. Required when creating 'ibm_pi_instance' resources."
+}
+
+## TODO: Set this in install-config instead
+variable "powervs_vpc_name" {
+  type        = string
+  description = "Name of the IBM Cloud Virtual Private Cloud (VPC) to setup the load balancer."
+  default     = "powervs-ipi"
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 }
 
 variable "powervs_vpc_subnet_name" {
   type        = string
+<<<<<<< HEAD
   description = "Name of the VPC subnet connected via DirectLink to the Power VS private network."
 }
 
 ################################################################
 # Configure DNS
 ################################################################
+=======
+  description = "Name of the VPC subnet having DirectLink access to the PowerVS private network"
+  default     = "subnet2"
+}
+
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 ## TODO: Pass the CIS CRN from the installer program, refer the IBM Cloud code to see the implementation.
 variable "powervs_cis_crn" {
   type        = string
   description = "The CRN of CIS instance to use."
+<<<<<<< HEAD
 }
 
+=======
+  default     = "crn:v1:bluemix:public:internet-svcs:global:a/65b64c1f1c29460e8c2e4bbfbd893c2c:453c4cff-2ee0-4309-95f1-2e9384d9bb96::"
+}
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)

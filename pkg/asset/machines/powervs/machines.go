@@ -16,12 +16,17 @@ import (
 )
 
 // Machines returns a list of machines for a machinepool.
+<<<<<<< HEAD
 func Machines(clusterID string, config *types.InstallConfig, pool *types.MachinePool, role, userDataSecret string) ([]machineapi.Machine, error) {
+=======
+func Machines(clusterID string, config *types.InstallConfig, pool *types.MachinePool, role, userDataSecret string, userTags map[string]string) ([]machineapi.Machine, error) {
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	if poolPlatform := pool.Platform.Name(); poolPlatform != powervs.Name {
 		return nil, fmt.Errorf("non-PowerVS machine-pool: %q", poolPlatform)
 	}
 	platform := config.Platform.PowerVS
 	mpool := pool.Platform.PowerVS
+<<<<<<< HEAD
 
 	// Only the service instance is guaranteed to exist and be passed via the install config
 	// The other two, we should standardize a name including the cluster id.
@@ -40,6 +45,11 @@ func Machines(clusterID string, config *types.InstallConfig, pool *types.Machine
 	if mpool.ImageID == "" {
 		mpool.ImageID = fmt.Sprintf("rhcos-%s", clusterID)
 	}
+=======
+	//@TODO: clearly this needs to be set in the install config or through the rhcos pkg :D
+	mpool.ImageID = "rhcos-49-84-202108041519-0"
+	mpool.NetworkIDs = []string{"pvs-ipi-net"}
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 
 	total := int64(1)
 	if pool.Replicas != nil {
@@ -47,7 +57,11 @@ func Machines(clusterID string, config *types.InstallConfig, pool *types.Machine
 	}
 	var machines []machineapi.Machine
 	for idx := int64(0); idx < total; idx++ {
+<<<<<<< HEAD
 		provider, err := provider(clusterID, platform, mpool, userDataSecret, platform.UserTags)
+=======
+		provider, err := provider(clusterID, platform, mpool, userDataSecret, userTags)
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create provider")
 		}
@@ -85,8 +99,12 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 			APIVersion: powervsprovider.GroupVersion.String(),
 		},
 		ObjectMeta:        metav1.ObjectMeta{},
+<<<<<<< HEAD
 		Region:            platform.Region,
 		ServiceInstanceID: platform.ServiceInstanceID,
+=======
+		ServiceInstanceID: mpool.ServiceInstance,
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 		ImageID:           mpool.ImageID,
 		UserDataSecret:    &corev1.LocalObjectReference{Name: userDataSecret},
 		CredentialsSecret: &corev1.LocalObjectReference{Name: "powervs-credentials"},
@@ -100,7 +118,13 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 	return config, nil
 }
 
+<<<<<<< HEAD
 // ConfigMasters sets the network and boot image IDs
 func ConfigMasters(machines []machineapi.Machine, clusterID string) {
 
+=======
+// ConfigMasters sets the PublicIP flag and assigns a set of load balancers to the given machines
+func ConfigMasters(machines []machineapi.Machine, clusterID string) {
+	//TODO: Revisit this later if required, At the moment we don't know how to handle the ingress data.
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 }

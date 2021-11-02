@@ -25,6 +25,7 @@ var powervsRegionToIBMRegion = map[string]string{
 }
 
 type config struct {
+<<<<<<< HEAD
 	ServiceInstanceID    string `json:"powervs_cloud_instance_id"`
 	APIKey               string `json:"powervs_api_key"`
 	SSHKey               string `json:"powervs_ssh_key"`
@@ -39,6 +40,15 @@ type config struct {
 	NetworkIDs           string `json:"powervs_network_id"`
 	VPCName              string `json:"powervs_vpc_name"`
 	VPCSubnetName        string `json:"powervs_vpc_subnet_name"`
+=======
+	APIKey               string `json:"powervs_api_key"`
+	PowerVSRegion        string `json:"powervs_region"`
+	VPCRegion            string `json:"powervs_vpc_region"`
+	PowerVSResourceGroup string `json:"powervs_resource_group"`
+	SSHKey               string `json:"powervs_ssh_key"`
+	ImageID              string `json:"powervs_image_name"`
+	NetworkIDs           string `json:"powervs_network_name"`
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	BootstrapMemory      string `json:"powervs_bootstrap_memory"`
 	BootstrapProcessors  string `json:"powervs_bootstrap_processors"`
 	MasterMemory         string `json:"powervs_master_memory"`
@@ -49,6 +59,7 @@ type config struct {
 
 // TFVarsSources contains the parameters to be converted into Terraform variables
 type TFVarsSources struct {
+<<<<<<< HEAD
 	MasterConfigs        []*v1alpha1.PowerVSMachineProviderConfig
 	APIKey               string
 	SSHKey               string
@@ -59,6 +70,12 @@ type TFVarsSources struct {
 	CISInstanceCRN       string
 	VPCName              string
 	VPCSubnetName        string
+=======
+	MasterConfigs []*v1alpha1.PowerVSMachineProviderConfig
+	APIKey        string
+	SSHKey        string
+	PowerVSRegion string
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 }
 
 // TFVars generates Power VS-specific Terraform variables launching the cluster.
@@ -66,6 +83,7 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	masterConfig := sources.MasterConfigs[0]
 
 	//@TODO: Add resource group to platform
+<<<<<<< HEAD
 	cfg := &config{
 		ServiceInstanceID:    masterConfig.ServiceInstanceID,
 		APIKey:               sources.APIKey,
@@ -81,6 +99,18 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		NetworkIDs:           masterConfig.NetworkIDs[0],
 		VPCName:              sources.VPCName,
 		VPCSubnetName:        sources.VPCSubnetName,
+=======
+	//  -- change ImageID to ImageURL here?
+	//  --
+	cfg := &config{
+		APIKey:               sources.APIKey,
+		PowerVSRegion:        sources.PowerVSRegion,
+		VPCRegion:            powervsRegionToIBMRegion[sources.PowerVSRegion],
+		PowerVSResourceGroup: "powervs-ipi-resource-group",
+		SSHKey:               sources.SSHKey,
+		ImageID:              masterConfig.ImageID,
+		NetworkIDs:           masterConfig.NetworkIDs[0],
+>>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 		BootstrapMemory:      masterConfig.Memory,
 		BootstrapProcessors:  masterConfig.Processors,
 		MasterMemory:         masterConfig.Memory,
