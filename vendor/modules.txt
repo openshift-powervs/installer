@@ -731,9 +731,9 @@ github.com/go-openapi/analysis
 github.com/go-openapi/analysis/internal
 # github.com/go-openapi/errors v0.19.8 => github.com/go-openapi/errors v0.19.2
 github.com/go-openapi/errors
-# github.com/go-openapi/jsonpointer v0.19.5
+# github.com/go-openapi/jsonpointer v0.19.3
 github.com/go-openapi/jsonpointer
-# github.com/go-openapi/jsonreference v0.19.5
+# github.com/go-openapi/jsonreference v0.19.4
 github.com/go-openapi/jsonreference
 # github.com/go-openapi/loads v0.19.4
 github.com/go-openapi/loads
@@ -750,7 +750,7 @@ github.com/go-openapi/runtime/security
 github.com/go-openapi/spec
 # github.com/go-openapi/strfmt v0.20.1
 github.com/go-openapi/strfmt
-# github.com/go-openapi/swag v0.19.14
+# github.com/go-openapi/swag v0.19.9
 github.com/go-openapi/swag
 # github.com/go-openapi/validate v0.20.1 => github.com/go-openapi/validate v0.19.8
 github.com/go-openapi/validate
@@ -1376,7 +1376,7 @@ github.com/opencontainers/image-spec/specs-go/v1
 # github.com/openshift-metal3/terraform-provider-ironic v0.2.6
 ## explicit
 github.com/openshift-metal3/terraform-provider-ironic/ironic
-# github.com/openshift/api v0.0.0-20210924154557-a4f696157341
+# github.com/openshift/api v0.0.0-20210924154557-a4f696157341 => github.com/openshift-powervs/api v0.0.0-20210729234416-b883aff9d9db
 ## explicit
 github.com/openshift/api/config/v1
 github.com/openshift/api/operator/v1
@@ -1410,7 +1410,7 @@ github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis/ibmcloudprovider/v1b
 ## explicit
 github.com/openshift/cluster-api-provider-libvirt/pkg/apis
 github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1
-# github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210817084941-2262c7c6cece
+# github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20210622084102-c4f9f269bcb7
 ## explicit
 github.com/openshift/cluster-api-provider-ovirt/pkg/apis
 github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1
@@ -1418,8 +1418,6 @@ github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1
 ## explicit
 github.com/openshift/cluster-api-provider-powervs/pkg/apis
 github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1
-# github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3
-github.com/openshift/custom-resource-status/conditions/v1
 # github.com/openshift/library-go v0.0.0-20210408164723-7a65fdb398e2
 ## explicit
 github.com/openshift/library-go/pkg/config/clusteroperator/v1helpers
@@ -2089,7 +2087,7 @@ golang.org/x/crypto/ssh/terminal
 ## explicit
 golang.org/x/lint
 golang.org/x/lint/golint
-# golang.org/x/mod v0.4.2
+# golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
@@ -2150,7 +2148,7 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 golang.org/x/time/rate
-# golang.org/x/tools v0.1.2
+# golang.org/x/tools v0.1.0
 golang.org/x/tools/cmd/goimports
 golang.org/x/tools/go/analysis
 golang.org/x/tools/go/analysis/passes/inspect
