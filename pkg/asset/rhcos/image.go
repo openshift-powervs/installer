@@ -167,11 +167,7 @@ func osImage(config *types.InstallConfig) (string, error) {
 		if a, ok := streamArch.Artifacts["powervs"]; ok {
 			return rhcos.FindArtifactURL(a)
 		}
-<<<<<<< HEAD
 		return "", fmt.Errorf("%s: No Power VS build found", st.FormatPrefix(archName))
-=======
-		return "", fmt.Errorf("%s: No powervs build found", st.FormatPrefix(archName))
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	case none.Name:
 		return "", nil
 	default:

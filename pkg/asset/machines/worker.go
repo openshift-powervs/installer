@@ -3,12 +3,9 @@ package machines
 import (
 	"context"
 	"fmt"
-	"github.com/openshift/installer/pkg/asset/machines/powervs"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/openshift/installer/pkg/asset/machines/powervs"
 
 	"github.com/ghodss/yaml"
 	baremetalapi "github.com/metal3-io/cluster-api-provider-baremetal/pkg/apis"
@@ -50,6 +47,7 @@ import (
 	"github.com/openshift/installer/pkg/asset/machines/machineconfig"
 	"github.com/openshift/installer/pkg/asset/machines/openstack"
 	"github.com/openshift/installer/pkg/asset/machines/ovirt"
+	"github.com/openshift/installer/pkg/asset/machines/powervs"
 	"github.com/openshift/installer/pkg/asset/machines/vsphere"
 	"github.com/openshift/installer/pkg/asset/rhcos"
 	rhcosutils "github.com/openshift/installer/pkg/rhcos"
@@ -154,15 +152,6 @@ func defaultVSphereMachinePoolPlatform() vspheretypes.MachinePool {
 		OSDisk: vspheretypes.OSDisk{
 			DiskSizeGB: 120,
 		},
-	}
-}
-
-func defaultPowerVSMachinePoolPlatform() powervstypes.MachinePool {
-	return powervstypes.MachinePool{
-		Memory:     32,
-		Processors: 0.5,
-		ProcType:   "shared",
-		SysType:    "s922",
 	}
 }
 
@@ -459,38 +448,10 @@ func (w *Worker) Generate(dependencies asset.Parents) error {
 			mpool := defaultPowerVSMachinePoolPlatform()
 			mpool.Set(ic.Platform.PowerVS.DefaultMachinePlatform)
 			mpool.Set(pool.Platform.PowerVS)
-			// TODO: Temporary patch to bring up the worker nodes, later should be removed
-			hardcode := &powervstypes.MachinePool{
-				ServiceInstance: "e449d86e-c3a0-4c07-959e-8557fdf55482",
-				ImageID:         "11b3470c-e747-4f92-ba70-428054ca4672",
-				KeyPairName:     clusterID.InfraID + "-key",
-				NetworkIDs:      []string{"daf2b616-542b-47ed-8cec-ceaec1e90f4d"},
-			}
-			mpool.Set(hardcode)
 			pool.Platform.PowerVS = &mpool
 			sets, err := powervs.MachineSets(clusterID.InfraID, ic, &pool, "worker", "worker-user-data", installConfig.Config.Platform.PowerVS.UserTags)
 			if err != nil {
-				return errors.Wrap(err, "failed to create worker machine objects for ovirt provider")
-			}
-			for _, set := range sets {
-				machineSets = append(machineSets, set)
-			}
-		case powervstypes.Name:
-			mpool := defaultPowerVSMachinePoolPlatform()
-			mpool.Set(ic.Platform.PowerVS.DefaultMachinePlatform)
-			mpool.Set(pool.Platform.PowerVS)
-			// TODO: Temporary patch to bring up the worker nodes, later should be removed
-			hardcode := &powervstypes.MachinePool{
-				ServiceInstance: "e449d86e-c3a0-4c07-959e-8557fdf55482",
-				ImageID:         "11b3470c-e747-4f92-ba70-428054ca4672",
-				KeyPairName:     clusterID.InfraID + "-key",
-				NetworkIDs:      []string{"daf2b616-542b-47ed-8cec-ceaec1e90f4d"},
-			}
-			mpool.Set(hardcode)
-			pool.Platform.PowerVS = &mpool
-			sets, err := powervs.MachineSets(clusterID.InfraID, ic, &pool, "worker", "worker-user-data", installConfig.Config.Platform.PowerVS.UserTags)
-			if err != nil {
-				return errors.Wrap(err, "failed to create worker machine objects for ovirt provider")
+				return errors.Wrap(err, "failed to create worker machine objects for powervs provider")
 			}
 			for _, set := range sets {
 				machineSets = append(machineSets, set)
@@ -591,7 +552,7 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 		openstackprovider.SchemeGroupVersion,
 		ovirtprovider.SchemeGroupVersion,
 		vsphereprovider.SchemeGroupVersion,
-		powervsprovider.GroupVersion, //TODO: Should we rename from GroupVersion to SchemeGroupVersion
+		powervsprovider.GroupVersion,
 	)
 
 	machineSets := []machineapi.MachineSet{}

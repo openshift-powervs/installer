@@ -1,7 +1,6 @@
 package powervs
 
 import (
-<<<<<<< HEAD
 	"fmt"
 	"sort"
 	"strings"
@@ -10,9 +9,6 @@ import (
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/openshift/installer/pkg/rhcos"
 	"github.com/pkg/errors"
-=======
-	"github.com/openshift/installer/pkg/rhcos"
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 )
 
 func knownRegions() map[string]string {
@@ -52,7 +48,6 @@ func IsKnownZone(region string, zone string) bool {
 	}
 	return false
 }
-<<<<<<< HEAD
 
 // GetRegion prompts the user to select a region and returns that region
 func GetRegion() (string, error) {
@@ -144,5 +139,3 @@ func GetZone(region string) (string, error) {
 	}
 	return zone, err
 }
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)

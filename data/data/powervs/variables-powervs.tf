@@ -23,14 +23,11 @@ variable "powervs_region" {
 variable "powervs_resource_group" {
   type        = string
   description = "The cloud instance resource group"
-  default     = ""
 }
 
 variable "powervs_cloud_instance_id" {
   type        = string
   description = "The cloud instance ID of your account"
-  ## TODO: erase default and set via install-config
-  default = "e449d86e-c3a0-4c07-959e-8557fdf55482"
 }
 
 ################################################################
@@ -60,12 +57,6 @@ variable "powervs_cos_storage_class" {
 variable "powervs_image_name" {
   type        = string
   description = "Name of the image used by all nodes in the cluster."
-}
-
-variable "powervs_network_name" {
-  type        = string
-  description = "Name of the network used by the all nodes in the cluster."
-  default     = "pvs-ipi-net"
 }
 
 variable "powervs_bootstrap_memory" {
@@ -104,26 +95,42 @@ variable "powervs_sys_type" {
   default     = "s922"
 }
 
+variable "powervs_key_name" {
+  type        = string
+  description = "The name for the SSH key created in the Service Instance"
+  default     = ""
+}
+
 variable "powervs_ssh_key" {
   type        = string
   description = "Public key for keypair used to access cluster. Required when creating 'ibm_pi_instance' resources."
+  default     = ""
 }
 
-## TODO: Set this in install-config instead
+################################################################
+# Configure Network Topology
+################################################################
+variable "powervs_network_name" {
+  type        = string
+  description = "Name of the network within the Power VS instance."
+}
+
 variable "powervs_vpc_name" {
   type        = string
   description = "Name of the IBM Cloud Virtual Private Cloud (VPC) to setup the load balancer."
-  default     = "powervs-ipi"
 }
 
 variable "powervs_vpc_subnet_name" {
   type        = string
-  description = "Name of the VPC subnet having DirectLink access to the PowerVS private network"
-  default     = "subnet2"
+  description = "Name of the VPC subnet connected via DirectLink to the Power VS private network."
 }
 
+################################################################
+# Configure DNS
+################################################################
 ## TODO: Pass the CIS CRN from the installer program, refer the IBM Cloud code to see the implementation.
 variable "powervs_cis_crn" {
   type        = string
   description = "The CRN of CIS instance to use."
 }
+

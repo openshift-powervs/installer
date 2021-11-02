@@ -111,11 +111,6 @@ func (a *PlatformProvisionCheck) Generate(dependencies asset.Parents) error {
 		if err != nil {
 			return err
 		}
-	case powervs.Name:
-		err = powervsconfig.ValidateForProvisioning()
-		if err != nil {
-			return err
-		}
 	case libvirt.Name, none.Name:
 		// no special provisioning requirements to check
 	default:

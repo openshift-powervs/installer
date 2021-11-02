@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 // Package powervs generates Machine objects for IBM Power VS.
-=======
-// Package powervs generates Machine objects for powerVS.
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 package powervs
 
 import (
 	"fmt"
-<<<<<<< HEAD
 
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	"github.com/openshift/installer/pkg/types/powervs"
 
 	machineapi "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
@@ -33,7 +26,6 @@ func MachineSets(clusterID string, config *types.InstallConfig, pool *types.Mach
 	platform := config.Platform.PowerVS
 	mpool := pool.Platform.PowerVS
 
-<<<<<<< HEAD
 	if platform.SSHKeyName != "" {
 		mpool.KeyPairName = platform.SSHKeyName
 	} else {
@@ -49,8 +41,6 @@ func MachineSets(clusterID string, config *types.InstallConfig, pool *types.Mach
 		mpool.ImageID = fmt.Sprintf("rhcos-%s", clusterID)
 	}
 
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 	total := int32(0)
 	if pool.Replicas != nil {
 		total = int32(*pool.Replicas)

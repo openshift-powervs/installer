@@ -30,26 +30,12 @@ module "bootstrap" {
   cos_bucket_location   = var.powervs_cos_bucket_location
   cos_storage_class     = var.powervs_cos_storage_class
 
-<<<<<<< HEAD
   memory       = var.powervs_bootstrap_memory
   processors   = var.powervs_bootstrap_processors
   ignition     = var.ignition_bootstrap
   sys_type     = var.powervs_sys_type
   proc_type    = var.powervs_proc_type
   key_id       = ibm_pi_key.cluster_key.key_id
-=======
-  memory     = var.powervs_bootstrap_memory
-  processors = var.powervs_bootstrap_processors
-  ignition   = var.ignition_bootstrap
-  sys_type   = var.powervs_sys_type
-  proc_type  = var.powervs_proc_type
-  key_id     = ibm_pi_key.cluster_key.key_id
-
-  # TODO(mjturek): image and network IDs are not derived during terraform
-  #                for other providers. Need to investigate and follow how
-  #                other providers do this. cnorman's branch has some work
-  #                towards this already.
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
   image_name   = var.powervs_image_name
   network_name = var.powervs_network_name
 }
@@ -64,40 +50,21 @@ module "master" {
   resource_group    = var.powervs_resource_group
   instance_count    = var.master_count
 
-<<<<<<< HEAD
   memory       = var.powervs_master_memory
   processors   = var.powervs_master_processors
   ignition     = var.ignition_master
   sys_type     = var.powervs_sys_type
   proc_type    = var.powervs_proc_type
   key_id       = ibm_pi_key.cluster_key.key_id
-=======
-  memory     = var.powervs_master_memory
-  processors = var.powervs_master_processors
-  ignition   = var.ignition_master
-  sys_type   = var.powervs_sys_type
-  proc_type  = var.powervs_proc_type
-  key_id     = ibm_pi_key.cluster_key.key_id
-
-  # TODO(mjturek): image and network IDs are not derived during terraform
-  #                for other providers. Need to investigate and follow how
-  #                other providers do this. cnorman's branch has some work
-  #                towards this already.
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
   image_name   = var.powervs_image_name
   network_name = var.powervs_network_name
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 data "ibm_is_subnet" "vpc_subnet" {
   provider = ibm.vpc
   name = var.powervs_vpc_subnet_name
 }
 
-<<<<<<< HEAD
 data "ibm_pi_image" "boot_image" {
   provider = ibm.powervs
   pi_image_name    = var.powervs_image_name
@@ -110,8 +77,6 @@ data "ibm_pi_network" "pvs_net" {
   pi_cloud_instance_id = var.powervs_cloud_instance_id
 }
 
-=======
->>>>>>> ce5d7615b (Squashing Power VS IPI commits)
 module "loadbalancer" {
   providers = {
     ibm = ibm.vpc
