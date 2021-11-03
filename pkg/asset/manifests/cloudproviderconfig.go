@@ -14,10 +14,10 @@ import (
 
 	"github.com/openshift/installer/pkg/asset"
 	"github.com/openshift/installer/pkg/asset/installconfig"
+	ibmcloudmachines "github.com/openshift/installer/pkg/asset/machines/ibmcloud"
 	"github.com/openshift/installer/pkg/asset/manifests/azure"
 	gcpmanifests "github.com/openshift/installer/pkg/asset/manifests/gcp"
 	ibmcloudmanifests "github.com/openshift/installer/pkg/asset/manifests/ibmcloud"
-	kubevirtmanifests "github.com/openshift/installer/pkg/asset/manifests/kubevirt"
 	openstackmanifests "github.com/openshift/installer/pkg/asset/manifests/openstack"
 	vspheremanifests "github.com/openshift/installer/pkg/asset/manifests/vsphere"
 	awstypes "github.com/openshift/installer/pkg/types/aws"
@@ -25,7 +25,6 @@ import (
 	baremetaltypes "github.com/openshift/installer/pkg/types/baremetal"
 	gcptypes "github.com/openshift/installer/pkg/types/gcp"
 	ibmcloudtypes "github.com/openshift/installer/pkg/types/ibmcloud"
-	kubevirttypes "github.com/openshift/installer/pkg/types/kubevirt"
 	libvirttypes "github.com/openshift/installer/pkg/types/libvirt"
 	nonetypes "github.com/openshift/installer/pkg/types/none"
 	openstacktypes "github.com/openshift/installer/pkg/types/openstack"
@@ -154,6 +153,10 @@ func (cpc *CloudProviderConfig) Generate(dependencies asset.Parents) error {
 				return errors.Wrap(err, "could not serialize Azure Stack endpoints")
 			}
 			cm.Data[cloudProviderEndpointsKey] = string(b)
+
+			if trustBundle := installConfig.Config.AdditionalTrustBundle; trustBundle != "" {
+				cm.Data[cloudProviderConfigCABundleDataKey] = trustBundle
+			}
 		}
 	case gcptypes.Name:
 		subnet := fmt.Sprintf("%s-worker-subnet", clusterID.InfraID)
@@ -170,7 +173,29 @@ func (cpc *CloudProviderConfig) Generate(dependencies asset.Parents) error {
 		if err != nil {
 			return err
 		}
-		ibmcloudConfig, err := ibmcloudmanifests.CloudProviderConfig(clusterID.InfraID, accountID, installConfig.Config.IBMCloud.Region)
+
+		controlPlane := &ibmcloudtypes.MachinePool{}
+		controlPlane.Set(installConfig.Config.Platform.IBMCloud.DefaultMachinePlatform)
+		controlPlane.Set(installConfig.Config.ControlPlane.Platform.IBMCloud)
+		compute := &ibmcloudtypes.MachinePool{}
+		compute.Set(installConfig.Config.Platform.IBMCloud.DefaultMachinePlatform)
+		compute.Set(installConfig.Config.WorkerMachinePool().Platform.IBMCloud)
+
+		if len(controlPlane.Zones) == 0 || len(compute.Zones) == 0 {
+			zones, err := ibmcloudmachines.AvailabilityZones(installConfig.Config.IBMCloud.Region)
+			if err != nil {
+				return errors.Wrapf(err, "could not get availability zones for %s", installConfig.Config.IBMCloud.Region)
+			}
+			if len(controlPlane.Zones) == 0 {
+				controlPlane.Zones = zones
+			}
+			if len(compute.Zones) == 0 {
+				compute.Zones = zones
+			}
+		}
+
+		resourceGroupName := installConfig.Config.Platform.IBMCloud.ClusterResourceGroupName(clusterID.InfraID)
+		ibmcloudConfig, err := ibmcloudmanifests.CloudProviderConfig(clusterID.InfraID, accountID, installConfig.Config.IBMCloud.Region, resourceGroupName, controlPlane.Zones, compute.Zones)
 		if err != nil {
 			return errors.Wrap(err, "could not create cloud provider config")
 		}
@@ -189,15 +214,6 @@ func (cpc *CloudProviderConfig) Generate(dependencies asset.Parents) error {
 			return errors.Wrap(err, "could not create cloud provider config")
 		}
 		cm.Data[cloudProviderConfigDataKey] = vsphereConfig
-	case kubevirttypes.Name:
-		kubevirtConfig, err := kubevirtmanifests.CloudProviderConfig{
-			Namespace: installConfig.Config.Platform.Kubevirt.Namespace,
-			InfraID:   clusterID.InfraID,
-		}.JSON()
-		if err != nil {
-			return errors.Wrap(err, "could not create cloud provider config")
-		}
-		cm.Data[cloudProviderConfigDataKey] = kubevirtConfig
 	default:
 		return errors.New("invalid Platform")
 	}

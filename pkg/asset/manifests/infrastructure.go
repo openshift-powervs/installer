@@ -1,6 +1,7 @@
 package manifests
 
 import (
+	"context"
 	"path/filepath"
 	"sort"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/openshift/installer/pkg/types/baremetal"
 	"github.com/openshift/installer/pkg/types/gcp"
 	"github.com/openshift/installer/pkg/types/ibmcloud"
-	"github.com/openshift/installer/pkg/types/kubevirt"
 	"github.com/openshift/installer/pkg/types/libvirt"
 	"github.com/openshift/installer/pkg/types/none"
 	"github.com/openshift/installer/pkg/types/openstack"
@@ -172,9 +172,14 @@ func (i *Infrastructure) Generate(dependencies asset.Parents) error {
 		})
 	case ibmcloud.Name:
 		config.Spec.PlatformSpec.Type = configv1.IBMCloudPlatformType
+		cisInstanceCRN, err := installConfig.IBMCloud.CISInstanceCRN(context.TODO())
+		if err != nil {
+			return errors.Wrap(err, "cannot retrieve IBM Cloud Internet Services instance CRN")
+		}
 		config.Status.PlatformStatus.IBMCloud = &configv1.IBMCloudPlatformStatus{
 			Location:          installConfig.Config.Platform.IBMCloud.Region,
 			ResourceGroupName: installConfig.Config.Platform.IBMCloud.ClusterResourceGroupName(clusterID.InfraID),
+			CISInstanceCRN:    cisInstanceCRN,
 		}
 	case libvirt.Name:
 		config.Spec.PlatformSpec.Type = configv1.LibvirtPlatformType
@@ -199,12 +204,6 @@ func (i *Infrastructure) Generate(dependencies asset.Parents) error {
 		config.Status.PlatformStatus.Ovirt = &configv1.OvirtPlatformStatus{
 			APIServerInternalIP: installConfig.Config.Ovirt.APIVIP,
 			IngressIP:           installConfig.Config.Ovirt.IngressVIP,
-		}
-	case kubevirt.Name:
-		config.Spec.PlatformSpec.Type = configv1.KubevirtPlatformType
-		config.Status.PlatformStatus.Kubevirt = &configv1.KubevirtPlatformStatus{
-			APIServerInternalIP: installConfig.Config.Kubevirt.APIVIP,
-			IngressIP:           installConfig.Config.Kubevirt.IngressVIP,
 		}
 	case powervs.Name:
 		config.Spec.PlatformSpec.Type = configv1.PowerVSPlatformType

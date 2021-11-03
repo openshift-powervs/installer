@@ -2,7 +2,6 @@
 
 aliases:
   installer-approvers:
-    - abhinavdahiya
     - jhixson74
     - jstuever
     - patrickdillon
@@ -77,34 +76,52 @@ aliases:
     - fabianofranz
     - jhixson74
     - m1kola
-    - mjudeikis
   ovirt-approvers:
     - rgolangh
     - Gal-Zaidman
     - eslutsky
-    - dougsland
     - janosdebugs
   ovirt-reviewers:
     - rgolangh
     - Gal-Zaidman
     - eslutsky
-    - dougsland
     - janosdebugs
-  kubevirt-approvers:
-    - nirarg
-    - bardielle
-    - ravidbro
-    - rgolangh
-    - chenyosef
-  kubevirt-reviewers:
-    - nirarg
-    - bardielle
-    - ravidbro
-    - rgolangh
-    - chenyosef
   ibmcloud-approvers:
     - bobbyradford
     - hasueki
   ibmcloud-reviewers:
     - bobbyradford
     - hasueki
+  # Keep in sync with the `coreos-approvers` and `coreos-reviewers` lists in https://github.com/openshift/release/blob/master/OWNERS_ALIASES
+  coreos-approvers:
+    - miabbott
+    - cgwalters
+    - bgilbert
+    - dustymabe
+    - mike-nguyen
+    - jlebon
+    - ashcrow
+    - lucab
+    - sohankunkerkar
+    - travier
+    - saqibali-2k
+    - HuijingHei
+    - jmarrero
+    - aaradhak
+    - ravanelli
+  coreos-reviewers:
+    - miabbott
+    - cgwalters
+    - bgilbert
+    - dustymabe
+    - mike-nguyen
+    - jlebon
+    - ashcrow
+    - lucab
+    - sohankunkerkar
+    - travier
+    - saqibali-2k
+    - HuijingHei
+    - jmarrero
+    - aaradhak
+    - ravanelli

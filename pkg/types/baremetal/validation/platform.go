@@ -11,6 +11,7 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/go-playground/validator/v10"
+	"github.com/metal3-io/baremetal-operator/pkg/bmc"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -58,6 +59,13 @@ func validateIPNotinMachineCIDR(ip string, n *types.Networking) error {
 		if network.CIDR.Contains(net.ParseIP(ip)) {
 			return fmt.Errorf("the IP must not be in one of the machine networks")
 		}
+	}
+	return nil
+}
+
+func validateAPIVIPIsDifferentFromINGRESSVIP(apiVIP string, ingressVIP string) error {
+	if apiVIP == ingressVIP {
+		return fmt.Errorf("apiVIP and ingressVIP must not be set to the same value")
 	}
 	return nil
 }
@@ -294,7 +302,14 @@ func validateHostsCount(hosts []*baremetal.Host, installConfig *types.InstallCon
 func validateBootMode(hosts []*baremetal.Host, fldPath *field.Path) (errors field.ErrorList) {
 	for idx, host := range hosts {
 		switch host.BootMode {
-		case "", baremetal.UEFI, baremetal.UEFISecureBoot, baremetal.Legacy:
+		case "", baremetal.UEFI, baremetal.Legacy:
+		case baremetal.UEFISecureBoot:
+			accessDetails, err := bmc.NewAccessDetails(host.BMC.Address, host.BMC.DisableCertificateVerification)
+			if err == nil && !accessDetails.SupportsSecureBoot() {
+				msg := fmt.Sprintf("driver %s does not support UEFI secure boot", accessDetails.Driver())
+				errors = append(errors, field.Invalid(fldPath.Index(idx).Child("bootMode"), host.BootMode, msg))
+			}
+			// if access details cannot be constructed, this should be reported elsewhere
 		default:
 			valid := []string{string(baremetal.UEFI), string(baremetal.UEFISecureBoot), string(baremetal.Legacy)}
 			errors = append(errors, field.NotSupported(fldPath.Index(idx).Child("bootMode"), host.BootMode, valid))
@@ -355,6 +370,10 @@ func ValidatePlatform(p *baremetal.Platform, n *types.Networking, fldPath *field
 		allErrs = append(allErrs, field.Required(fldPath.Child("Hosts"), err.Error()))
 	}
 
+	if err := validateAPIVIPIsDifferentFromINGRESSVIP(p.APIVIP, p.IngressVIP); err != nil {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("apiVIP"), p.APIVIP, err.Error()))
+	}
+
 	allErrs = append(allErrs, validateHostsWithoutBMC(p.Hosts, fldPath)...)
 
 	allErrs = append(allErrs, validateBootMode(p.Hosts, fldPath.Child("Hosts"))...)
@@ -403,6 +422,14 @@ func ValidateProvisioning(p *baremetal.Platform, n *types.Networking, fldPath *f
 		// Ensure clusterProvisioningIP is in the provisioningNetworkCIDR
 		if !p.ProvisioningNetworkCIDR.Contains(net.ParseIP(p.ClusterProvisioningIP)) {
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("clusterProvisioningIP"), p.ClusterProvisioningIP, fmt.Sprintf("%q is not in the provisioning network", p.ClusterProvisioningIP)))
+		}
+
+		// Ensure provisioningNetworkCIDR does not have any host bits set
+		expectedIP := p.ProvisioningNetworkCIDR.IP.Mask(p.ProvisioningNetworkCIDR.Mask)
+		expectedLen, _ := p.ProvisioningNetworkCIDR.Mask.Size()
+		if !p.ProvisioningNetworkCIDR.IP.Equal(expectedIP) {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("provisioningNetworkCIDR"), p.ProvisioningNetworkCIDR,
+				fmt.Sprintf("provisioningNetworkCIDR has host bits set, expected %s/%d", expectedIP, expectedLen)))
 		}
 
 		if err := validateIPNotinMachineCIDR(p.BootstrapProvisioningIP, n); err != nil {

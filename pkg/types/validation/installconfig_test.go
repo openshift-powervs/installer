@@ -514,7 +514,7 @@ func TestValidateInstallConfig(t *testing.T) {
 				c.Platform = types.Platform{}
 				return c
 			}(),
-			expectedError: `^platform: Invalid value: "": must specify one of the platforms \(aws, azure, baremetal, gcp, ibmcloud, kubevirt, none, openstack, ovirt, vsphere\)$`,
+			expectedError: `^platform: Invalid value: "": must specify one of the platforms \(aws, azure, baremetal, gcp, ibmcloud, none, openstack, ovirt, vsphere\)$`,
 		},
 		{
 			name: "multiple platforms",
@@ -545,7 +545,7 @@ func TestValidateInstallConfig(t *testing.T) {
 				}
 				return c
 			}(),
-			expectedError: `^platform: Invalid value: "libvirt": must specify one of the platforms \(aws, azure, baremetal, gcp, ibmcloud, kubevirt, none, openstack, ovirt, vsphere\)$`,
+			expectedError: `^platform: Invalid value: "libvirt": must specify one of the platforms \(aws, azure, baremetal, gcp, ibmcloud, none, openstack, ovirt, vsphere\)$`,
 		},
 		{
 			name: "invalid libvirt platform",
@@ -557,7 +557,7 @@ func TestValidateInstallConfig(t *testing.T) {
 				c.Platform.Libvirt.URI = ""
 				return c
 			}(),
-			expectedError: `^\[platform: Invalid value: "libvirt": must specify one of the platforms \(aws, azure, baremetal, gcp, ibmcloud, kubevirt, none, openstack, ovirt, vsphere\), platform\.libvirt\.uri: Invalid value: "": invalid URI "" \(no scheme\)]$`,
+			expectedError: `^\[platform: Invalid value: "libvirt": must specify one of the platforms \(aws, azure, baremetal, gcp, ibmcloud, none, openstack, ovirt, vsphere\), platform\.libvirt\.uri: Invalid value: "": invalid URI "" \(no scheme\)]$`,
 		},
 		{
 			name: "valid none platform",
@@ -638,6 +638,19 @@ func TestValidateInstallConfig(t *testing.T) {
 			expectedError: `^platform\.baremetal\.apiVIP: Invalid value: "10\.1\.0\.5": IP expected to be in one of the machine networks: 10.0.0.0/16$`,
 		},
 		{
+			name: "baremetal API VIP set to an incorrect IP Family",
+			installConfig: func() *types.InstallConfig {
+				c := validInstallConfig()
+				c.Networking = validDualStackNetworkingConfig()
+				c.Platform = types.Platform{
+					BareMetal: validBareMetalPlatform(),
+				}
+				c.Platform.BareMetal.APIVIP = "ffd0::"
+				return c
+			}(),
+			expectedError: `networking.baremetal.apiVIP: Invalid value: "ffd0::": VIP for the API must be of the same IP family with machine network's primary IP Family for dual-stack IPv4/IPv6`,
+		},
+		{
 			name: "baremetal Ingress VIP not an IP",
 			installConfig: func() *types.InstallConfig {
 				c := validInstallConfig()
@@ -648,6 +661,19 @@ func TestValidateInstallConfig(t *testing.T) {
 				return c
 			}(),
 			expectedError: `^\[platform\.baremetal\.ingressVIP: Invalid value: "test": "test" is not a valid IP, platform\.baremetal\.ingressVIP: Invalid value: "test": IP expected to be in one of the machine networks: 10.0.0.0/16]$`,
+		},
+		{
+			name: "baremetal Ingress VIP set to an incorrect IP Family",
+			installConfig: func() *types.InstallConfig {
+				c := validInstallConfig()
+				c.Networking = validDualStackNetworkingConfig()
+				c.Platform = types.Platform{
+					BareMetal: validBareMetalPlatform(),
+				}
+				c.Platform.BareMetal.IngressVIP = "ffd0::"
+				return c
+			}(),
+			expectedError: `networking.baremetal.ingressVIP: Invalid value: "ffd0::": VIP for the Ingress must be of the same IP family with machine network's primary IP Family for dual-stack IPv4/IPv6`,
 		},
 		{
 			name: "baremetal Ingress VIP set to an incorrect value",
@@ -1038,7 +1064,7 @@ func TestValidateInstallConfig(t *testing.T) {
 			expectedError: `^credentialsMode: Unsupported value: "Mint": supported values: "Manual"$`,
 		},
 		{
-			name: "release image source is not canonical",
+			name: "release image source is not valid",
 			installConfig: func() *types.InstallConfig {
 				c := validInstallConfig()
 				c.ImageContentSources = []types.ImageContentSource{{
@@ -1046,10 +1072,10 @@ func TestValidateInstallConfig(t *testing.T) {
 				}}
 				return c
 			}(),
-			expectedError: `^imageContentSources\[0\]\.source: Invalid value: "ocp/release-x\.y": failed to parse: repository name must be canonical$`,
+			expectedError: `^imageContentSources\[0\]\.source: Invalid value: "ocp/release-x\.y": the repository provided is invalid$`,
 		},
 		{
-			name: "release image source's mirror is not canonical",
+			name: "release image source's mirror is not valid",
 			installConfig: func() *types.InstallConfig {
 				c := validInstallConfig()
 				c.ImageContentSources = []types.ImageContentSource{{
@@ -1058,7 +1084,18 @@ func TestValidateInstallConfig(t *testing.T) {
 				}}
 				return c
 			}(),
-			expectedError: `^imageContentSources\[0\]\.mirrors\[0\]: Invalid value: "ocp/openshift-x\.y": failed to parse: repository name must be canonical$`,
+			expectedError: `^imageContentSources\[0\]\.mirrors\[0\]: Invalid value: "ocp/openshift-x.y": the repository provided is invalid$`,
+		},
+		{
+			name: "release image source's mirror is valid",
+			installConfig: func() *types.InstallConfig {
+				c := validInstallConfig()
+				c.ImageContentSources = []types.ImageContentSource{{
+					Source:  "q.io/ocp/release-x.y",
+					Mirrors: []string{"mirror.example.com:5000"},
+				}}
+				return c
+			}(),
 		},
 		{
 			name: "release image source is not repository but reference by digest",

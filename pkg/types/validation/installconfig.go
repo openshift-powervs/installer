@@ -31,8 +31,6 @@ import (
 	gcpvalidation "github.com/openshift/installer/pkg/types/gcp/validation"
 	"github.com/openshift/installer/pkg/types/ibmcloud"
 	ibmcloudvalidation "github.com/openshift/installer/pkg/types/ibmcloud/validation"
-	"github.com/openshift/installer/pkg/types/kubevirt"
-	kubevirtvalidation "github.com/openshift/installer/pkg/types/kubevirt/validation"
 	"github.com/openshift/installer/pkg/types/libvirt"
 	libvirtvalidation "github.com/openshift/installer/pkg/types/libvirt/validation"
 	"github.com/openshift/installer/pkg/types/openstack"
@@ -226,6 +224,23 @@ func validateNetworkingIPVersion(n *types.Networking, p *types.Platform) field.E
 		case p.Azure != nil && experimentalDualStackEnabled:
 			logrus.Warnf("Using experimental Azure dual-stack support")
 		case p.BareMetal != nil:
+			apiVIPIPFamily := corev1.IPv6Protocol
+			if net.ParseIP(p.BareMetal.APIVIP).To4() != nil {
+				apiVIPIPFamily = corev1.IPv4Protocol
+			}
+
+			if apiVIPIPFamily != presence["machineNetwork"].Primary {
+				allErrs = append(allErrs, field.Invalid(field.NewPath("networking", "baremetal", "apiVIP"), p.BareMetal.APIVIP, "VIP for the API must be of the same IP family with machine network's primary IP Family for dual-stack IPv4/IPv6"))
+			}
+
+			ingressVIPIPFamily := corev1.IPv6Protocol
+			if net.ParseIP(p.BareMetal.IngressVIP).To4() != nil {
+				ingressVIPIPFamily = corev1.IPv4Protocol
+			}
+
+			if ingressVIPIPFamily != presence["machineNetwork"].Primary {
+				allErrs = append(allErrs, field.Invalid(field.NewPath("networking", "baremetal", "ingressVIP"), p.BareMetal.IngressVIP, "VIP for the Ingress must be of the same IP family with machine network's primary IP Family for dual-stack IPv4/IPv6"))
+			}
 		case p.None != nil:
 		default:
 			allErrs = append(allErrs, field.Invalid(field.NewPath("networking"), "DualStack", "dual-stack IPv4/IPv6 is not supported for this platform, specify only one type of address"))
@@ -483,11 +498,6 @@ func validatePlatform(platform *types.Platform, fldPath *field.Path, network *ty
 			return ovirtvalidation.ValidatePlatform(platform.Ovirt, f)
 		})
 	}
-	if platform.Kubevirt != nil {
-		validate(kubevirt.Name, platform.Kubevirt, func(f *field.Path) field.ErrorList {
-			return kubevirtvalidation.ValidatePlatform(platform.Kubevirt, f, c)
-		})
-	}
 	return allErrs
 }
 
@@ -548,6 +558,18 @@ func validateImageContentSources(groups []types.ImageContentSource, fldPath *fie
 func validateNamedRepository(r string) error {
 	ref, err := dockerref.ParseNamed(r)
 	if err != nil {
+		// If a mirror name is provided without the named reference,
+		// then the name is not considered canonical and will cause
+		// an error. e.g. registry.lab.redhat.com:5000 will result
+		// in an error. Instead we will check whether the input is
+		// a valid hostname as a workaround.
+		if err == dockerref.ErrNameNotCanonical {
+			_, err := url.ParseRequestURI(r)
+			if err != nil {
+				return fmt.Errorf("the repository provided is invalid")
+			}
+			return nil
+		}
 		return errors.Wrap(err, "failed to parse")
 	}
 	if !dockerref.IsNameOnly(ref) {

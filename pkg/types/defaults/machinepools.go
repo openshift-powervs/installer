@@ -15,7 +15,6 @@ func SetMachinePoolDefaults(p *types.MachinePool, platform string) {
 	} else if platform == powervs.Name {
 		p.Architecture = "ppc64le"
 	}
-
 	if p.Replicas == nil {
 		p.Replicas = &defaultReplicaCount
 	}

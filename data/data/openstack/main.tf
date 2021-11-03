@@ -30,7 +30,6 @@ module "bootstrap" {
   source = "./bootstrap"
 
   cluster_id         = var.cluster_id
-  extra_tags         = var.openstack_extra_tags
   base_image_id      = data.openstack_images_image_v2.base_image.id
   flavor_name        = var.openstack_master_flavor_name
   ignition           = var.ignition_bootstrap
@@ -74,6 +73,13 @@ module "masters" {
   root_volume_zones      = var.openstack_master_root_volume_availability_zones
 }
 
+module "workers" {
+  source = "./workers"
+
+  server_group_names  = var.openstack_worker_server_group_names
+  server_group_policy = var.openstack_worker_server_group_policy
+}
+
 module "topology" {
   source = "./topology"
 
@@ -83,6 +89,7 @@ module "topology" {
   external_network    = var.openstack_external_network
   external_network_id = var.openstack_external_network_id
   masters_count       = var.master_count
+  masters_schedulable = var.masters_schedulable
   api_floating_ip     = var.openstack_api_floating_ip
   ingress_floating_ip = var.openstack_ingress_floating_ip
   api_int_ip          = var.openstack_api_int_ip

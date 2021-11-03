@@ -56,7 +56,6 @@ In addition, it covers the installation with the default CNI (OpenShiftSDN), as 
 - [Deploying OpenShift bare-metal workers](deploy_baremetal_workers.md)
 - [Deploying OpenShift single root I/O virtualization (SRIOV) workers](deploy_sriov_workers.md)
 - [Provider Networks](provider_networks.md)
-- [How to set affinity rules for workers at install-time](affinity.md)
 
 ## OpenStack Requirements
 
@@ -69,7 +68,7 @@ For a successful installation it is required:
 - Security Group Rules: 60
 - Routers: 1
 - Subnets: 1
-- Server Groups: 1
+- Server Groups: 2, plus one per additional Availability zone in each machine-pool
 - RAM: 112 GB
 - vCPUs: 28
 - Volume Storage: 175 GB
@@ -91,11 +90,13 @@ Once you configure the quota for your project, please ensure that the user for t
 
 The default deployment stands up 3 master nodes, which is the minimum amount required for a cluster. For each master node you stand up, you will need 1 instance, and 1 port available in your quota. They should be assigned a flavor with at least 16 GB RAM, 4 vCPUs, and 25 GB Disk (or Root Volume). It is theoretically possible to run with a smaller flavor, but be aware that if it takes too long to stand up services, or certain essential services crash, the installer could time out, leading to a failed install.
 
-The Master Nodes are placed in a single Server Group with "soft anti-affinity" policy; the machines will therefore be creted on separate hosts when possible.
+The master nodes are placed in a single Server group with "soft anti-affinity" policy by default; the machines will therefore be created on separate hosts when possible.
 
 ### Worker Nodes
 
 The default deployment stands up 3 worker nodes. Worker nodes host the applications you run on OpenShift. The flavor assigned to the worker nodes should have at least 2 vCPUs, 8 GB RAM and 25 GB Disk (or Root Volume). However, if you are experiencing `Out Of Memory` issues, or your installs are timing out, try increasing the size of your flavor to match the master nodes: 4 vCPUs and 16 GB RAM.
+
+The worker nodes are placed in a single Server group with "soft anti-affinity" policy by default; the machines will therefore be created on separate hosts when possible.
 
 See the [OpenShift documentation](https://docs.openshift.com/container-platform/4.4/architecture/control-plane.html#defining-workers_control-plane) for more information on the worker nodes.
 
@@ -518,6 +519,8 @@ To define a MachineSet with multiple networks, the `primarySubnet` value in the 
  After you set the subnet, add all of the networks that you want to attach to your machines to the `Networks` list in `providerSpec`. You must also add the network that the primary subnet is part of to this list.
 
 #### Using a Server Group
+
+The `serverGroupID` property of the `MachineSet` resource is used to create machines in that OpenStack server group. The server group must exist in OpenStack before you can apply the new `MachineSet` resource.
 
 In order to hint the Nova scheduler to spread the Machines across different
 hosts, first create a Server Group with the [desired
