@@ -55,23 +55,21 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 	var err error
 	var pisv PISessionVars
 
-	// First grab variables from the installer written authFilePath
+	// Grab variables from the installer written authFilePath
 	logrus.Debug("Gathering variables from AuthFile")
 	err = getPISessionVarsFromAuthFile(&pisv)
 	if err != nil {
 		return nil, err
 	}
 
-	// Second grab variables from files, currently there are no other files to check
-
-	// Third grab variables from the users enviornment
+	// Frab variables from the users enviornment
 	logrus.Debug("Gathering variables from user enviornment")
 	err = getPISessionVarsFromEnv(&pisv)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fourth prompt the user for the remaining variables
+	// Prompt the user for the remaining variables
 	logrus.Debug("Gathering variables from user")
 	err = getPISessionVarsFromUser(&pisv)
 	if err != nil {
