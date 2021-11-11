@@ -63,13 +63,7 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 		return nil, err
 	}
 
-	// Second grab variables from files
-
-	// .bluemix/config.json doesn't seem to hold anything useful but other files might
-	// region can be found in this file, but may not be the region the user would like to use
-	// zone cannot be found in this file
-	// username cannot be found in this file
-	// apikey cannot be found in this file, iamtoken is not the apikey we need
+	// Second grab variables from files, currently there are no other files to check
 
 	// Third grab variables from the users enviornment
 	logrus.Debug("Gathering variables from user enviornment")
