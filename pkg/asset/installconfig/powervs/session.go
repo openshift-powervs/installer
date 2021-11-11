@@ -84,10 +84,9 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 
 	// This is needed by ibmcloud code to gather dns information later
 	os.Setenv("IC_API_KEY", pisv.APIKey)
-	// We are using the iamtoken field to hold the api key
-	iamtoken := pisv.APIKey
 
-	s, err := ibmpisession.New(iamtoken, pisv.Region, false, defSessionTimeout, pisv.ID, pisv.Zone)
+	// We are using the iamtoken field to hold the api key
+	s, err := ibmpisession.New(pisv.APIKey, pisv.Region, false, defSessionTimeout, pisv.ID, pisv.Zone)
 	if err != nil {
 		return nil, err
 	}
