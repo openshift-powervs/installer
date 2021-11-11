@@ -19,12 +19,37 @@ jobs:
         go version
         go install golang.org/x/lint/golint
 
-    - name: Run go fmt & lint
+    - name: Run Go fmt
       run: |
-        go fmt -mod=readonly ./...
-        git diff HEAD
-        if [ `git diff HEAD --name-only | wc -l` -gt 0 ]; then exit 1; fi
-        golint -set_exit_status=1 `go list -mod=readonly ./... | grep -v /vendor/`
+        unformatted=$(IS_CONTAINER=FALSE ./hack/go-fmt.sh .)
+        if [[ ! -z "${unformatted}" ]]; then
+            echo "fix the gofmt issues"
+            echo "${unformatted}"
+            exit 1
+        fi
+        IS_CONTAINER=FALSE ./hack/verify-vendor.sh
+        IS_CONTAINER=FALSE ./hack/verify-codegen.sh
+
+    - name: Run Go lint
+      run: |
+        lint=$(IS_CONTAINER=FALSE ./hack/go-lint.sh -min_confidence 0.3 $(go list -f '{{.ImportPath }}' ./...))
+        if [[ ! -z "$(lint)" ]]; then
+            echo "fix lint issues"
+            echo "${lint}"
+            exit 1
+        fi
+
+    - name: Run Go Vet
+      run: |
+        IS_CONTAINER=FALSE ./hack/go-vet.sh ./...
+        if [[ $? -ne 0 ]]; then
+            echo "fix go vet"
+            exit 1
+        fi
+
+    - name: Test
+      run: |
+        go test ./pkg/...
 
     - name: Build
       run: |
