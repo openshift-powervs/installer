@@ -62,8 +62,8 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 		return nil, err
 	}
 
-	// Frab variables from the users enviornment
-	logrus.Debug("Gathering variables from user enviornment")
+	// Frab variables from the users environment
+	logrus.Debug("Gathering variables from user environment")
 	err = getPISessionVarsFromEnv(&pisv)
 	if err != nil {
 		return nil, err
@@ -82,8 +82,6 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 		return nil, err
 	}
 
-	logrus.Debug("Done")
-
 	// This is needed by ibmcloud code to gather dns information later
 	os.Setenv("IC_API_KEY", pisv.APIKey)
 	// We are using the iamtoken field to hold the api key
@@ -99,6 +97,10 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 }
 
 func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
+
+	if pisv == nil {
+		return errors.New("PISession Variable Object pointer cannot be nil")
+	}
 
 	authFilePath := defaultAuthFilePath
 	if f := os.Getenv("POWERVS_AUTH_FILEPATH"); len(f) > 0 {
@@ -124,6 +126,10 @@ func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
 }
 
 func getPISessionVarsFromEnv(pisv *PISessionVars) error {
+
+	if pisv == nil {
+		return errors.New("PISession Variable Object pointer cannot be nil")
+	}
 
 	if len(pisv.ID) == 0 {
 		pisv.ID = os.Getenv("IBMID")
@@ -151,6 +157,10 @@ func getPISessionVarsFromEnv(pisv *PISessionVars) error {
 func getPISessionVarsFromUser(pisv *PISessionVars) error {
 	var err error
 
+	if pisv == nil {
+		return errors.New("PISession Variable Object pointer cannot be nil")
+	}
+
 	if len(pisv.ID) == 0 {
 		err = survey.Ask([]*survey.Question{
 			{
@@ -171,7 +181,7 @@ func getPISessionVarsFromUser(pisv *PISessionVars) error {
 			{
 				Prompt: &survey.Password{
 					Message: "IBM Cloud API Key",
-					Help:    "The api key installation.\nhttps://cloud.ibm.com/iam/apikeys",
+					Help:    "The API key installation.\nhttps://cloud.ibm.com/iam/apikeys",
 				},
 			},
 		}, &pisv.APIKey)
