@@ -47,8 +47,7 @@ func GetSession() (*Session, error) {
 }
 
 var (
-	defaultAuthFilePath    = filepath.Join(os.Getenv("HOME"), ".powervs", "config.json")
-	defaultBluemixFilePath = filepath.Join(os.Getenv("HOME"), ".bluemix", "config.json")
+	defaultAuthFilePath = filepath.Join(os.Getenv("HOME"), ".powervs", "config.json")
 )
 
 func getPISession() (*ibmpisession.IBMPISession, error) {
