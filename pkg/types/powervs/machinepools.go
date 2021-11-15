@@ -52,19 +52,34 @@ func (a *MachinePool) Set(required *MachinePool) {
 	if required == nil || a == nil {
 		return
 	}
-	if required.ImageID != "" {
-		a.ImageID = required.ImageID
-	}
 	if required.ServiceInstance != "" {
 		a.ServiceInstance = required.ServiceInstance
+	}
+	if required.Name != "" {
+		a.Name = required.Name
+	}
+	if required.KeyPairName != "" {
+		a.KeyPairName = required.KeyPairName
+	}
+	if len(required.VolumeIDs) > 0 {
+		a.VolumeIDs = required.VolumeIDs
+	}
+	if required.Memory != "" {
+		a.Memory = required.Memory
+	}
+	if required.Processors != "" {
+		a.Processors = required.Processors
+	}
+	if required.ProcType != "" {
+		a.ProcType = required.ProcType
+	}
+	if required.ImageID != "" {
+		a.ImageID = required.ImageID
 	}
 	if len(required.NetworkIDs) > 0 {
 		a.NetworkIDs = required.NetworkIDs
 	}
-	if required.ServiceInstance != "" {
-		a.ServiceInstance = required.ServiceInstance
-	}
-	if required.KeyPairName != "" {
-		a.KeyPairName = required.KeyPairName
+	if required.SysType != "" {
+		a.SysType = required.SysType
 	}
 }
