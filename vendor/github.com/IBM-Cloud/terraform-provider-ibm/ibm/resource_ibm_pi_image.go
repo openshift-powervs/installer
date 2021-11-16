@@ -13,7 +13,10 @@ import (
 
 	"github.com/IBM-Cloud/bluemix-go/bmxerror"
 	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/errors"
 	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_images"
+	"github.com/IBM-Cloud/power-go-client/power/models"
 )
 
 func resourceIBMPIImage() *schema.Resource {
@@ -31,29 +34,85 @@ func resourceIBMPIImage() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-
+			helpers.PICloudInstanceId: {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "PI cloud instance ID",
+			},
 			helpers.PIImageName: {
 				Type:             schema.TypeString,
 				Required:         true,
 				Description:      "Image name",
 				DiffSuppressFunc: applyOnce,
 			},
-
-			helpers.PIInstanceImageName: {
+			helpers.PIImageId: {
 				Type:             schema.TypeString,
-				Required:         true,
-				Description:      "Instance image name",
+				Optional:         true,
+				ExactlyOneOf:     []string{helpers.PIImageId, helpers.PIImageBucketName},
+				Description:      "Image id",
 				DiffSuppressFunc: applyOnce,
+				ConflictsWith:    []string{helpers.PIImageBucketName},
+				ForceNew:         true,
 			},
 
-			helpers.PICloudInstanceId: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "PI cloud instance ID",
+			// COS import variables
+			helpers.PIImageBucketName: {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ExactlyOneOf:  []string{helpers.PIImageId, helpers.PIImageBucketName},
+				Description:   "Cloud Object Storage bucket name; bucket-name[/optional/folder]",
+				ConflictsWith: []string{helpers.PIImageId},
+				RequiredWith:  []string{helpers.PIImageBucketRegion, helpers.PIImageBucketFileName},
+				ForceNew:      true,
+			},
+			helpers.PIImageBucketAccess: {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Indicates if the bucket has public or private access",
+				Default:       "public",
+				ValidateFunc:  validateAllowedStringValue([]string{"public", "private"}),
+				ConflictsWith: []string{helpers.PIImageId},
+				ForceNew:      true,
+			},
+			helpers.PIImageAccessKey: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Cloud Object Storage access key; required for buckets with private access",
+				ForceNew:     true,
+				RequiredWith: []string{helpers.PIImageSecretKey},
+			},
+			helpers.PIImageSecretKey: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Cloud Object Storage secret key; required for buckets with private access",
+				ForceNew:     true,
+				RequiredWith: []string{helpers.PIImageAccessKey},
+			},
+			helpers.PIImageBucketRegion: {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Cloud Object Storage region",
+				ConflictsWith: []string{helpers.PIImageId},
+				RequiredWith:  []string{helpers.PIImageBucketName},
+				ForceNew:      true,
+			},
+			helpers.PIImageBucketFileName: {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Cloud Object Storage image filename",
+				ConflictsWith: []string{helpers.PIImageId},
+				RequiredWith:  []string{helpers.PIImageBucketName},
+				ForceNew:      true,
+			},
+			helpers.PIImageStorageType: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Type of storage",
+				RequiredWith: []string{helpers.PIImageBucketName},
+				ForceNew:     true,
 			},
 
 			// Computed Attribute
-
 			"image_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -70,56 +129,109 @@ func resourceIBMPIImageCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	powerinstanceid := d.Get(helpers.PICloudInstanceId).(string)
-	name := d.Get(helpers.PIImageName).(string)
-	imageid := d.Get(helpers.PIInstanceImageName).(string)
+	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	imageName := d.Get(helpers.PIImageName).(string)
 
-	client := st.NewIBMPIImageClient(sess, powerinstanceid)
+	client := st.NewIBMPIImageClient(sess, cloudInstanceID)
+	// image copy
+	if v, ok := d.GetOk(helpers.PIImageId); ok {
+		imageid := v.(string)
+		imageResponse, err := client.Create(imageName, imageid, cloudInstanceID)
+		if err != nil {
+			return err
+		}
 
-	imageResponse, err := client.Create(name, imageid, powerinstanceid)
-	if err != nil {
-		return err
+		IBMPIImageID := imageResponse.ImageID
+		d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, *IBMPIImageID))
+
+		_, err = isWaitForIBMPIImageAvailable(client, *IBMPIImageID, d.Timeout(schema.TimeoutCreate), cloudInstanceID)
+		if err != nil {
+			log.Printf("[DEBUG]  err %s", err)
+			return err
+		}
 	}
 
-	IBMPIImageID := imageResponse.ImageID
-	d.SetId(fmt.Sprintf("%s/%s", powerinstanceid, *IBMPIImageID))
+	// COS image import
+	if v, ok := d.GetOk(helpers.PIImageBucketName); ok {
+		bucketName := v.(string)
+		bucketImageFileName := d.Get(helpers.PIImageBucketFileName).(string)
+		bucketRegion := d.Get(helpers.PIImageBucketRegion).(string)
+		bucketAccess := d.Get(helpers.PIImageBucketAccess).(string)
+		storageType := d.Get(helpers.PIImageStorageType).(string)
 
-	_, err = isWaitForIBMPIImageAvailable(client, *IBMPIImageID, d.Timeout(schema.TimeoutCreate), powerinstanceid)
-	if err != nil {
-		log.Printf("[DEBUG]  err %s", err)
-		return err
+		body := &models.CreateCosImageImportJob{
+			ImageName:     &imageName,
+			BucketName:    &bucketName,
+			BucketAccess:  &bucketAccess,
+			ImageFilename: &bucketImageFileName,
+			Region:        &bucketRegion,
+			StorageType:   storageType,
+		}
+
+		if v, ok := d.GetOk(helpers.PIImageAccessKey); ok {
+			body.AccessKey = v.(string)
+		}
+		if v, ok := d.GetOk(helpers.PIImageSecretKey); ok {
+			body.SecretKey = v.(string)
+		}
+
+		imageResponse, err := client.CreateCosImage(body, cloudInstanceID)
+		if err != nil {
+			return err
+		}
+
+		jobClient := st.NewIBMPIJobClient(sess, cloudInstanceID)
+		_, err = waitForIBMPIJobCompleted(jobClient, *imageResponse.ID, cloudInstanceID, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf(errors.CreateImageOperationFailed, cloudInstanceID, err)
+		}
+
+		// Once the job is completed find by name
+		image, err := client.Get(imageName, cloudInstanceID)
+		if err != nil {
+			return err
+		}
+		d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, *image.ImageID))
 	}
 
 	return resourceIBMPIImageRead(d, meta)
 }
 
 func resourceIBMPIImageRead(d *schema.ResourceData, meta interface{}) error {
-
 	sess, err := meta.(ClientSession).IBMPISession()
 	if err != nil {
 		return err
 	}
+
 	parts, err := idParts(d.Id())
 	if err != nil {
 		return err
 	}
-	powerinstanceid := parts[0]
-	imageC := st.NewIBMPIImageClient(sess, powerinstanceid)
-	imagedata, err := imageC.Get(parts[1], powerinstanceid)
 
+	cloudInstanceID := parts[0]
+	imageID := parts[1]
+
+	imageC := st.NewIBMPIImageClient(sess, cloudInstanceID)
+	imagedata, err := imageC.Get(imageID, cloudInstanceID)
 	if err != nil {
-		return err
+		switch err.(type) {
+		case *p_cloud_images.PcloudCloudinstancesImagesGetNotFound:
+			log.Printf("[DEBUG] image does not exist %v", err)
+			d.SetId("")
+			return nil
+		}
+		log.Printf("[DEBUG] get image failed %v", err)
+		return fmt.Errorf(errors.GetImageOperationFailed, imageID, err)
 	}
 
 	imageid := *imagedata.ImageID
 	d.Set("image_id", imageid)
-	d.Set(helpers.PICloudInstanceId, powerinstanceid)
+	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
 
 	return nil
-
 }
 
-func resourceIBMPIImageUpdate(data *schema.ResourceData, meta interface{}) error {
+func resourceIBMPIImageUpdate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
@@ -128,20 +240,22 @@ func resourceIBMPIImageDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	parts, err := idParts(d.Id())
 	if err != nil {
 		return err
 	}
-	powerinstanceid := parts[0]
-	imageC := st.NewIBMPIImageClient(sess, powerinstanceid)
-	err = imageC.Delete(parts[1], powerinstanceid)
 
+	cloudInstanceID := parts[0]
+	imageID := parts[1]
+	imageC := st.NewIBMPIImageClient(sess, cloudInstanceID)
+	err = imageC.Delete(imageID, cloudInstanceID)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to Delete PI Image %s :%v", imageID, err)
 	}
+
 	d.SetId("")
 	return nil
-
 }
 
 func resourceIBMPIImageExists(d *schema.ResourceData, meta interface{}) (bool, error) {
@@ -153,6 +267,9 @@ func resourceIBMPIImageExists(d *schema.ResourceData, meta interface{}) (bool, e
 	parts, err := idParts(d.Id())
 	if err != nil {
 		return false, err
+	}
+	if len(parts) < 2 {
+		return false, fmt.Errorf("Incorrect ID %s: Id should be a combination of powerInstanceID/ImageID", d.Id())
 	}
 	name := parts[1]
 	powerinstanceid := parts[0]
@@ -195,10 +312,32 @@ func isIBMPIImageRefreshFunc(client *st.IBMPIImageClient, id, powerinstanceid st
 		}
 
 		if image.State == "active" {
-
 			return image, helpers.PIImageActiveStatus, nil
 		}
 
 		return image, helpers.PIImageQueStatus, nil
 	}
+}
+
+func waitForIBMPIJobCompleted(client *st.IBMPIJobClient, jobID, cloudInstanceID string, timeout time.Duration) (interface{}, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{helpers.JobStatusQueued, helpers.JobStatusReadyForProcessing, helpers.JobStatusInProgress, helpers.JobStatusRunning, helpers.JobStatusWaiting},
+		Target:  []string{helpers.JobStatusCompleted, helpers.JobStatusFailed},
+		Refresh: func() (interface{}, string, error) {
+			job, err := client.Get(jobID, cloudInstanceID)
+			if err != nil {
+				log.Printf("[DEBUG] get job failed %v", err)
+				return nil, "", fmt.Errorf(errors.GetJobOperationFailed, jobID, err)
+			}
+			if *job.Status.State == helpers.JobStatusFailed {
+				log.Printf("[DEBUG] job status failed with message: %v", job.Status.Message)
+				return nil, helpers.JobStatusFailed, fmt.Errorf("job status failed for job id %s with message: %v", jobID, job.Status.Message)
+			}
+			return job, *job.Status.State, nil
+		},
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}
+	return stateConf.WaitForState()
 }

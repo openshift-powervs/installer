@@ -23,6 +23,9 @@ type Volume struct {
 	// Indicates if the volume is boot capable
 	Bootable *bool `json:"bootable,omitempty"`
 
+	// Consistency Group Name if volume is a part of volume group
+	ConsistencyGroupName string `json:"consistencyGroupName,omitempty"`
+
 	// Creation Date
 	// Required: true
 	// Format: date-time
@@ -34,10 +37,16 @@ type Volume struct {
 	// Type of Disk
 	DiskType string `json:"diskType,omitempty"`
 
+	// Volume Group ID
+	GroupID string `json:"groupID,omitempty"`
+
 	// Last Update Date
 	// Required: true
 	// Format: date-time
 	LastUpdateDate *strfmt.DateTime `json:"lastUpdateDate"`
+
+	// mirroring state for replication enabled volume
+	MirroringState string `json:"mirroringState,omitempty"`
 
 	// Volume Name
 	// Required: true
@@ -45,6 +54,9 @@ type Volume struct {
 
 	// List of PCloud PVM Instance attached to the volume
 	PvmInstanceIds []string `json:"pvmInstanceIDs"`
+
+	// shows the replication status of a volume
+	ReplicationStatus string `json:"replicationStatus,omitempty"`
 
 	// Indicates if the volume is shareable between VMs
 	Shareable *bool `json:"shareable,omitempty"`
@@ -59,6 +71,9 @@ type Volume struct {
 	// Volume ID
 	// Required: true
 	VolumeID *string `json:"volumeID"`
+
+	// Volume pool, name of storage pool where the volume is located
+	VolumePool string `json:"volumePool,omitempty"`
 
 	// Volume type, name of storage template used to create the volume
 	VolumeType string `json:"volumeType,omitempty"`

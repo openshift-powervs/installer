@@ -848,6 +848,7 @@ github.com/fatih/camelcase
 ## explicit
 github.com/fatih/color
 # github.com/form3tech-oss/jwt-go v3.2.3+incompatible
+## explicit
 github.com/form3tech-oss/jwt-go
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify

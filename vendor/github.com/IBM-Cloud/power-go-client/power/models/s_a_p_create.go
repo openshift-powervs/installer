@@ -44,6 +44,15 @@ type SAPCreate struct {
 	// The name of the SSH Key to provide to the server for authenticating
 	SSHKeyName string `json:"sshKeyName,omitempty"`
 
+	// The storage affinity data; ignored if storagePool is provided; Only valid when you deploy one of the IBM supplied stock images. Storage type and pool for a custom image (an imported image or an image that is created from a PVMInstance capture) defaults to the storage type and pool the image was created in
+	StorageAffinity *StorageAffinity `json:"storageAffinity,omitempty"`
+
+	// Storage Pool for server deployment; if provided then storageAffinity and storageType will be ignored; Only valid when you deploy one of the IBM supplied stock images. Storage type and pool for a custom image (an imported image or an image that is created from a PVMInstance capture) defaults to the storage type and pool the image was created in
+	StoragePool string `json:"storagePool,omitempty"`
+
+	// Storage type for server deployment; will be ignored if storagePool or storageAffinity is provided; Only valid when you deploy one of the IBM supplied stock images. Storage type and pool for a custom image (an imported image or an image that is created from a PVMInstance capture) defaults to the storage type and pool the image was created in
+	StorageType string `json:"storageType,omitempty"`
+
 	// Cloud init user defined data
 	UserData string `json:"userData,omitempty"`
 
@@ -76,6 +85,10 @@ func (m *SAPCreate) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateProfileID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStorageAffinity(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -166,6 +179,24 @@ func (m *SAPCreate) validateProfileID(formats strfmt.Registry) error {
 
 	if err := validate.Required("profileID", "body", m.ProfileID); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *SAPCreate) validateStorageAffinity(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StorageAffinity) { // not required
+		return nil
+	}
+
+	if m.StorageAffinity != nil {
+		if err := m.StorageAffinity.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("storageAffinity")
+			}
+			return err
+		}
 	}
 
 	return nil

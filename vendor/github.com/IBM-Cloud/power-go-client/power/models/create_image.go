@@ -25,7 +25,7 @@ type CreateImage struct {
 	// Cloud Storage bucket name; bucket-name[/optional/folder]; required for import image
 	BucketName string `json:"bucketName,omitempty"`
 
-	// Type of Disk
+	// Type of Disk; will be ignored if storagePool or affinityPolicy is provided; Used only when importing an image from cloud storage.
 	DiskType string `json:"diskType,omitempty"`
 
 	// Cloud Storage image filename; required for import image
@@ -41,7 +41,7 @@ type CreateImage struct {
 	ImagePath string `json:"imagePath,omitempty"`
 
 	// Image OS Type, required if importing a raw image; raw images can only be imported using the command line interface
-	// Enum: [aix ibmi redhat sles]
+	// Enum: [aix ibmi rhel sles]
 	OsType string `json:"osType,omitempty"`
 
 	// Cloud Storage Region; only required to access IBM Cloud Storage
@@ -54,6 +54,12 @@ type CreateImage struct {
 	// Required: true
 	// Enum: [root-project url]
 	Source *string `json:"source"`
+
+	// The storage affinity data; ignored if storagePool is provided; Used only when importing an image from cloud storage.
+	StorageAffinity *StorageAffinity `json:"storageAffinity,omitempty"`
+
+	// Storage pool where the image will be loaded; if provided then storageAffinity and diskType will be ignored; Used only when importing an image from cloud storage.
+	StoragePool string `json:"storagePool,omitempty"`
 }
 
 // Validate validates this create image
@@ -68,6 +74,10 @@ func (m *CreateImage) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateStorageAffinity(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
@@ -78,7 +88,7 @@ var createImageTypeOsTypePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["aix","ibmi","redhat","sles"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["aix","ibmi","rhel","sles"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -94,8 +104,8 @@ const (
 	// CreateImageOsTypeIbmi captures enum value "ibmi"
 	CreateImageOsTypeIbmi string = "ibmi"
 
-	// CreateImageOsTypeRedhat captures enum value "redhat"
-	CreateImageOsTypeRedhat string = "redhat"
+	// CreateImageOsTypeRhel captures enum value "rhel"
+	CreateImageOsTypeRhel string = "rhel"
 
 	// CreateImageOsTypeSles captures enum value "sles"
 	CreateImageOsTypeSles string = "sles"
@@ -161,6 +171,24 @@ func (m *CreateImage) validateSource(formats strfmt.Registry) error {
 	// value enum
 	if err := m.validateSourceEnum("source", "body", *m.Source); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *CreateImage) validateStorageAffinity(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StorageAffinity) { // not required
+		return nil
+	}
+
+	if m.StorageAffinity != nil {
+		if err := m.StorageAffinity.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("storageAffinity")
+			}
+			return err
+		}
 	}
 
 	return nil

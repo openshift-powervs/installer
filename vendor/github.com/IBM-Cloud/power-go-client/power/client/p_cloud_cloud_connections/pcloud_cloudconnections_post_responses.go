@@ -53,6 +53,13 @@ func (o *PcloudCloudconnectionsPostReader) ReadResponse(response runtime.ClientR
 		}
 		return nil, result
 
+	case 401:
+		result := NewPcloudCloudconnectionsPostUnauthorized()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
+
 	case 409:
 		result := NewPcloudCloudconnectionsPostConflict()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -147,7 +154,7 @@ func NewPcloudCloudconnectionsPostAccepted() *PcloudCloudconnectionsPostAccepted
 Accepted
 */
 type PcloudCloudconnectionsPostAccepted struct {
-	Payload *models.CloudConnection
+	Payload *models.CloudConnectionCreateResponse
 }
 
 func (o *PcloudCloudconnectionsPostAccepted) Error() string {
@@ -156,7 +163,7 @@ func (o *PcloudCloudconnectionsPostAccepted) Error() string {
 
 func (o *PcloudCloudconnectionsPostAccepted) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.CloudConnection)
+	o.Payload = new(models.CloudConnectionCreateResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -184,6 +191,35 @@ func (o *PcloudCloudconnectionsPostBadRequest) Error() string {
 }
 
 func (o *PcloudCloudconnectionsPostBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.Error)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewPcloudCloudconnectionsPostUnauthorized creates a PcloudCloudconnectionsPostUnauthorized with default headers values
+func NewPcloudCloudconnectionsPostUnauthorized() *PcloudCloudconnectionsPostUnauthorized {
+	return &PcloudCloudconnectionsPostUnauthorized{}
+}
+
+/*PcloudCloudconnectionsPostUnauthorized handles this case with default header values.
+
+Unauthorized
+*/
+type PcloudCloudconnectionsPostUnauthorized struct {
+	Payload *models.Error
+}
+
+func (o *PcloudCloudconnectionsPostUnauthorized) Error() string {
+	return fmt.Sprintf("[POST /pcloud/v1/cloud-instances/{cloud_instance_id}/cloud-connections][%d] pcloudCloudconnectionsPostUnauthorized  %+v", 401, o.Payload)
+}
+
+func (o *PcloudCloudconnectionsPostUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.Error)
 

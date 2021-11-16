@@ -104,7 +104,7 @@ func resourceIBMPINetworkCreate(d *schema.ResourceData, meta interface{}) error 
 	if networktype == "vlan" {
 		networkgateway, firstip, lastip = generateIPData(networkcidr)
 	}
-	networkResponse, _, err := client.Create(networkname, networktype, networkcidr, networkdns, networkgateway, firstip, lastip, powerinstanceid, postTimeOut)
+	networkResponse, err := client.Create(networkname, networktype, networkcidr, networkdns, networkgateway, firstip, lastip, false, powerinstanceid, postTimeOut)
 	if err != nil {
 		return err
 	}
@@ -187,6 +187,9 @@ func resourceIBMPINetworkExists(d *schema.ResourceData, meta interface{}) (bool,
 	parts, err := idParts(d.Id())
 	if err != nil {
 		return false, err
+	}
+	if len(parts) < 2 {
+		return false, fmt.Errorf("Incorrect ID %s: Id should be a combination of powerInstanceID/NetworkID", d.Id())
 	}
 	powerinstanceid := parts[0]
 	client := st.NewIBMPINetworkClient(sess, powerinstanceid)

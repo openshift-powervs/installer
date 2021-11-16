@@ -23,6 +23,9 @@ type PVMInstance struct {
 	// (deprecated - replaced by networks) The list of addresses and their network information
 	Addresses []*PVMInstanceNetwork `json:"addresses"`
 
+	// Console language and code
+	ConsoleLanguage *ConsoleLanguage `json:"consoleLanguage,omitempty"`
+
 	// Date/Time of PVM creation
 	// Format: date-time
 	CreationDate strfmt.DateTime `json:"creationDate,omitempty"`
@@ -37,9 +40,15 @@ type PVMInstance struct {
 	// health
 	Health *PVMInstanceHealth `json:"health,omitempty"`
 
+	// The PVM Instance Host ID (Internal Use Only)
+	HostID int64 `json:"hostID,omitempty"`
+
 	// The ImageID used by the server
 	// Required: true
 	ImageID *string `json:"imageID"`
+
+	// The VTL license repository capacity TB value
+	LicenseRepositoryCapacity int64 `json:"licenseRepositoryCapacity,omitempty"`
 
 	// Maximum amount of memory that can be allocated (in GB, for resize)
 	Maxmem float64 `json:"maxmem,omitempty"`
@@ -70,16 +79,19 @@ type PVMInstance struct {
 	// OS system information (usually version and build)
 	OperatingSystem string `json:"operatingSystem,omitempty"`
 
-	// Type of the OS [aix, ibmi, redhat, sles]
+	// Type of the OS [aix, ibmi, rhel, sles, vtl, rhcos]
 	// Required: true
 	OsType *string `json:"osType"`
 
 	// VM pinning policy to use [none, soft, hard]
 	PinPolicy string `json:"pinPolicy,omitempty"`
 
+	// The placement group of the server
+	PlacementGroup *string `json:"placementGroup,omitempty"`
+
 	// Processor type (dedicated, shared, capped)
 	// Required: true
-	// Enum: [dedicated shared capped]
+	// Enum: [dedicated shared capped ]
 	ProcType *string `json:"procType"`
 
 	// Number of processors allocated
@@ -110,6 +122,12 @@ type PVMInstance struct {
 	// Required: true
 	Status *string `json:"status"`
 
+	// Storage Pool where server is deployed
+	StoragePool string `json:"storagePool,omitempty"`
+
+	// Indicates if all volumes attached to the server must reside in the same storage pool; Defaults to true when initially deploying a PVMInstance
+	StoragePoolAffinity *bool `json:"storagePoolAffinity,omitempty"`
+
 	// Storage type where server is deployed
 	// Required: true
 	StorageType *string `json:"storageType"`
@@ -134,6 +152,10 @@ func (m *PVMInstance) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAddresses(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateConsoleLanguage(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -247,6 +269,24 @@ func (m *PVMInstance) validateAddresses(formats strfmt.Registry) error {
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func (m *PVMInstance) validateConsoleLanguage(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ConsoleLanguage) { // not required
+		return nil
+	}
+
+	if m.ConsoleLanguage != nil {
+		if err := m.ConsoleLanguage.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("consoleLanguage")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -375,7 +415,7 @@ var pVmInstanceTypeProcTypePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["dedicated","shared","capped"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["dedicated","shared","capped",""]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -393,6 +433,9 @@ const (
 
 	// PVMInstanceProcTypeCapped captures enum value "capped"
 	PVMInstanceProcTypeCapped string = "capped"
+
+	// PVMInstanceProcType captures enum value ""
+	PVMInstanceProcType string = ""
 )
 
 // prop value enum

@@ -1,7 +1,10 @@
 package instance
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/IBM-Cloud/power-go-client/errors"
 
 	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
@@ -30,9 +33,23 @@ func (f *IBMPIImageClient) Get(id, powerinstanceid string) (*models.Image, error
 	resp, err := f.session.Power.PCloudImages.PcloudCloudinstancesImagesGet(params, ibmpisession.NewAuth(f.session, powerinstanceid))
 
 	if err != nil || resp == nil || resp.Payload == nil {
-		return nil, fmt.Errorf("Failed to Get PI Image %s :%s", id, err)
+		return nil, fmt.Errorf(errors.GetImageOperationFailed, id, err)
 	}
 	return resp.Payload, nil
+}
+
+// Get with context
+func (f *IBMPIImageClient) GetWithContext(ctx context.Context, id, cloudInstanceID string) (image *models.Image, err error) {
+	params := p_cloud_images.NewPcloudCloudinstancesImagesGetParamsWithContext(ctx).
+		WithTimeout(helpers.PIGetTimeOut).
+		WithCloudInstanceID(cloudInstanceID).
+		WithImageID(id)
+	resp, err := f.session.Power.PCloudImages.PcloudCloudinstancesImagesGet(params, ibmpisession.NewAuth(f.session, cloudInstanceID))
+	if err != nil {
+		return
+	}
+	image = resp.Payload
+	return
 }
 
 //GetAll Images that are imported into Power Instance
@@ -59,10 +76,30 @@ func (f *IBMPIImageClient) Create(name, imageid string, powerinstanceid string) 
 	params := p_cloud_images.NewPcloudCloudinstancesImagesPostParamsWithTimeout(helpers.PICreateTimeOut).WithCloudInstanceID(powerinstanceid).WithBody(&body)
 	_, result, err := f.session.Power.PCloudImages.PcloudCloudinstancesImagesPost(params, ibmpisession.NewAuth(f.session, powerinstanceid))
 	if err != nil || result == nil || result.Payload == nil {
-		return nil, fmt.Errorf("Failed to Create Image of the PVM instance %s : %s", powerinstanceid, err)
+		return nil, fmt.Errorf(errors.CreateImageOperationFailed, powerinstanceid, err)
 	}
 	return result.Payload, nil
 
+}
+
+// Import the image
+func (f *IBMPIImageClient) CreateCosImage(body *models.CreateCosImageImportJob, cloudInstanceID string) (imageJob *models.JobReference, err error) {
+	return f.CreateCosImageWithContext(context.Background(), body, cloudInstanceID)
+}
+
+func (f *IBMPIImageClient) CreateCosImageWithContext(ctx context.Context, body *models.CreateCosImageImportJob, cloudInstanceID string) (imageJob *models.JobReference, err error) {
+	params := p_cloud_images.NewPcloudV1CloudinstancesCosimagesPostParamsWithContext(ctx).
+		WithTimeout(helpers.PICreateTimeOut).
+		WithCloudInstanceID(cloudInstanceID).
+		WithBody(body)
+	resp, err := f.session.Power.PCloudImages.PcloudV1CloudinstancesCosimagesPost(params, ibmpisession.NewAuth(f.session, cloudInstanceID))
+	if err != nil {
+		return
+	}
+	if resp != nil {
+		imageJob = resp.Payload
+	}
+	return
 }
 
 // Delete ...
@@ -73,6 +110,22 @@ func (f *IBMPIImageClient) Delete(id string, powerinstanceid string) error {
 		return fmt.Errorf("Failed to Delete PI Image %s :%s", id, err)
 	}
 	return nil
+}
+
+// Delete with context...
+func (f *IBMPIImageClient) DeleteWithContext(ctx context.Context, id string, cloudInstanceID string) (obj models.Object, err error) {
+	params := p_cloud_images.NewPcloudCloudinstancesImagesDeleteParamsWithContext(ctx).
+		WithTimeout(helpers.PIDeleteTimeOut).
+		WithCloudInstanceID(cloudInstanceID).
+		WithImageID(id)
+	respOk, err := f.session.Power.PCloudImages.PcloudCloudinstancesImagesDelete(params, ibmpisession.NewAuth(f.session, cloudInstanceID))
+	if err != nil {
+		return
+	}
+	if respOk != nil {
+		obj = respOk.Payload
+	}
+	return
 }
 
 // GetStockImages ...

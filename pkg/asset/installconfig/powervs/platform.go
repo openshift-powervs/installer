@@ -1,6 +1,7 @@
 package powervs
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/openshift/installer/pkg/types/powervs"
@@ -25,4 +26,17 @@ func Platform() (*powervs.Platform, error) {
 	p.UserID = ssn.Session.UserAccount
 
 	return &p, nil
+}
+
+//ValidateAccountPermissions function validates account type and returns error
+func ValidateAccountPermissions(client *Client) error {
+	accType, err := client.GetAccountType()
+	if err != nil {
+		return err
+	}
+
+	if accType == "TRIAL" {
+		return fmt.Errorf("Provided account is Trial account")
+	}
+	return nil
 }

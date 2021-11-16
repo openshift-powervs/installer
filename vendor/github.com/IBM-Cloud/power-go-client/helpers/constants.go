@@ -5,32 +5,37 @@ import "time"
 const (
 	// IBM PI Instance
 
-	PIInstanceName            = "pi_instance_name"
-	PIInstanceDate            = "pi_creation_date"
-	PIInstanceSSHKeyName      = "pi_key_pair_name"
-	PIInstanceImageName       = "pi_image_id"
-	PIInstanceProcessors      = "pi_processors"
-	PIInstanceProcType        = "pi_proc_type"
-	PIInstanceMemory          = "pi_memory"
-	PIInstanceSystemType      = "pi_sys_type"
-	PIInstanceId              = "pi_instance_id"
-	PIInstanceDiskSize        = "pi_disk_size"
-	PIInstanceStatus          = "pi_instance_status"
-	PIInstanceMinProc         = "pi_minproc"
-	PIInstanceVolumeIds       = "pi_volume_ids"
-	PIInstanceNetworkIds      = "pi_network_ids"
-	PIInstancePublicNetwork   = "pi_public_network"
-	PIInstanceMigratable      = "pi_migratable"
-	PICloudInstanceId         = "pi_cloud_instance_id"
-	PICloudInstanceSubnetName = "pi_cloud_instance_subnet_name"
-	PIInstanceMimMem          = "pi_minmem"
-	PIInstanceMaxProc         = "pi_maxproc"
-	PIInstanceMaxMem          = "pi_maxmem"
-	PIInstanceReboot          = "pi_reboot"
-	PITenantId                = "pi_tenant_id"
-	PIVirtualCoresAssigned    = "pi_virtual_cores_assigned"
-	PIVirtualCoresMax         = "pi_virtual_cores_max"
-	PIVirtualCoresMin         = "pi_virutal_cores_min"
+	PIInstanceName                = "pi_instance_name"
+	PIInstanceDate                = "pi_creation_date"
+	PIInstanceSSHKeyName          = "pi_key_pair_name"
+	PIInstanceImageId             = "pi_image_id"
+	PIInstanceProcessors          = "pi_processors"
+	PIInstanceProcType            = "pi_proc_type"
+	PIInstanceMemory              = "pi_memory"
+	PIInstanceSystemType          = "pi_sys_type"
+	PIInstanceId                  = "pi_instance_id"
+	PIInstanceDiskSize            = "pi_disk_size"
+	PIInstanceStatus              = "pi_instance_status"
+	PIInstanceMinProc             = "pi_minproc"
+	PIInstanceVolumeIds           = "pi_volume_ids"
+	PIInstanceNetworkIds          = "pi_network_ids"
+	PIInstancePublicNetwork       = "pi_public_network"
+	PIInstanceMigratable          = "pi_migratable"
+	PICloudInstanceId             = "pi_cloud_instance_id"
+	PICloudInstanceSubnetName     = "pi_cloud_instance_subnet_name"
+	PIInstanceMimMem              = "pi_minmem"
+	PIInstanceMaxProc             = "pi_maxproc"
+	PIInstanceMaxMem              = "pi_maxmem"
+	PIInstanceReboot              = "pi_reboot"
+	PITenantId                    = "pi_tenant_id"
+	PIVirtualCoresAssigned        = "pi_virtual_cores_assigned"
+	PIVirtualCoresMax             = "pi_virtual_cores_max"
+	PIVirtualCoresMin             = "pi_virtual_cores_min"
+	PIInstancePVMNetwork          = "pi_instance_pvm_network"
+	PIInstanceStorageType         = "pi_storage_type"
+	PIInstanceStorageConnection   = "pi_storage_connection"
+	PIInstanceStoragePool         = "pi_instance_storage_pool"
+	PIInstanceStorageAffinityPool = "pi_instance_storage_affinity_pool"
 
 	PIInstanceHealthStatus      = "pi_health_status"
 	PIInstanceReplicants        = "pi_replicants"
@@ -54,6 +59,10 @@ const (
 	PIVolumePool              = "pi_volume_pool"
 	PIAffinityPolicy          = "pi_volume_affinity_policy"
 	PIAffinityVolume          = "pi_volume_affinity"
+	PIAffinityInstance        = "pi_volume_affinity_instance"
+	PIAffinityDiskCount       = "pi_volume_disk_count"
+	PIStoragePoolValue        = "pi_storage_pool_type"
+	PIStoragePoolName         = "pi_storage_pool_name"
 
 	// IBM PI Snapshots
 
@@ -63,19 +72,37 @@ const (
 	PISnapshotAction   = "pi_snap_shot_action"
 	PISnapshotComplete = "pi_snap_shot_complete"
 
+	// IBM PI SAP Profile
+
+	PISAPProfileID        = "pi_sap_profile_id"
+	PISAPProfile          = "pi_sap_profile"
+	PISAPProfileMemory    = "pi_sap_profile_memory"
+	PISAPProfileCertified = "pi_sap_profile_certified"
+	PISAPProfileType      = "pi_sap_profile_type"
+	PISAPProfileCores     = "pi_sap_profile_cores"
+
+	// IBM PI Clone Volume
+	PIVolumeCloneStatus  = "pi_volume_clone_status"
+	PIVolumeClonePercent = "pi_volume_clone_percent"
+	PIVolumeCloneFailure = "pi_volume_clone_failure"
+
 	// IBM PI Image
 
-	PIImageName       = "pi_image_name"
-	PIImageAccessKey  = "pi_image_access_key"
-	PIImageSecretKey  = "pi_image_secret_key"
-	PIImageSource     = "pi_image_source"
-	PIImageBucketName = "pi_image_bucket_name"
-	PIImageFileName   = "pi_image_file_name"
-	PIImageRegion     = "pi_image_region"
-	PIImageDisk       = "pi_image_disk"
-	PIImageCopyID     = "pi_image_copy_id"
-	PIImagePath       = "pi_image_path"
-	PIImageOsType     = "pi_image_os_type"
+	PIImageName            = "pi_image_name"
+	PIImageId              = "pi_image_id"
+	PIImageAccessKey       = "pi_image_access_key"
+	PIImageSecretKey       = "pi_image_secret_key"
+	PIImageSource          = "pi_image_source"
+	PIImageBucketName      = "pi_image_bucket_name"
+	PIImageBucketAccess    = "pi_image_bucket_access"
+	PIImageBucketFileName  = "pi_image_bucket_file_name"
+	PIImageBucketRegion    = "pi_image_bucket_region"
+	PIImageStorageAffinity = "pi_image_storage_affinity"
+	PIImageStoragePool     = "pi_image_storage_pool"
+	PIImageStorageType     = "pi_image_storage_type"
+	PIImageCopyID          = "pi_image_copy_id"
+	PIImagePath            = "pi_image_path"
+	PIImageOsType          = "pi_image_os_type"
 
 	// IBM PI Key
 
@@ -96,6 +123,7 @@ const (
 	PINetworkIPAddressRange  = "pi_ipaddress_range"
 	PINetworkVlanId          = "pi_vlan_id"
 	PINetworkProvisioning    = "build"
+	PINetworkJumbo           = "pi_network_jumbo"
 	PINetworkPortDescription = "pi_network_port_description"
 	PINetworkPortIPAddress   = "pi_network_port_ipaddress"
 	PINetworkPortMacAddress  = "pi_network_port_macaddress"
@@ -125,6 +153,50 @@ const (
 	PIInstanceCaptureCloudStorageAccessKey = "pi_capture_cloud_storage_access_key"
 	PIInstanceCaptureCloudStorageSecretKey = "pi_capture_cloud_storage_secret_key"
 
+	// IBM PI Cloud Connections
+
+	PICloudConnectionName          = "pi_cloud_connection_name"
+	PICloudConnectionStatus        = "pi_cloud_connection_status"
+	PICloudConnectionMetered       = "pi_cloud_connection_metered"
+	PICloudConnectionUserIPAddress = "pi_cloud_connection_user_ip_address"
+	PICloudConnectionIBMIPAddress  = "pi_cloud_connection_ibm_ip_address"
+	PICloudConnectionSpeed         = "pi_cloud_connection_speed"
+	PICloudConnectionPort          = "pi_cloud_connection_port"
+	PICloudConnectionGlobalRouting = "pi_cloud_connection_global_routing"
+	PICloudConnectionId            = "pi_cloud_connection_id"
+	//PICloudConnectionClassic          = "pi_cloud_connection_classic"
+	PICloudConnectionClassicEnabled   = "pi_cloud_connection_classic_enabled"
+	PICloudConnectionClassicGreCidr   = "pi_cloud_connection_gre_cidr"
+	PICloudConnectionClassicGreDest   = "pi_cloud_connection_gre_destination_address"
+	PICloudConnectionClassicGreSource = "pi_cloud_connection_gre_source_address"
+	PICloudConnectionNetworks         = "pi_cloud_connection_networks"
+	//PICloudConnectionVPC              = "pi_cloud_connection_vpc"
+	PICloudConnectionVPCEnabled = "pi_cloud_connection_vpc_enabled"
+	PICloudConnectionVPCCRNs    = "pi_cloud_connection_vpc_crns"
+	PICloudConnectionVPCName    = "pi_cloud_connection_vpc_name"
+
+	JobStatusQueued             = "queued"
+	JobStatusReadyForProcessing = "readyForProcessing"
+	JobStatusInProgress         = "inProgress"
+	JobStatusCompleted          = "completed"
+	JobStatusFailed             = "failed"
+	JobStatusRunning            = "running"
+	JobStatusWaiting            = "waiting"
+
+	// IBM PI DHCP
+	PIDhcpId          = "pi_dhcp_id"
+	PIDhcpStatus      = "pi_dhcp_status"
+	PIDhcpNetwork     = "pi_dhcp_network"
+	PIDhcpLeases      = "pi_dhcp_leases"
+	PIDhcpInstanceIp  = "pi_dhcp_instance_ip"
+	PIDhcpInstanceMac = "pi_dhcp_instance_mac"
+
+	// IBM PI Placement Groups
+
+	PIPlacementGroupName   = "pi_placement_group_name"
+	PIPlacementGroupPolicy = "pi_placement_group_policy"
+	PIPlacementGroupID     = "pi_placement_group_id"
+
 	// Status For all the resources
 
 	PIVolumeDeleting         = "deleting"
@@ -143,6 +215,7 @@ const (
 	//Timeout values for Power VS -
 
 	PICreateTimeOut = 5 * time.Minute
+	PIUpdateTimeOut = 5 * time.Minute
 	PIDeleteTimeOut = 3 * time.Minute
 	PIGetTimeOut    = 2 * time.Minute
 )
