@@ -118,3 +118,60 @@ resource "ibm_is_lb_pool_member" "api_member" {
   target_address = local.api_servers[count.index]
 }
 
+# ingress-443
+resource "ibm_is_lb_listener" "ingress_443_listener" {
+  lb           = ibm_is_lb.load_balancer.id
+  port         = 443
+  protocol     = "tcp"
+  default_pool = ibm_is_lb_pool.ingress_443_pool.id
+}
+resource "ibm_is_lb_pool" "ingress_443_pool" {
+  depends_on = [ibm_is_lb.load_balancer]
+
+  name           = "ingress-443"
+  lb             = ibm_is_lb.load_balancer.id
+  algorithm      = "round_robin"
+  protocol       = "tcp"
+  health_delay   = 60
+  health_retries = 5
+  health_timeout = 30
+  health_type    = "tcp"
+}
+resource "ibm_is_lb_pool_member" "ingress_443_member" {
+  depends_on = [ibm_is_lb_listener.ingress_443_listener, ibm_is_lb_pool_member.machine_config_member]
+  count      = local.api_servers_count
+
+  lb             = ibm_is_lb.load_balancer.id
+  pool           = ibm_is_lb_pool.ingress_443_pool.id
+  port           = 443
+  target_address = local.api_servers[count.index]
+}
+
+# ingress-80
+resource "ibm_is_lb_listener" "ingress_80_listener" {
+  lb           = ibm_is_lb.load_balancer.id
+  port         = 80
+  protocol     = "tcp"
+  default_pool = ibm_is_lb_pool.ingress_80_pool.id
+}
+resource "ibm_is_lb_pool" "ingress_80_pool" {
+  depends_on = [ibm_is_lb.load_balancer]
+
+  name           = "ingress-80"
+  lb             = ibm_is_lb.load_balancer.id
+  algorithm      = "round_robin"
+  protocol       = "tcp"
+  health_delay   = 60
+  health_retries = 5
+  health_timeout = 30
+  health_type    = "tcp"
+}
+resource "ibm_is_lb_pool_member" "ingress_80_member" {
+  depends_on = [ibm_is_lb_listener.ingress_443_listener, ibm_is_lb_pool_member.machine_config_member]
+  count      = local.api_servers_count
+
+  lb             = ibm_is_lb.load_balancer.id
+  pool           = ibm_is_lb_pool.ingress_80_pool.id
+  port           = 80
+  target_address = local.api_servers[count.index]
+}
