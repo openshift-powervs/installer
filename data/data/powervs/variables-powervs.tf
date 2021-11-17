@@ -11,13 +11,22 @@ variable "powervs_vpc_region" {
   type        = string
   description = "The IBM Cloud region where you want to create the resources"
   default     = "eu-gb"
-  ##default     = "eu-gb"
+}
+
+variable "powervs_vpc_zone" {
+  type        = string
+  description = "The IBM Cloud zone associated with the VPC region you're using"
 }
 
 variable "powervs_region" {
   type        = string
   description = "The IBM Cloud region where you want to create the resources"
   default     = "lon"
+}
+
+variable "powervs_zone" {
+  type        = string
+  description = "The IBM Cloud zone associated with the region you're using"
 }
 
 variable "powervs_resource_group" {
@@ -54,11 +63,6 @@ variable "powervs_cos_storage_class" {
 ################################################################
 # Configure instances
 ################################################################
-variable "powervs_image_name" {
-  type        = string
-  description = "Name of the image used by all nodes in the cluster."
-}
-
 variable "powervs_bootstrap_memory" {
   type        = string
   description = "Amount of memory, in  GiB, used by the bootstrap node."
@@ -105,6 +109,18 @@ variable "powervs_ssh_key" {
   type        = string
   description = "Public key for keypair used to access cluster. Required when creating 'ibm_pi_instance' resources."
   default     = ""
+}
+
+variable "powervs_image_bucket_file_name" {
+  type        = string
+  description = "File name of the image in the COS bucket."
+  default     = "rhcos-410-84-202111101637-0-ppc64le-powervs.ova.gz"
+}
+
+variable "powervs_image_storage_type" {
+  type        = string
+  description = "Storage type used when storing image in Power VS."
+  default     = "tier3"
 }
 
 ################################################################

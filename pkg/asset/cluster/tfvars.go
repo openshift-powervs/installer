@@ -532,6 +532,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		}
 
 		data, err = baremetaltfvars.TFVars(
+			*installConfig.Config.ControlPlane.Replicas,
 			installConfig.Config.Platform.BareMetal.LibvirtURI,
 			installConfig.Config.Platform.BareMetal.APIVIP,
 			imageCacheIP,
@@ -611,6 +612,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			Data:     data,
 		})
 	case powervs.Name:
+		// @TODO: Can we just use the install config for all these values?
 		session, err := powervsconfig.GetSession()
 		if err != nil {
 			return err
@@ -635,12 +637,13 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		data, err = powervstfvars.TFVars(
 			powervstfvars.TFVarsSources{
 				MasterConfigs:        masterConfigs,
-				PowerVSZone:          session.Session.Zone,
+				Region:               installConfig.Config.Platform.PowerVS.Region,
+				Zone:                 installConfig.Config.Platform.PowerVS.Zone,
+				VPCZone:              installConfig.Config.Platform.PowerVS.VPCZone,
 				APIKey:               session.Session.IAMToken,
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
 				NetworkName:          installConfig.Config.PowerVS.PVSNetworkName,
-				ImageName:            installConfig.Config.PowerVS.ImageName,
 				CISInstanceCRN:       crn,
 				VPCSubnetName:        installConfig.Config.PowerVS.Subnets[0],
 				VPCName:              installConfig.Config.PowerVS.VPC,
@@ -675,6 +678,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				Cluster:             installConfig.Config.VSphere.Cluster,
 				ImageURL:            string(*rhcosImage),
 				PreexistingFolder:   preexistingFolder,
+				DiskType:            installConfig.Config.Platform.VSphere.DiskType,
 			},
 		)
 		if err != nil {
