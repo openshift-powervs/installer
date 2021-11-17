@@ -214,11 +214,15 @@ func (i *Infrastructure) Generate(dependencies asset.Parents) error {
 		}
 	case powervs.Name:
 		config.Spec.PlatformSpec.Type = configv1.PowerVSPlatformType
-		config.Status.PlatformStatus.PowerVS = &configv1.PowerVSPlatformStatus{
-			Region: installConfig.Config.Platform.PowerVS.Region,
-			Zone:   installConfig.Config.Platform.PowerVS.Zone,
+		cisInstanceCRN, err := installConfig.PowerVS.CISInstanceCRN(ctx)
+		if err != nil {
+			return err
 		}
-
+		config.Status.PlatformStatus.PowerVS = &configv1.PowerVSPlatformStatus{
+			Region:         installConfig.Config.Platform.PowerVS.Region,
+			Zone:           installConfig.Config.Platform.PowerVS.Zone,
+			CISInstanceCRN: cisInstanceCRN
+		}
 	default:
 		config.Spec.PlatformSpec.Type = configv1.NonePlatformType
 	}

@@ -11,7 +11,7 @@ data "ibm_resource_group" "resource_group" {
 
 resource "ibm_is_lb" "load_balancer" {
   name            = "${var.cluster_id}-loadbalancer"
-  resource_group = data.ibm_resource_group.resource_group.id
+  resource_group  = data.ibm_resource_group.resource_group.id
   subnets         = [var.vpc_subnet_id]
   security_groups = [ibm_is_security_group.ocp_security_group.id]
   tags            = [var.cluster_id, "${var.cluster_id}-loadbalancer"]
@@ -20,7 +20,7 @@ resource "ibm_is_lb" "load_balancer" {
 
 resource "ibm_is_lb" "load_balancer_int" {
   name            = "${var.cluster_id}-loadbalancer-int"
-  resource_group = data.ibm_resource_group.resource_group.id
+  resource_group  = data.ibm_resource_group.resource_group.id
   subnets         = [var.vpc_subnet_id]
   security_groups = [ibm_is_security_group.ocp_security_group.id]
   tags            = [var.cluster_id, "${var.cluster_id}-loadbalancer-int"]
@@ -174,4 +174,32 @@ resource "ibm_is_lb_pool_member" "ingress_80_member" {
   pool           = ibm_is_lb_pool.ingress_80_pool.id
   port           = 80
   target_address = local.api_servers[count.index]
+}
+
+# bootstrap listener and backend pool
+resource "ibm_is_lb_listener" "bootstrap_listener" {
+  lb             = ibm_is_lb.load_balancer.id
+  port           = 22
+  protocol       = "tcp"
+  default_pool   = ibm_is_lb_pool.bootstrap_pool.id
+}
+resource "ibm_is_lb_pool" "bootstrap_pool" {
+  depends_on = [ibm_is_lb.load_balancer]
+
+  name           = "bootstrap-node"
+  lb             = ibm_is_lb.load_balancer.id
+  algorithm      = "round_robin"
+  protocol       = "tcp"
+  health_delay   = 5
+  health_retries = 2
+  health_timeout = 2
+  health_type    = "tcp"
+}
+resource "ibm_is_lb_pool_member" "bootstrap" {
+  depends_on = [ibm_is_lb_listener.bootstrap_listener]
+
+  lb             = ibm_is_lb.load_balancer.id
+  pool           = ibm_is_lb_pool.bootstrap_pool.id
+  port           = 22
+  target_address = var.bootstrap_ip
 }
