@@ -92,7 +92,7 @@ module "loadbalancer" {
   cluster_id     = var.cluster_id
   vpc_name       = var.powervs_vpc_name
   vpc_subnet_id  = data.ibm_is_subnet.vpc_subnet.id
-  bootstrap_ip   = module.bootstrap.bootstrap_ip
+  bootstrap_ip   = module.bootstrap.bootstrap_private_ip
   master_ips     = module.master.master_ips
   resource_group = var.powervs_resource_group
 }
