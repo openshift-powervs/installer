@@ -170,7 +170,7 @@ func getPISessionVarsFromUser(pisv *PISessionVars) error {
 			},
 		}, &pisv.ID)
 		if err != nil {
-			return errors.New("Error saving the IBM Cloud User ID")
+			return errors.New("error saving the IBM Cloud User ID")
 		}
 
 	}
@@ -185,7 +185,7 @@ func getPISessionVarsFromUser(pisv *PISessionVars) error {
 			},
 		}, &pisv.APIKey)
 		if err != nil {
-			return errors.New("Error saving the API Key")
+			return errors.New("error saving the API Key")
 		}
 
 	}
