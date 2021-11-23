@@ -49,7 +49,7 @@ type Platform struct {
 
 	// PVSNetworkName specifies an existing network within the Power VS Service Instance.
 	// @TODO: make this +optional when we have TF support
-	PVSNetworkName string `json:pvsNetworkName,omitempty"`
+	PVSNetworkName string `json:"pvsNetworkName,omitempty"`
 
 	// PVSNetworkID is the associated ID for the PVSNetworkName. This is currently required
 	// For the machine config.

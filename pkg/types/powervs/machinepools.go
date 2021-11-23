@@ -20,11 +20,11 @@ type MachinePool struct {
 
 	// Memory defines the memory in GB for the instance.
 	//
-	Memory int `json:"memory"`
+	Memory string `json:"memory"`
 
 	// Processors defines the processing units for the instance.
 	// @TODO:
-	Processors float32 `json:"processors"`
+	Processors string `json:"processors"`
 
 	// ProcType defines the processor sharing model for the instance.
 	//
@@ -44,7 +44,7 @@ type MachinePool struct {
 	// SysType defines the system type for instance.
 	//
 	// +optional
-	SysType string `json:sysType"`
+	SysType string `json:"sysType"`
 }
 
 // Set stores values from required into a
