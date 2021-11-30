@@ -1,7 +1,6 @@
 package machines
 
 import (
-	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 	"testing"
 
 	powervstypes "github.com/openshift/installer/pkg/types/powervs"
@@ -278,7 +277,7 @@ func TestPowerVSWorker(t *testing.T) {
 						Platform: types.MachinePoolPlatform{
 							PowerVS: &powervstypes.MachinePool{
 								ServiceInstance: "dummy-service-instance",
-								ImageName:       "dummy-image-name",
+								ImageID:         "dummy-image-name",
 								NetworkIDs:      []string{"dummy-network"},
 								KeyPairName:     "dummy-keypair",
 							},
