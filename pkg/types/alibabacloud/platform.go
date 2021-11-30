@@ -5,9 +5,10 @@ type Platform struct {
 	// Region specifies the Alibaba Cloud region where the cluster will be created.
 	Region string `json:"region"`
 
-	// ResourceGroupID is the ID of an already existing resource group where the
-	// cluster should be installed.
-	ResourceGroupID string `json:"resourceGroupID"`
+	// ResourceGroupID is the ID of an already existing resource group where the cluster should be installed.
+	// If empty, the installer will create a new resource group for the cluster.
+	// +optional
+	ResourceGroupID string `json:"resourceGroupID,omitempty"`
 
 	// Tags additional keys and values that the installer will add
 	// as tags to all resources that it creates. Resources created by the

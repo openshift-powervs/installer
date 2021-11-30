@@ -7,22 +7,22 @@ import (
 	"os"
 	"strings"
 
-	alibabacloudprovider "github.com/AliyunContainerService/cluster-api-provider-alibabacloud/pkg/apis/alibabacloudprovider/v1beta1"
 	igntypes "github.com/coreos/ignition/v2/config/v3_2/types"
 	coreosarch "github.com/coreos/stream-metadata-go/arch"
 	"github.com/ghodss/yaml"
+	alibabacloudprovider "github.com/openshift/cluster-api-provider-alibaba/pkg/apis/alibabacloudprovider/v1beta1"
 	gcpprovider "github.com/openshift/cluster-api-provider-gcp/pkg/apis/gcpprovider/v1beta1"
 	ibmcloudprovider "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis/ibmcloudprovider/v1beta1"
 	libvirtprovider "github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1"
 	ovirtprovider "github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1"
 	powervsprovider "github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
-	vsphereprovider "github.com/openshift/machine-api-operator/pkg/apis/vsphereprovider/v1beta1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	awsprovider "sigs.k8s.io/cluster-api-provider-aws/pkg/apis/awsprovider/v1beta1"
 	azureprovider "sigs.k8s.io/cluster-api-provider-azure/pkg/apis/azureprovider/v1beta1"
 
 	configv1 "github.com/openshift/api/config/v1"
+	machinev1 "github.com/openshift/api/machine/v1beta1"
 	"github.com/openshift/installer/pkg/asset"
 	"github.com/openshift/installer/pkg/asset/ignition"
 	"github.com/openshift/installer/pkg/asset/ignition/bootstrap"
@@ -451,6 +451,56 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			workerConfigs[i] = w.Spec.Template.Spec.ProviderSpec.Value.Object.(*ibmcloudprovider.IBMCloudMachineProviderSpec)
 		}
 
+		// Set machine pool info
+		var masterMachinePool ibmcloud.MachinePool
+		var workerMachinePool ibmcloud.MachinePool
+		if installConfig.Config.Platform.IBMCloud.DefaultMachinePlatform != nil {
+			masterMachinePool.Set(installConfig.Config.Platform.IBMCloud.DefaultMachinePlatform)
+			workerMachinePool.Set(installConfig.Config.Platform.IBMCloud.DefaultMachinePlatform)
+		}
+		if installConfig.Config.ControlPlane.Platform.IBMCloud != nil {
+			masterMachinePool.Set(installConfig.Config.ControlPlane.Platform.IBMCloud)
+		}
+		if worker := installConfig.Config.WorkerMachinePool(); worker != nil {
+			workerMachinePool.Set(worker.Platform.IBMCloud)
+		}
+
+		// Get master dedicated host info
+		var masterDedicatedHosts []ibmcloudtfvars.DedicatedHost
+		for _, dhost := range masterMachinePool.DedicatedHosts {
+			if dhost.Name != "" {
+				dh, err := client.GetDedicatedHostByName(ctx, dhost.Name, installConfig.Config.Platform.IBMCloud.Region)
+				if err != nil {
+					return err
+				}
+				masterDedicatedHosts = append(masterDedicatedHosts, ibmcloudtfvars.DedicatedHost{
+					ID: *dh.ID,
+				})
+			} else {
+				masterDedicatedHosts = append(masterDedicatedHosts, ibmcloudtfvars.DedicatedHost{
+					Profile: dhost.Profile,
+				})
+			}
+		}
+
+		// Get worker dedicated host info
+		var workerDedicatedHosts []ibmcloudtfvars.DedicatedHost
+		for _, dhost := range workerMachinePool.DedicatedHosts {
+			if dhost.Name != "" {
+				dh, err := client.GetDedicatedHostByName(ctx, dhost.Name, installConfig.Config.Platform.IBMCloud.Region)
+				if err != nil {
+					return err
+				}
+				workerDedicatedHosts = append(workerDedicatedHosts, ibmcloudtfvars.DedicatedHost{
+					ID: *dh.ID,
+				})
+			} else {
+				workerDedicatedHosts = append(workerDedicatedHosts, ibmcloudtfvars.DedicatedHost{
+					Profile: dhost.Profile,
+				})
+			}
+		}
+
 		// Get CISInstanceCRN from InstallConfig metadata
 		crn, err := installConfig.IBMCloud.CISInstanceCRN(ctx)
 		if err != nil {
@@ -459,13 +509,15 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 
 		data, err = ibmcloudtfvars.TFVars(
 			ibmcloudtfvars.TFVarsSources{
-				Auth:              auth,
-				CISInstanceCRN:    crn,
-				ImageURL:          string(*rhcosImage),
-				MasterConfigs:     masterConfigs,
-				PublishStrategy:   installConfig.Config.Publish,
-				ResourceGroupName: installConfig.Config.Platform.IBMCloud.ResourceGroupName,
-				WorkerConfigs:     workerConfigs,
+				Auth:                 auth,
+				CISInstanceCRN:       crn,
+				ImageURL:             string(*rhcosImage),
+				MasterConfigs:        masterConfigs,
+				MasterDedicatedHosts: masterDedicatedHosts,
+				PublishStrategy:      installConfig.Config.Publish,
+				ResourceGroupName:    installConfig.Config.Platform.IBMCloud.ResourceGroupName,
+				WorkerConfigs:        workerConfigs,
+				WorkerDedicatedHosts: workerDedicatedHosts,
 			},
 		)
 		if err != nil {
@@ -662,9 +714,9 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		if err != nil {
 			return err
 		}
-		controlPlaneConfigs := make([]*vsphereprovider.VSphereMachineProviderSpec, len(controlPlanes))
+		controlPlaneConfigs := make([]*machinev1.VSphereMachineProviderSpec, len(controlPlanes))
 		for i, c := range controlPlanes {
-			controlPlaneConfigs[i] = c.Spec.ProviderSpec.Value.Object.(*vsphereprovider.VSphereMachineProviderSpec)
+			controlPlaneConfigs[i] = c.Spec.ProviderSpec.Value.Object.(*machinev1.VSphereMachineProviderSpec)
 		}
 
 		// Set this flag to use an existing folder specified in the install-config. Otherwise, create one.
