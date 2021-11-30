@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	alibabacloudapi "github.com/AliyunContainerService/cluster-api-provider-alibabacloud/pkg/apis"
-	alibabacloudprovider "github.com/AliyunContainerService/cluster-api-provider-alibabacloud/pkg/apis/alibabacloudprovider/v1beta1"
 	"github.com/ghodss/yaml"
 	baremetalapi "github.com/metal3-io/cluster-api-provider-baremetal/pkg/apis"
 	baremetalprovider "github.com/metal3-io/cluster-api-provider-baremetal/pkg/apis/baremetal/v1alpha1"
 	machineapi "github.com/openshift/api/machine/v1beta1"
+	alibabacloudapi "github.com/openshift/cluster-api-provider-alibaba/pkg/apis"
+	alibabacloudprovider "github.com/openshift/cluster-api-provider-alibaba/pkg/apis/alibabacloudprovider/v1beta1"
 	gcpapi "github.com/openshift/cluster-api-provider-gcp/pkg/apis"
 	gcpprovider "github.com/openshift/cluster-api-provider-gcp/pkg/apis/gcpprovider/v1beta1"
 	ibmcloudapi "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis"
@@ -23,8 +23,6 @@ import (
 	ovirtprovider "github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1"
 	powervsapi "github.com/openshift/cluster-api-provider-powervs/pkg/apis"
 	powervsprovider "github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
-	vsphereapi "github.com/openshift/machine-api-operator/pkg/apis/vsphereprovider"
-	vsphereprovider "github.com/openshift/machine-api-operator/pkg/apis/vsphereprovider/v1beta1"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -561,8 +559,12 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 	libvirtapi.AddToScheme(scheme)
 	openstackapi.AddToScheme(scheme)
 	ovirtproviderapi.AddToScheme(scheme)
-	vsphereapi.AddToScheme(scheme)
 	powervsapi.AddToScheme(scheme)
+	// Add vsphere types to scheme
+	scheme.AddKnownTypes(machineapi.SchemeGroupVersion,
+		&machineapi.VSphereMachineProviderSpec{},
+	)
+	machineapi.AddToScheme(scheme)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
 		alibabacloudprovider.SchemeGroupVersion,
 		awsprovider.SchemeGroupVersion,
@@ -572,7 +574,7 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 		ibmcloudprovider.SchemeGroupVersion,
 		libvirtprovider.SchemeGroupVersion,
 		openstackprovider.SchemeGroupVersion,
-		vsphereprovider.SchemeGroupVersion,
+		machineapi.SchemeGroupVersion,
 		ovirtprovider.SchemeGroupVersion,
 		powervsprovider.GroupVersion,
 	)

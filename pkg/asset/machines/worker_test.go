@@ -1,10 +1,7 @@
 package machines
 
 import (
-	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 	"testing"
-
-	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +13,7 @@ import (
 	"github.com/openshift/installer/pkg/asset/rhcos"
 	"github.com/openshift/installer/pkg/types"
 	awstypes "github.com/openshift/installer/pkg/types/aws"
+	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 )
 
 func TestWorkerGenerate(t *testing.T) {
