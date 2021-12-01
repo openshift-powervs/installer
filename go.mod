@@ -26,7 +26,7 @@ require (
 	github.com/clarketm/json v1.14.1
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/ignition/v2 v2.9.0
-	github.com/coreos/stream-metadata-go v0.1.3
+	github.com/coreos/stream-metadata-go v0.1.5-0.20211102155543-ed4342200417
 	github.com/dmacvicar/terraform-provider-libvirt v0.6.4-0.20201216193629-2b60d7626ff8
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-playground/validator/v10 v10.2.0

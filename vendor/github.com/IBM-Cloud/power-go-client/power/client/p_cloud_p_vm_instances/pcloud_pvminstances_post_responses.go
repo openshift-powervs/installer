@@ -53,6 +53,13 @@ func (o *PcloudPvminstancesPostReader) ReadResponse(response runtime.ClientRespo
 		}
 		return nil, result
 
+	case 401:
+		result := NewPcloudPvminstancesPostUnauthorized()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
+
 	case 409:
 		result := NewPcloudPvminstancesPostConflict()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -69,6 +76,13 @@ func (o *PcloudPvminstancesPostReader) ReadResponse(response runtime.ClientRespo
 
 	case 500:
 		result := NewPcloudPvminstancesPostInternalServerError()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
+
+	case 504:
+		result := NewPcloudPvminstancesPostGatewayTimeout()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -189,6 +203,35 @@ func (o *PcloudPvminstancesPostBadRequest) readResponse(response runtime.ClientR
 	return nil
 }
 
+// NewPcloudPvminstancesPostUnauthorized creates a PcloudPvminstancesPostUnauthorized with default headers values
+func NewPcloudPvminstancesPostUnauthorized() *PcloudPvminstancesPostUnauthorized {
+	return &PcloudPvminstancesPostUnauthorized{}
+}
+
+/*PcloudPvminstancesPostUnauthorized handles this case with default header values.
+
+Unauthorized
+*/
+type PcloudPvminstancesPostUnauthorized struct {
+	Payload *models.Error
+}
+
+func (o *PcloudPvminstancesPostUnauthorized) Error() string {
+	return fmt.Sprintf("[POST /pcloud/v1/cloud-instances/{cloud_instance_id}/pvm-instances][%d] pcloudPvminstancesPostUnauthorized  %+v", 401, o.Payload)
+}
+
+func (o *PcloudPvminstancesPostUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.Error)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
 // NewPcloudPvminstancesPostConflict creates a PcloudPvminstancesPostConflict with default headers values
 func NewPcloudPvminstancesPostConflict() *PcloudPvminstancesPostConflict {
 	return &PcloudPvminstancesPostConflict{}
@@ -265,6 +308,35 @@ func (o *PcloudPvminstancesPostInternalServerError) Error() string {
 }
 
 func (o *PcloudPvminstancesPostInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.Error)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewPcloudPvminstancesPostGatewayTimeout creates a PcloudPvminstancesPostGatewayTimeout with default headers values
+func NewPcloudPvminstancesPostGatewayTimeout() *PcloudPvminstancesPostGatewayTimeout {
+	return &PcloudPvminstancesPostGatewayTimeout{}
+}
+
+/*PcloudPvminstancesPostGatewayTimeout handles this case with default header values.
+
+Gateway Timeout. Request is still processing and taking longer than expected.
+*/
+type PcloudPvminstancesPostGatewayTimeout struct {
+	Payload *models.Error
+}
+
+func (o *PcloudPvminstancesPostGatewayTimeout) Error() string {
+	return fmt.Sprintf("[POST /pcloud/v1/cloud-instances/{cloud_instance_id}/pvm-instances][%d] pcloudPvminstancesPostGatewayTimeout  %+v", 504, o.Payload)
+}
+
+func (o *PcloudPvminstancesPostGatewayTimeout) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.Error)
 
