@@ -150,6 +150,7 @@ type InstallConfig struct {
 	// GCP: "Mint", "Passthrough", "Manual"
 	// IBMCloud: "Manual"
 	// AlibabaCloud: "Manual"
+	// PowerVS: "Manual"
 	// +optional
 	CredentialsMode CredentialsMode `json:"credentialsMode,omitempty"`
 
