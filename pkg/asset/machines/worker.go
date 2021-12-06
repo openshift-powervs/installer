@@ -75,6 +75,16 @@ const (
 
 	// workerUserDataFileName is the filename used for the worker user-data secret.
 	workerUserDataFileName = "99_openshift-cluster-api_worker-user-data-secret.yaml"
+
+	// decimalRootVolumeSize is the size in GB we use for some platforms.
+	// See below.
+	decimalRootVolumeSize = 120
+
+	// powerOfTwoRootVolumeSize is the size in GB we use for other platforms.
+	// The reasons for the specific choices between these two may boil down
+	// to which section of code the person adding a platform was copy-pasting from.
+	// https://github.com/openshift/openshift-docs/blob/main/modules/installation-requirements-user-infra.adoc#minimum-resource-requirements
+	powerOfTwoRootVolumeSize = 128
 )
 
 var (
@@ -87,7 +97,7 @@ func defaultAWSMachinePoolPlatform() awstypes.MachinePool {
 	return awstypes.MachinePool{
 		EC2RootVolume: awstypes.EC2RootVolume{
 			Type: "gp2",
-			Size: 120,
+			Size: decimalRootVolumeSize,
 		},
 	}
 }
@@ -107,7 +117,7 @@ func defaultLibvirtMachinePoolPlatform() libvirttypes.MachinePool {
 func defaultAzureMachinePoolPlatform() azuretypes.MachinePool {
 	return azuretypes.MachinePool{
 		OSDisk: azuretypes.OSDisk{
-			DiskSizeGB: 128,
+			DiskSizeGB: powerOfTwoRootVolumeSize,
 			DiskType:   azuretypes.DefaultDiskType,
 		},
 	}
@@ -117,7 +127,7 @@ func defaultGCPMachinePoolPlatform() gcptypes.MachinePool {
 	return gcptypes.MachinePool{
 		InstanceType: "n1-standard-4",
 		OSDisk: gcptypes.OSDisk{
-			DiskSizeGB: 128,
+			DiskSizeGB: powerOfTwoRootVolumeSize,
 			DiskType:   "pd-ssd",
 		},
 	}
@@ -147,7 +157,7 @@ func defaultOvirtMachinePoolPlatform() ovirttypes.MachinePool {
 		},
 		MemoryMB: 16348,
 		OSDisk: &ovirttypes.Disk{
-			SizeGB: 120,
+			SizeGB: decimalRootVolumeSize,
 		},
 		VMType:            ovirttypes.VMTypeServer,
 		AutoPinningPolicy: ovirttypes.AutoPinningNone,
@@ -160,7 +170,7 @@ func defaultVSphereMachinePoolPlatform() vspheretypes.MachinePool {
 		NumCoresPerSocket: 2,
 		MemoryMiB:         8192,
 		OSDisk: vspheretypes.OSDisk{
-			DiskSizeGB: 120,
+			DiskSizeGB: decimalRootVolumeSize,
 		},
 	}
 }
