@@ -28,6 +28,7 @@ require (
 	github.com/coreos/ignition/v2 v2.9.0
 	github.com/coreos/stream-metadata-go v0.1.3
 	github.com/dmacvicar/terraform-provider-libvirt v0.6.4-0.20201216193629-2b60d7626ff8
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/golang/mock v1.6.0
@@ -200,7 +201,6 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gammazero/deque v0.0.0-20190130191400-2afb3858e9c7 // indirect
 	github.com/gammazero/workerpool v0.0.0-20190406235159-88d534f22b56 // indirect
