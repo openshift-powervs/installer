@@ -37,6 +37,7 @@ var (
 		aws.Name,
 		azure.Name,
 		gcp.Name,
+		ibmcloud.Name,
 		openstack.Name,
 		ovirt.Name,
 		powervs.Name,
@@ -47,7 +48,6 @@ var (
 	// to the user in the interactive wizard.
 	HiddenPlatformNames = []string{
 		baremetal.Name,
-		ibmcloud.Name,
 		none.Name,
 	}
 
