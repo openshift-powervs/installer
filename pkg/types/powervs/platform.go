@@ -32,9 +32,6 @@ type Platform struct {
 	// APIKey is the API key for the user's IBM Cloud account.
 	APIKey string `json:"APIKey,omitempty"`
 
-	// SSHKeyName is the name of an SSH key stored in the Service Instance.
-	SSHKeyName string `json:"SSHKeyName,omitempty"`
-
 	// VPC is a VPC inside IBM Cloud. Needed in order to create VPC Load Balancers.
 	//
 	// +optional
@@ -44,39 +41,16 @@ type Platform struct {
 	// resources will be created.  Leave unset to have the installer
 	// create subnets in a new VPC on your behalf.
 	//
-	// @TODO: make this +optional when we have TF support
+	// +optional
 	Subnets []string `json:"subnets,omitempty"`
 
 	// PVSNetworkName specifies an existing network within the Power VS Service Instance.
-	// @TODO: make this +optional when we have TF support
+	//
+	// +optional
 	PVSNetworkName string `json:"pvsNetworkName,omitempty"`
 
-	// PVSNetworkID is the associated ID for the PVSNetworkName. This is currently required
-	// For the machine config.
-	// @TODO: Remove when machine config resolves the ID from name.
-	// Leave unset to have the installer create the network.
-	//
-	// @TODO: make this +optional when we have TF support
-	PVSNetworkID string `json:"pvsNetworkID,omitempty"`
-
-	// UserTags additional keys and values that the installer will add
-	// as tags to all resources that it creates. Resources created by the
-	// cluster itself may not include these tags.
-	// +optional
-	UserTags map[string]string `json:"userTags,omitempty"`
-
-	// ImageName is equivalent to BootStrap/ClusterOSImage.
-	// Until the machine provider config in cluster-api-provider-powervs
-	// takes an ID instead of a name, we're using this for TF Creation,
-	// and the other two for machine-config.
-	//
-	// @TODO: Remove when provider resolves ID from name
-	// @TODO: make this +optional when we have TF support
-	ImageName string `json:"imageName,omitempty"`
-
-	// ClusterOSImage is a URL to override the default OS image
-	// for the bootstrap node. The URL must contain a sha256 hash of the image
-	// e.g https://mirror.example.com/images/image.ova.gz?sha256=a07bd...
+	// ClusterOSImage is a pre-created Power VS boot image that overrides the
+	// default image for cluster nodes.
 	//
 	// +optional
 	ClusterOSImage string `json:"clusterOSImage,omitempty"`
