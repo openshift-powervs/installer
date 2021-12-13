@@ -32,8 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	awsapi "sigs.k8s.io/cluster-api-provider-aws/pkg/apis"
 	awsprovider "sigs.k8s.io/cluster-api-provider-aws/pkg/apis/awsprovider/v1beta1"
-	azureapi "sigs.k8s.io/cluster-api-provider-azure/pkg/apis"
-	azureprovider "sigs.k8s.io/cluster-api-provider-azure/pkg/apis/azureprovider/v1beta1"
 	openstackapi "sigs.k8s.io/cluster-api-provider-openstack/pkg/apis"
 	openstackprovider "sigs.k8s.io/cluster-api-provider-openstack/pkg/apis/openstackproviderconfig/v1alpha1"
 
@@ -145,14 +143,6 @@ func (m *Master) Dependencies() []asset.Asset {
 	}
 }
 
-func defaultMasterAlibabaCloudMachinePoolPlatform() alibabacloudtypes.MachinePool {
-	return alibabacloudtypes.MachinePool{
-		InstanceType:       "ecs.g6.xlarge",
-		SystemDiskCategory: alibabacloudtypes.DefaultDiskCategory,
-		SystemDiskSize:     120,
-	}
-}
-
 func awsDefaultMasterMachineTypes(region string, arch types.Architecture) []string {
 	classes := awsdefaults.InstanceClasses(region, arch)
 	types := make([]string, len(classes))
@@ -178,13 +168,17 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 	machines := []machineapi.Machine{}
 	switch ic.Platform.Name() {
 	case alibabacloudtypes.Name:
-		mpool := defaultMasterAlibabaCloudMachinePoolPlatform()
+		client, err := installConfig.AlibabaCloud.Client()
+		if err != nil {
+			return err
+		}
+		mpool := alibabacloudtypes.DefaultMasterMachinePoolPlatform()
 		mpool.ImageID = string(*rhcosImage)
 		mpool.Set(ic.Platform.AlibabaCloud.DefaultMachinePlatform)
 		mpool.Set(pool.Platform.AlibabaCloud)
 		if len(mpool.Zones) == 0 {
-			azs, err := alibabacloud.GetAvailabilityZones(ic.Platform.AlibabaCloud.Region)
-			if err != nil {
+			azs, err := client.GetAvailableZonesByInstanceType(mpool.InstanceType)
+			if err != nil || len(azs) == 0 {
 				return errors.Wrap(err, "failed to fetch availability zones")
 			}
 			mpool.Zones = azs
@@ -556,7 +550,6 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 	scheme := runtime.NewScheme()
 	alibabacloudapi.AddToScheme(scheme)
 	awsapi.AddToScheme(scheme)
-	azureapi.AddToScheme(scheme)
 	baremetalapi.AddToScheme(scheme)
 	gcpapi.AddToScheme(scheme)
 	ibmcloudapi.AddToScheme(scheme)
@@ -564,15 +557,14 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 	openstackapi.AddToScheme(scheme)
 	ovirtproviderapi.AddToScheme(scheme)
 	powervsapi.AddToScheme(scheme)
-	// Add vsphere types to scheme
 	scheme.AddKnownTypes(machineapi.SchemeGroupVersion,
 		&machineapi.VSphereMachineProviderSpec{},
+		&machineapi.AzureMachineProviderSpec{},
 	)
 	machineapi.AddToScheme(scheme)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
 		alibabacloudprovider.SchemeGroupVersion,
 		awsprovider.SchemeGroupVersion,
-		azureprovider.SchemeGroupVersion,
 		baremetalprovider.SchemeGroupVersion,
 		gcpprovider.SchemeGroupVersion,
 		ibmcloudprovider.SchemeGroupVersion,
