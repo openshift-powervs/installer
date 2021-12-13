@@ -22,7 +22,7 @@ require (
 	github.com/aliyun/terraform-provider-alicloud v1.132.0
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/awalterschulze/gographviz v0.0.0-20190522210029-fa59802746ab
-	github.com/aws/aws-sdk-go v1.35.20
+	github.com/aws/aws-sdk-go v1.35.37
 	github.com/clarketm/json v1.14.1
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/ignition/v2 v2.9.0
@@ -76,7 +76,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/terraform-provider-openstack/terraform-provider-openstack v1.37.0
-	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20200807230610-d5346d47e3af
+	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20211207215258-c9b9d0b9dc46
 	github.com/terraform-providers/terraform-provider-azurerm v1.44.1-0.20200911233120-57b2bfc9d42c
 	github.com/terraform-providers/terraform-provider-azurestack v0.10.0
 	github.com/terraform-providers/terraform-provider-google v1.20.1-0.20200623174414-27107f2ee160
@@ -86,7 +86,6 @@ require (
 	github.com/ulikunitz/xz v0.5.8
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	github.com/vmware/govmomi v0.24.0
-	github.com/wxnacy/wgo v1.0.4
 	github.com/zclconf/go-cty v1.6.1
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
@@ -105,7 +104,6 @@ require (
 	k8s.io/klog/v2 v2.9.0
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
 	sigs.k8s.io/cluster-api-provider-aws v0.0.0
-	sigs.k8s.io/cluster-api-provider-azure v0.0.0
 	sigs.k8s.io/cluster-api-provider-openstack v0.0.0
 	sigs.k8s.io/controller-tools v0.7.0
 )
@@ -238,7 +236,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
-	github.com/hashicorp/aws-sdk-go-base v0.4.0 // indirect
+	github.com/hashicorp/aws-sdk-go-base v0.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-getter v1.4.2-0.20200106182914-9813cbd4eb02 // indirect
@@ -391,7 +389,7 @@ replace (
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20200929181438-91d71ef2122c // Pin client-go
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20201009041932-4fe8559913b8 // Pin MCO so it doesn't get downgraded
 	github.com/spf13/afero => github.com/spf13/afero v1.2.2
-	github.com/terraform-providers/terraform-provider-aws => github.com/openshift/terraform-provider-aws v1.60.1-0.20210622193531-7d13cfbb1a8c // Pin to openshift fork with tag v2.67.0-openshift-1
+	github.com/terraform-providers/terraform-provider-aws => github.com/openshift/terraform-provider-aws v1.60.1-0.20211207215258-c9b9d0b9dc46 // Pin to openshift fork with tag v3.1.0-openshift-1
 	github.com/terraform-providers/terraform-provider-azurerm => github.com/openshift/terraform-provider-azurerm v1.44.1-0.20210224232508-7509319df0f4 // Pin to 2.48.0-openshift
 	github.com/terraform-providers/terraform-provider-azurestack => github.com/openshift/terraform-provider-azurestack v0.10.0-openshift // Use OpenShift fork
 	github.com/terraform-providers/terraform-provider-google v1.20.1-0.20200623174414-27107f2ee160 => github.com/openshift/terraform-providers-terraform-provider-google v1.20.1-0.20211201190933-7b79c6d1afc8 // Pin to 3.27.0-openshift
@@ -399,7 +397,7 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v0.22.0
 	k8s.io/kubectl => k8s.io/kubectl v0.21.0-rc.0
 	sigs.k8s.io/cluster-api-provider-aws => github.com/openshift/cluster-api-provider-aws v0.2.1-0.20210121023454-5ffc5f422a80
-	sigs.k8s.io/cluster-api-provider-azure => github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3.0.20210626224711-5d94c794092f
+	sigs.k8s.io/cluster-api-provider-azure => github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3.0.20210626224711-5d94c794092f // Indirect dependency through MAO from cluster API providers
 	sigs.k8s.io/cluster-api-provider-openstack => github.com/openshift/cluster-api-provider-openstack v0.0.0-20211111204942-611d320170af
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.9.0-alpha.1
 	sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.3.1-0.20200617211605-651903477185
@@ -411,7 +409,7 @@ replace (
 	github.com/IBM-Cloud/power-go-client => github.com/yussufsh/power-go-client v1.99.4
 	github.com/IBM/vpc-go-sdk => github.com/IBM/vpc-go-sdk v0.8.0
 	github.com/apparentlymart/go-cidr => github.com/apparentlymart/go-cidr v1.0.1
-	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.32.3
+	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.35.37
 	github.com/go-openapi/errors => github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.4
 	github.com/go-openapi/validate => github.com/go-openapi/validate v0.19.8
