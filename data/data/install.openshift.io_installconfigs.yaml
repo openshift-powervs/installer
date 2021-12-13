@@ -1085,7 +1085,7 @@ spec:
               values. For all other platforms, the field must not be set. AWS: \"Mint\",
               \"Passthrough\", \"Manual\" Azure: \"Mint\", \"Passthrough\", \"Manual\"
               AzureStack: \"Manual\" GCP: \"Mint\", \"Passthrough\", \"Manual\" IBMCloud:
-              \"Manual\" AlibabaCloud: \"Manual\""
+              \"Manual\" AlibabaCloud: \"Manual\" PowerVS: \"Manual\""
             enum:
             - ""
             - Mint
