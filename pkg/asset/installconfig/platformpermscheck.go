@@ -9,8 +9,8 @@ import (
 	"github.com/openshift/installer/pkg/asset"
 	awsconfig "github.com/openshift/installer/pkg/asset/installconfig/aws"
 	gcpconfig "github.com/openshift/installer/pkg/asset/installconfig/gcp"
-	powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 
+	//powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 	"github.com/openshift/installer/pkg/types/alibabacloud"
 	"github.com/openshift/installer/pkg/types/aws"
 	"github.com/openshift/installer/pkg/types/azure"
@@ -91,15 +91,7 @@ func (a *PlatformPermsCheck) Generate(dependencies asset.Parents) error {
 	case ibmcloud.Name:
 		// TODO: IBM[#90]: platformpermscheck
 	case powervs.Name:
-		client, err := powervsconfig.NewClient()
-		if err != nil {
-			return err
-		}
-
-		err = powervsconfig.ValidateAccountPermissions(client)
-		if err != nil {
-			return err
-		}
+		//@TODO add check that the account plan is anything but "lite"
 	case azure.Name, baremetal.Name, libvirt.Name, none.Name, openstack.Name, ovirt.Name, vsphere.Name, alibabacloud.Name:
 		// no permissions to check
 	default:
