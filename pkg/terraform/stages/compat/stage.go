@@ -5,16 +5,9 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/openshift/installer/pkg/terraform"
-	gatherbaremetal "github.com/openshift/installer/pkg/terraform/gather/baremetal"
-	gatheropenstack "github.com/openshift/installer/pkg/terraform/gather/openstack"
-	gatherovirt "github.com/openshift/installer/pkg/terraform/gather/ovirt"
 	"github.com/openshift/installer/pkg/types"
-	baremetaltypes "github.com/openshift/installer/pkg/types/baremetal"
-	openstacktypes "github.com/openshift/installer/pkg/types/openstack"
-	ovirttypes "github.com/openshift/installer/pkg/types/ovirt"
 )
 
 // PlatformStages are the stages to run to provision the infrastructure used the legacy compat procedures.
@@ -43,12 +36,6 @@ func (s stage) DestroyWithBootstrap() bool {
 }
 
 func (s stage) Destroy(directory string, extraArgs []string) error {
-	switch s.platform {
-	case ovirttypes.Name:
-		extraArgs = append(extraArgs, "-target=module.template.ovirt_vm.tmp_import_vm")
-		extraArgs = append(extraArgs, "-target=module.template.ovirt_image_transfer.releaseimage")
-	}
-
 	extraArgs = append(extraArgs, "-target=module.bootstrap")
 
 	return errors.Wrap(terraform.Destroy(directory, s.platform, s, extraArgs...), "terraform destroy")
@@ -72,33 +59,7 @@ func (s stage) ExtractHostAddresses(directory string, config *types.InstallConfi
 	return bootstrap, port, masters, errors.Wrapf(err, "failed to get bootstrap and control plane host addresses from %q", tfStateFilePath)
 }
 
-func extractHostAddresses(config *types.InstallConfig, tfstate *terraform.State) (bootstrap string, port int, masters []string, err error) {
+func extractHostAddresses(_ *types.InstallConfig, _ *terraform.State) (bootstrap string, port int, masters []string, err error) {
 	port = 22
-	switch config.Platform.Name() {
-	case baremetaltypes.Name:
-		bootstrap = config.Platform.BareMetal.BootstrapProvisioningIP
-		masters, err = gatherbaremetal.ControlPlaneIPs(config, tfstate)
-		if err != nil {
-			return
-		}
-	case openstacktypes.Name:
-		bootstrap, err = gatheropenstack.BootstrapIP(tfstate)
-		if err != nil {
-			return
-		}
-		masters, err = gatheropenstack.ControlPlaneIPs(tfstate)
-		if err != nil {
-			logrus.Error(err)
-		}
-	case ovirttypes.Name:
-		bootstrap, err = gatherovirt.BootstrapIP(tfstate)
-		if err != nil {
-			return
-		}
-		masters, err = gatherovirt.ControlPlaneIPs(tfstate)
-		if err != nil {
-			logrus.Error(err)
-		}
-	}
 	return bootstrap, port, masters, nil
 }
