@@ -5,18 +5,24 @@ import (
 	"github.com/openshift/installer/pkg/terraform/stages/alibabacloud"
 	"github.com/openshift/installer/pkg/terraform/stages/aws"
 	"github.com/openshift/installer/pkg/terraform/stages/azure"
+	"github.com/openshift/installer/pkg/terraform/stages/baremetal"
 	"github.com/openshift/installer/pkg/terraform/stages/compat"
 	"github.com/openshift/installer/pkg/terraform/stages/gcp"
 	"github.com/openshift/installer/pkg/terraform/stages/ibmcloud"
 	"github.com/openshift/installer/pkg/terraform/stages/libvirt"
+	"github.com/openshift/installer/pkg/terraform/stages/openstack"
+	"github.com/openshift/installer/pkg/terraform/stages/ovirt"
 	"github.com/openshift/installer/pkg/terraform/stages/powervs"
 	"github.com/openshift/installer/pkg/terraform/stages/vsphere"
 	alibabacloudtypes "github.com/openshift/installer/pkg/types/alibabacloud"
 	awstypes "github.com/openshift/installer/pkg/types/aws"
 	azuretypes "github.com/openshift/installer/pkg/types/azure"
+	baremetaltypes "github.com/openshift/installer/pkg/types/baremetal"
 	gcptypes "github.com/openshift/installer/pkg/types/gcp"
 	ibmcloudtypes "github.com/openshift/installer/pkg/types/ibmcloud"
 	libvirttypes "github.com/openshift/installer/pkg/types/libvirt"
+	openstacktypes "github.com/openshift/installer/pkg/types/openstack"
+	ovirttypes "github.com/openshift/installer/pkg/types/ovirt"
 	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 	vspheretypes "github.com/openshift/installer/pkg/types/vsphere"
 )
@@ -32,6 +38,8 @@ func StagesForPlatform(platform string) []terraform.Stage {
 		return azure.PlatformStages
 	case azuretypes.StackTerraformName:
 		return azure.StackPlatformStages
+	case baremetaltypes.Name:
+		return baremetal.PlatformStages
 	case gcptypes.Name:
 		return gcp.PlatformStages
 	case ibmcloudtypes.Name:
@@ -40,6 +48,10 @@ func StagesForPlatform(platform string) []terraform.Stage {
 		return libvirt.PlatformStages
 	case powervstypes.Name:
 		return powervs.PlatformStages
+	case openstacktypes.Name:
+		return openstack.PlatformStages
+	case ovirttypes.Name:
+		return ovirt.PlatformStages
 	case vspheretypes.Name:
 		return vsphere.PlatformStages
 	default:
