@@ -114,7 +114,6 @@ variable "powervs_ssh_key" {
 variable "powervs_image_bucket_file_name" {
   type        = string
   description = "File name of the image in the COS bucket."
-  default     = "rhcos-410-84-202111101637-0-ppc64le-powervs.ova.gz"
 }
 
 variable "powervs_image_storage_type" {
