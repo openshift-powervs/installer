@@ -172,8 +172,8 @@ func osImage(config *types.InstallConfig) (string, error) {
 		}
 
 		if streamArch.Images.PowerVS != nil {
-			vpc_region := rhcos.PowerVSRegions[config.Platform.PowerVS.Region].VPCRegion
-			img := streamArch.Images.PowerVS.Regions[vpc_region]
+			vpcRegion := rhcos.PowerVSRegions[config.Platform.PowerVS.Region].VPCRegion
+			img := streamArch.Images.PowerVS.Regions[vpcRegion]
 			logrus.Debug("PowerVS Using Image ", img.Object)
 			return img.Object, nil
 		}
