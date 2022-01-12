@@ -718,7 +718,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 

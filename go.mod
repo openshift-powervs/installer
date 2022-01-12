@@ -87,7 +87,7 @@ require (
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	github.com/vmware/govmomi v0.24.0
 	github.com/zclconf/go-cty v1.8.1
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
@@ -121,20 +121,18 @@ require (
 	github.com/Azure/go-ntlmssp v0.0.0-20200615164410-66371956d46c // indirect
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ChrisTrenkamp/goxpath v0.0.0-20190607011252-c5096ec8773d // indirect
-	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20210705152127-41ca00fc9a62 // indirect
 	github.com/IBM/apigateway-go-sdk v0.0.0-20210714141226-a5d5d49caaca // indirect
 	github.com/IBM/appconfiguration-go-admin-sdk v0.1.0 // indirect
 	github.com/IBM/container-registry-go-sdk v0.0.13 // indirect
+	github.com/IBM/go-sdk-core v1.1.0 // indirect
 	github.com/IBM/go-sdk-core/v3 v3.3.1 // indirect
 	github.com/IBM/go-sdk-core/v4 v4.10.0 // indirect
 	github.com/IBM/ibm-cos-sdk-go v1.7.0 // indirect
 	github.com/IBM/ibm-cos-sdk-go-config v1.2.0 // indirect
-	github.com/IBM/ibm-hpcs-tke-sdk v0.0.0-20210723145459-a232c3f3ac91 // indirect
 	github.com/IBM/keyprotect-go-client v0.7.0 // indirect
 	github.com/IBM/push-notifications-go-sdk v0.0.0-20210310100607-5790b96c47f5 // indirect
 	github.com/IBM/schematics-go-sdk v0.0.2 // indirect
 	github.com/IBM/secrets-manager-go-sdk v0.1.19 // indirect
-	github.com/Logicalis/asn1 v0.0.0-20190312173541-d60463189a56 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -228,7 +226,6 @@ require (
 	github.com/gogap/errors v0.0.0-20160523102334-149c546090d0 // indirect
 	github.com/gogap/stack v0.0.0-20150131034635-fef68dddd4f8 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/btree v1.0.1 // indirect
@@ -384,7 +381,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.57.0
-	github.com/IBM-Cloud/terraform-provider-ibm => github.com/yussufsh/terraform-provider-ibm v1.89.0
+	github.com/IBM-Cloud/terraform-provider-ibm => github.com/openshift/terraform-provider-ibm v1.26.2-openshift-2
 	github.com/go-log/log => github.com/go-log/log v0.1.1-0.20181211034820-a514cf01a3eb // Pinned by MCO
 	github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.17.0
 	github.com/hashicorp/terraform => github.com/openshift/hashicorp-terraform v0.14.6-openshift-1 // Pin to fork with deduplicated rpc types v0.14.6-openshift-1
@@ -419,7 +416,6 @@ replace (
 	github.com/Azure/go-autorest/autorest/adal => github.com/Azure/go-autorest/autorest/adal v0.9.10 // indirect
 	github.com/Azure/go-autorest/autorest/date => github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/validation => github.com/Azure/go-autorest/autorest/validation v0.3.1
-	github.com/IBM-Cloud/power-go-client => github.com/yussufsh/power-go-client v1.99.4
 	github.com/IBM/vpc-go-sdk => github.com/IBM/vpc-go-sdk v0.7.0
 	github.com/apparentlymart/go-cidr => github.com/apparentlymart/go-cidr v1.1.0
 	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.35.37
