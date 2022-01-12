@@ -128,6 +128,9 @@ func osImage(config *types.InstallConfig) (string, error) {
 		return "", fmt.Errorf("%s: No openstack build found", st.FormatPrefix(archName))
 	case azure.Name:
 		ext := streamArch.RHELCoreOSExtensions
+		if config.Platform.Azure.CloudName == azure.StackCloud {
+			return config.Platform.Azure.ClusterOSImage, nil
+		}
 		if ext == nil {
 			return "", fmt.Errorf("%s: No azure build found", st.FormatPrefix(archName))
 		}
@@ -141,14 +144,8 @@ func osImage(config *types.InstallConfig) (string, error) {
 		if oi := config.Platform.BareMetal.ClusterOSImage; oi != "" {
 			return oi, nil
 		}
-
-		// Note that baremetal IPI currently uses the OpenStack image
-		// because this contains the necessary ironic config drive
-		// ignition support, which isn't enabled in the UPI BM images
-		if a, ok := streamArch.Artifacts["openstack"]; ok {
-			return rhcos.FindArtifactURL(a)
-		}
-		return "", fmt.Errorf("%s: No openstack build found", st.FormatPrefix(archName))
+		// Use image from release payload
+		return "", nil
 	case vsphere.Name:
 		// Check for image URL override
 		if config.Platform.VSphere.ClusterOSImage != "" {
