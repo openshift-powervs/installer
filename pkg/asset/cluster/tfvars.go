@@ -11,7 +11,6 @@ import (
 	coreosarch "github.com/coreos/stream-metadata-go/arch"
 	"github.com/ghodss/yaml"
 	alibabacloudprovider "github.com/openshift/cluster-api-provider-alibaba/pkg/apis/alibabacloudprovider/v1beta1"
-	gcpprovider "github.com/openshift/cluster-api-provider-gcp/pkg/apis/gcpprovider/v1beta1"
 	ibmcloudprovider "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis/ibmcloudprovider/v1beta1"
 	libvirtprovider "github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1"
 	ovirtprovider "github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1"
@@ -68,11 +67,11 @@ const (
 	// TfVarsFileName is the filename for Terraform variables.
 	TfVarsFileName = "terraform.tfvars.json"
 
-	// TfPlatformVarsFileName is a template for platform-specific
+	// TfPlatformVarsFileName is the name for platform-specific
 	// Terraform variable files.
 	//
 	// https://www.terraform.io/docs/configuration/variables.html#variable-files
-	TfPlatformVarsFileName = "terraform.%s.auto.tfvars.json"
+	TfPlatformVarsFileName = "terraform.platform.auto.tfvars.json"
 
 	tfvarsAssetName = "Terraform Variables"
 )
@@ -295,7 +294,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case azure.Name:
@@ -328,26 +327,41 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		}
 
 		preexistingnetwork := installConfig.Config.Azure.VirtualNetwork != ""
+
+		var bootstrapIgnStub, bootstrapIgnURLPlaceholder string
+		if installConfig.Azure.CloudName == azure.StackCloud {
+			// Due to the SAS created in Terraform to limit access to bootstrap ignition, we cannot know the URL in advance.
+			// Instead, we will pass a placeholder string in the ignition to be replaced in TF once the value is known.
+			bootstrapIgnURLPlaceholder = "BOOTSTRAP_IGNITION_URL_PLACEHOLDER"
+			shim, err := bootstrap.GenerateIgnitionShimWithCertBundle(bootstrapIgnURLPlaceholder, installConfig.Config.AdditionalTrustBundle)
+			if err != nil {
+				return errors.Wrap(err, "failed to create stub Ignition config for bootstrap")
+			}
+			bootstrapIgnStub = string(shim)
+		}
+
 		data, err := azuretfvars.TFVars(
 			azuretfvars.TFVarsSources{
-				Auth:                        auth,
-				CloudName:                   installConfig.Config.Azure.CloudName,
-				ARMEndpoint:                 installConfig.Config.Azure.ARMEndpoint,
-				ResourceGroupName:           installConfig.Config.Azure.ResourceGroupName,
-				BaseDomainResourceGroupName: installConfig.Config.Azure.BaseDomainResourceGroupName,
-				MasterConfigs:               masterConfigs,
-				WorkerConfigs:               workerConfigs,
-				ImageURL:                    string(*rhcosImage),
-				PreexistingNetwork:          preexistingnetwork,
-				Publish:                     installConfig.Config.Publish,
-				OutboundType:                installConfig.Config.Azure.OutboundType,
+				Auth:                            auth,
+				CloudName:                       installConfig.Config.Azure.CloudName,
+				ARMEndpoint:                     installConfig.Config.Azure.ARMEndpoint,
+				ResourceGroupName:               installConfig.Config.Azure.ResourceGroupName,
+				BaseDomainResourceGroupName:     installConfig.Config.Azure.BaseDomainResourceGroupName,
+				MasterConfigs:                   masterConfigs,
+				WorkerConfigs:                   workerConfigs,
+				ImageURL:                        string(*rhcosImage),
+				PreexistingNetwork:              preexistingnetwork,
+				Publish:                         installConfig.Config.Publish,
+				OutboundType:                    installConfig.Config.Azure.OutboundType,
+				BootstrapIgnStub:                bootstrapIgnStub,
+				BootstrapIgnitionURLPlaceholder: bootstrapIgnURLPlaceholder,
 			},
 		)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case gcp.Name:
@@ -365,17 +379,17 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		if err != nil {
 			return err
 		}
-		masterConfigs := make([]*gcpprovider.GCPMachineProviderSpec, len(masters))
+		masterConfigs := make([]*machinev1.GCPMachineProviderSpec, len(masters))
 		for i, m := range masters {
-			masterConfigs[i] = m.Spec.ProviderSpec.Value.Object.(*gcpprovider.GCPMachineProviderSpec)
+			masterConfigs[i] = m.Spec.ProviderSpec.Value.Object.(*machinev1.GCPMachineProviderSpec)
 		}
 		workers, err := workersAsset.MachineSets()
 		if err != nil {
 			return err
 		}
-		workerConfigs := make([]*gcpprovider.GCPMachineProviderSpec, len(workers))
+		workerConfigs := make([]*machinev1.GCPMachineProviderSpec, len(workers))
 		for i, w := range workers {
-			workerConfigs[i] = w.Spec.Template.Spec.ProviderSpec.Value.Object.(*gcpprovider.GCPMachineProviderSpec)
+			workerConfigs[i] = w.Spec.Template.Spec.ProviderSpec.Value.Object.(*machinev1.GCPMachineProviderSpec)
 		}
 		if installConfig.Config.Publish == types.ExternalPublishingStrategy {
 			publicZone, err := gcpconfig.GetPublicZone(ctx, installConfig.Config.GCP.ProjectID, installConfig.Config.BaseDomain)
@@ -420,7 +434,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case ibmcloud.Name:
@@ -523,7 +537,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case libvirt.Name:
@@ -555,7 +569,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case openstack.Name:
@@ -571,7 +585,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case baremetal.Name:
@@ -602,7 +616,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case ovirt.Name:
@@ -659,7 +673,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case powervs.Name:
@@ -704,7 +718,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 
@@ -736,7 +750,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	case alibabacloud.Name:
@@ -805,7 +819,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
 		}
 		t.FileList = append(t.FileList, &asset.File{
-			Filename: fmt.Sprintf(TfPlatformVarsFileName, platform),
+			Filename: TfPlatformVarsFileName,
 			Data:     data,
 		})
 	default:
@@ -831,11 +845,12 @@ func (t *TerraformVariables) Load(f asset.FileFetcher) (found bool, err error) {
 	}
 	t.FileList = []*asset.File{file}
 
-	fileList, err := f.FetchByPattern(fmt.Sprintf(TfPlatformVarsFileName, "*"))
-	if err != nil {
+	switch file, err := f.FetchByName(TfPlatformVarsFileName); {
+	case err == nil:
+		t.FileList = append(t.FileList, file)
+	case !os.IsNotExist(err):
 		return false, err
 	}
-	t.FileList = append(t.FileList, fileList...)
 
 	return true, nil
 }

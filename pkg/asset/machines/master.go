@@ -9,13 +9,11 @@ import (
 
 	"github.com/ghodss/yaml"
 	baremetalhost "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
-	baremetalapi "github.com/metal3-io/cluster-api-provider-baremetal/pkg/apis"
-	baremetalprovider "github.com/metal3-io/cluster-api-provider-baremetal/pkg/apis/baremetal/v1alpha1"
 	machineapi "github.com/openshift/api/machine/v1beta1"
 	alibabacloudapi "github.com/openshift/cluster-api-provider-alibaba/pkg/apis"
 	alibabacloudprovider "github.com/openshift/cluster-api-provider-alibaba/pkg/apis/alibabacloudprovider/v1beta1"
-	gcpapi "github.com/openshift/cluster-api-provider-gcp/pkg/apis"
-	gcpprovider "github.com/openshift/cluster-api-provider-gcp/pkg/apis/gcpprovider/v1beta1"
+	baremetalapi "github.com/openshift/cluster-api-provider-baremetal/pkg/apis"
+	baremetalprovider "github.com/openshift/cluster-api-provider-baremetal/pkg/apis/baremetal/v1alpha1"
 	ibmcloudapi "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis"
 	ibmcloudprovider "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis/ibmcloudprovider/v1beta1"
 	libvirtapi "github.com/openshift/cluster-api-provider-libvirt/pkg/apis"
@@ -161,6 +159,8 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 	mign := &machine.Master{}
 	dependencies.Get(clusterID, installConfig, rhcosImage, mign)
 
+	masterUserDataSecretName := "master-user-data"
+
 	ic := installConfig.Config
 
 	pool := *ic.ControlPlane
@@ -195,7 +195,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 		}
 
 		pool.Platform.AlibabaCloud = &mpool
-		machines, err = alibabacloud.Machines(clusterID.InfraID, ic, &pool, "master", "master-user-data", installConfig.Config.Platform.AlibabaCloud.Tags, vswitchMaps)
+		machines, err = alibabacloud.Machines(clusterID.InfraID, ic, &pool, "master", masterUserDataSecretName, installConfig.Config.Platform.AlibabaCloud.Tags, vswitchMaps)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -260,7 +260,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 			subnets,
 			&pool,
 			"master",
-			"master-user-data",
+			masterUserDataSecretName,
 			installConfig.Config.Platform.AWS.UserTags,
 		)
 		if err != nil {
@@ -279,7 +279,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 			mpool.Zones = azs
 		}
 		pool.Platform.GCP = &mpool
-		machines, err = gcp.Machines(clusterID.InfraID, ic, &pool, string(*rhcosImage), "master", "master-user-data")
+		machines, err = gcp.Machines(clusterID.InfraID, ic, &pool, string(*rhcosImage), "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -296,7 +296,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 			mpool.Zones = azs
 		}
 		pool.Platform.IBMCloud = &mpool
-		machines, err = ibmcloud.Machines(clusterID.InfraID, ic, &pool, "master", "master-user-data")
+		machines, err = ibmcloud.Machines(clusterID.InfraID, ic, &pool, "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -307,7 +307,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 		mpool.Set(ic.Platform.Libvirt.DefaultMachinePlatform)
 		mpool.Set(pool.Platform.Libvirt)
 		pool.Platform.Libvirt = &mpool
-		machines, err = libvirt.Machines(clusterID.InfraID, ic, &pool, "master", "master-user-data")
+		machines, err = libvirt.Machines(clusterID.InfraID, ic, &pool, "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -319,7 +319,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 
 		imageName, _ := rhcosutils.GenerateOpenStackImageName(string(*rhcosImage), clusterID.InfraID)
 
-		machines, err = openstack.Machines(clusterID.InfraID, ic, &pool, imageName, "master", "master-user-data")
+		machines, err = openstack.Machines(clusterID.InfraID, ic, &pool, imageName, "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -352,7 +352,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 
 		pool.Platform.Azure = &mpool
 
-		machines, err = azure.Machines(clusterID.InfraID, ic, &pool, string(*rhcosImage), "master", "master-user-data")
+		machines, err = azure.Machines(clusterID.InfraID, ic, &pool, string(*rhcosImage), "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -363,7 +363,10 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 		mpool.Set(pool.Platform.BareMetal)
 		pool.Platform.BareMetal = &mpool
 
-		machines, err = baremetal.Machines(clusterID.InfraID, ic, &pool, string(*rhcosImage), "master", "master-user-data")
+		// Use managed user data secret, since we always have up to date images
+		// available in the cluster
+		masterUserDataSecretName = "master-user-data-managed"
+		machines, err = baremetal.Machines(clusterID.InfraID, ic, &pool, "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -400,7 +403,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 
 		imageName, _ := rhcosutils.GenerateOpenStackImageName(string(*rhcosImage), clusterID.InfraID)
 
-		machines, err = ovirt.Machines(clusterID.InfraID, ic, &pool, imageName, "master", "master-user-data")
+		machines, err = ovirt.Machines(clusterID.InfraID, ic, &pool, imageName, "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects for ovirt provider")
 		}
@@ -414,7 +417,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 		pool.Platform.VSphere = &mpool
 		templateName := clusterID.InfraID + "-rhcos"
 
-		machines, err = vsphere.Machines(clusterID.InfraID, ic, &pool, templateName, "master", "master-user-data")
+		machines, err = vsphere.Machines(clusterID.InfraID, ic, &pool, templateName, "master", masterUserDataSecretName)
 		if err != nil {
 			return errors.Wrap(err, "failed to create master machine objects")
 		}
@@ -437,7 +440,7 @@ func (m *Master) Generate(dependencies asset.Parents) error {
 		return fmt.Errorf("invalid Platform")
 	}
 
-	data, err := userDataSecret("master-user-data", mign.File.Data)
+	data, err := userDataSecret(masterUserDataSecretName, mign.File.Data)
 	if err != nil {
 		return errors.Wrap(err, "failed to create user-data secret for master machines")
 	}
@@ -562,7 +565,6 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 	alibabacloudapi.AddToScheme(scheme)
 	awsapi.AddToScheme(scheme)
 	baremetalapi.AddToScheme(scheme)
-	gcpapi.AddToScheme(scheme)
 	ibmcloudapi.AddToScheme(scheme)
 	libvirtapi.AddToScheme(scheme)
 	openstackapi.AddToScheme(scheme)
@@ -571,13 +573,13 @@ func (m *Master) Machines() ([]machineapi.Machine, error) {
 	scheme.AddKnownTypes(machineapi.SchemeGroupVersion,
 		&machineapi.VSphereMachineProviderSpec{},
 		&machineapi.AzureMachineProviderSpec{},
+		&machineapi.GCPMachineProviderSpec{},
 	)
 	machineapi.AddToScheme(scheme)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
 		alibabacloudprovider.SchemeGroupVersion,
 		awsprovider.SchemeGroupVersion,
 		baremetalprovider.SchemeGroupVersion,
-		gcpprovider.SchemeGroupVersion,
 		ibmcloudprovider.SchemeGroupVersion,
 		libvirtprovider.SchemeGroupVersion,
 		openstackprovider.SchemeGroupVersion,
