@@ -168,9 +168,13 @@ func osImage(config *types.InstallConfig) (string, error) {
 			return config.Platform.PowerVS.ClusterOSImage, nil
 		}
 
-		if a, ok := streamArch.Artifacts["powervs"]; ok {
-			return rhcos.FindArtifactURL(a)
+		if streamArch.Images.PowerVS != nil {
+			vpcRegion := rhcos.PowerVSRegions[config.Platform.PowerVS.Region].VPCRegion
+			img := streamArch.Images.PowerVS.Regions[vpcRegion]
+			logrus.Debug("Power VS using image ", img.Object)
+			return img.Object, nil
 		}
+
 		return "", fmt.Errorf("%s: No Power VS build found", st.FormatPrefix(archName))
 	case none.Name:
 		return "", nil
