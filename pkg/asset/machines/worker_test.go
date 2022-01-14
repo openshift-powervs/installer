@@ -13,7 +13,6 @@ import (
 	"github.com/openshift/installer/pkg/asset/rhcos"
 	"github.com/openshift/installer/pkg/types"
 	awstypes "github.com/openshift/installer/pkg/types/aws"
-	powervstypes "github.com/openshift/installer/pkg/types/powervs"
 )
 
 func TestWorkerGenerate(t *testing.T) {
@@ -232,53 +231,5 @@ func TestComputeIsNotModified(t *testing.T) {
 
 	if installConfig.Config.Compute[0].Platform.AWS.Type != "" {
 		t.Fatalf("compute in the install config has been modified")
-	}
-}
-
-func TestPowerVSWorker(t *testing.T) {
-	t.Log("Testing Power VS platform worker")
-	parents := asset.Parents{}
-	parents.Add(
-		&installconfig.ClusterID{
-			UUID:    "test-uuid",
-			InfraID: "test-infra-id",
-		},
-		&installconfig.InstallConfig{
-			Config: &types.InstallConfig{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-cluster",
-				},
-				SSHKey:     "dummy ssh key",
-				BaseDomain: "test-domain",
-				Platform: types.Platform{
-					PowerVS: &powervstypes.Platform{},
-				},
-				Compute: []types.MachinePool{
-					{
-						Hyperthreading: types.HyperthreadingEnabled,
-						Replicas:       pointer.Int64Ptr(1),
-						Platform: types.MachinePoolPlatform{
-							PowerVS: &powervstypes.MachinePool{
-								ServiceInstance: "dummy-service-instance",
-								ImageID:         "dummy-image-name",
-								NetworkIDs:      []string{"dummy-network"},
-								KeyPairName:     "dummy-keypair",
-							},
-						},
-					},
-				},
-			},
-		},
-		(*rhcos.Image)(pointer.StringPtr("test-image")),
-		&machine.Worker{
-			File: &asset.File{
-				Filename: "master-ignition",
-				Data:     []byte("test-ignition"),
-			},
-		},
-	)
-	worker := &Worker{}
-	if err := worker.Generate(parents); err != nil {
-		t.Fatalf("failed to generate worker machines: %v", err)
 	}
 }
