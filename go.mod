@@ -381,7 +381,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.57.0
-	github.com/IBM-Cloud/terraform-provider-ibm => github.com/openshift/terraform-provider-ibm v1.26.2-openshift-2
+	github.com/IBM-Cloud/terraform-provider-ibm => github.com/yussufsh/terraform-provider-ibm v1.89.0
 	github.com/go-log/log => github.com/go-log/log v0.1.1-0.20181211034820-a514cf01a3eb // Pinned by MCO
 	github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.17.0
 	github.com/hashicorp/terraform => github.com/openshift/hashicorp-terraform v0.14.6-openshift-1 // Pin to fork with deduplicated rpc types v0.14.6-openshift-1
