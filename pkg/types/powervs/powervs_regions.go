@@ -1,4 +1,4 @@
-package rhcos
+package powervs
 
 // Since there is no API to query these, we have to hard-code them here.
 

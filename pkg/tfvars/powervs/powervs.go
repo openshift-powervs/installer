@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
-	"github.com/openshift/installer/pkg/rhcos"
+	"github.com/openshift/installer/pkg/types/powervs"
 )
 
 type config struct {
@@ -54,7 +54,7 @@ type TFVarsSources struct {
 func TFVars(sources TFVarsSources) ([]byte, error) {
 	masterConfig := sources.MasterConfigs[0]
 	// TODO(mjturek): Allow user to specify vpcRegion in install config like we're doing for vpcZone
-	vpcRegion := rhcos.PowerVSRegions[sources.Region].VPCRegion
+	vpcRegion := powervs.PowerVSRegions[sources.Region].VPCRegion
 
 	vpcZone := sources.VPCZone
 	if vpcZone == "" {

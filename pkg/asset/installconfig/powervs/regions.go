@@ -7,7 +7,7 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/core"
-	"github.com/openshift/installer/pkg/rhcos"
+	"github.com/openshift/installer/pkg/types/powervs"
 	"github.com/pkg/errors"
 )
 
@@ -15,7 +15,7 @@ func knownRegions() map[string]string {
 
 	regions := make(map[string]string)
 
-	for _, region := range rhcos.PowerVSRegions {
+	for _, region := range powervs.PowerVSRegions {
 		regions[region.Name] = region.Description
 	}
 	return regions
@@ -32,7 +32,7 @@ func IsKnownRegion(region string) bool {
 
 // Todo(cklokman): Need some form of error handing in this function...
 func knownZones(region string) []string {
-	return rhcos.PowerVSRegions[region].Zones
+	return powervs.PowerVSRegions[region].Zones
 }
 
 // IsKnownZone return true is a specified zone is Known to the installer.
