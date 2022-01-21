@@ -708,6 +708,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				APIKey:               session.Session.IAMToken,
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
+				ImageBucketFileName:  string(*rhcosImage),
 				NetworkName:          installConfig.Config.PowerVS.PVSNetworkName,
 				CISInstanceCRN:       crn,
 				VPCSubnetName:        installConfig.Config.PowerVS.Subnets[0],
