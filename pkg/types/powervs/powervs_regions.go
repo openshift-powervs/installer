@@ -1,19 +1,19 @@
-package rhcos
+package powervs
 
 // Since there is no API to query these, we have to hard-code them here.
 
-// PowerVSRegion describes resources associated with a region in Power VS.
+// Region describes resources associated with a region in Power VS.
 // We're using a few items from the IBM Cloud VPC offering. The region names
 // for VPC are different so another function of this is to correlate those.
-type PowerVSRegion struct {
+type Region struct {
 	Name        string
 	Description string
 	VPCRegion   string
 	Zones       []string
 }
 
-// PowerVSRegions holds the regions for IBM Power VS, and descriptions used during the survey
-var PowerVSRegions = map[string]PowerVSRegion{
+// Regions holds the regions for IBM Power VS, and descriptions used during the survey
+var Regions = map[string]Region{
 	"dal": {
 		Name:        "dal",
 		Description: "Dallas, USA",
@@ -76,10 +76,10 @@ var PowerVSRegions = map[string]PowerVSRegion{
 	},
 }
 
-// PowerVSZones retrieves a slice of all zones in Power VS
-func PowerVSZones() []string {
+// Zones retrieves a slice of all zones in Power VS
+func Zones() []string {
 	var zones []string
-	for _, r := range PowerVSRegions {
+	for _, r := range Regions {
 		zones = append(zones, r.Zones...)
 	}
 	return zones
