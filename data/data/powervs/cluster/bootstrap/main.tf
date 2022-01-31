@@ -7,12 +7,6 @@ data "ibm_pi_network" "network" {
   pi_cloud_instance_id = var.cloud_instance_id
 }
 
-data "ignition_config" "bootstrap" {
-  merge {
-    source = ibms3presign.bootstrap_ignition.presigned_url
-  }
-}
-
 data "ibm_resource_group" "cos_group" {
   name = var.resource_group
 }
@@ -56,28 +50,4 @@ resource "ibm_cos_bucket_object" "ignition" {
   bucket_location = ibm_cos_bucket.ignition.region_location
   content         = var.ignition
   key             = "bootstrap.ign"
-}
-
-# Create the bootstrap instance
-resource "ibm_pi_instance" "bootstrap" {
-  pi_memory            = var.memory
-  pi_processors        = var.processors
-  pi_instance_name     = "${var.cluster_id}-bootstrap"
-  pi_proc_type         = var.proc_type
-  pi_image_id          = var.image_id
-  pi_sys_type          = var.sys_type
-  pi_cloud_instance_id = var.cloud_instance_id
-  pi_network_ids       = [data.ibm_pi_network.network.id]
-
-  pi_user_data         = base64encode(data.ignition_config.bootstrap.rendered)
-  pi_key_pair_name     = var.key_id
-  pi_health_status     = "WARNING"
-}
-
-data "ibm_pi_instance_ip" "bootstrap_ip" {
-  depends_on = [ibm_pi_instance.bootstrap]
-
-  pi_instance_name     = ibm_pi_instance.bootstrap.pi_instance_name
-  pi_network_name      = data.ibm_pi_network.network.pi_network_name
-  pi_cloud_instance_id = var.cloud_instance_id
 }

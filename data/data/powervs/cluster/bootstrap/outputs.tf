@@ -1,3 +1,3 @@
-output "bootstrap_private_ip" {
-  value = data.ibm_pi_instance_ip.bootstrap_ip.ip
+output "bootstrap_ignition_url" {
+  value = ibms3presign.bootstrap_ignition.presigned_url
 }

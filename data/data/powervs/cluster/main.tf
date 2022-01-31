@@ -36,8 +36,6 @@ module "bootstrap" {
   ignition     = var.ignition_bootstrap
   sys_type     = var.powervs_sys_type
   proc_type    = var.powervs_proc_type
-  key_id       = ibm_pi_key.cluster_key.key_id
-  image_id     = ibm_pi_image.boot_image.image_id
   network_name = var.powervs_network_name
 }
 
@@ -92,7 +90,6 @@ module "loadbalancer" {
   cluster_id     = var.cluster_id
   vpc_name       = var.powervs_vpc_name
   vpc_subnet_id  = data.ibm_is_subnet.vpc_subnet.id
-  bootstrap_ip   = module.bootstrap.bootstrap_private_ip
   master_ips     = module.master.master_ips
   resource_group = var.powervs_resource_group
 }

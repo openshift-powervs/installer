@@ -4,8 +4,5 @@ terraform {
     ibm = {
       source = "openshift/local/ibm"
     }
-    random = {
-      source = "openshift/local/random"
-    }
   }
 }

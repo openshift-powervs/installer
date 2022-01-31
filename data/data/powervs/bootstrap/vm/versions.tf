@@ -4,8 +4,11 @@ terraform {
     ibm = {
       source = "openshift/local/ibm"
     }
-    random = {
-      source = "openshift/local/random"
+    ibms3presign = {
+      source = "openshift/local/ibms3presign"
+    }
+    ignition = {
+      source = "openshift/local/ignition"
     }
   }
 }
