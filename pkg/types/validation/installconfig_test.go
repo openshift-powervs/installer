@@ -89,7 +89,7 @@ func validIBMCloudPlatform() *ibmcloud.Platform {
 
 func validPowerVSPlatform() *powervs.Platform {
 	return &powervs.Platform{
-		Region: "us-south",
+		Region: "dal",
 	}
 }
 
