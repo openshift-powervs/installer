@@ -38,6 +38,7 @@ type ClusterUninstaller struct {
 	Region        string
 	InfraID       string
 	ClusterDomain string
+	PrivateZoneID string
 	Tags          []map[string]string
 	TagResources  struct {
 		ecsInstances   []ResourceArn
@@ -145,6 +146,7 @@ func New(logger logrus.FieldLogger, metadata *types.ClusterMetadata) (providers.
 		Region:          region,
 		InfraID:         metadata.InfraID,
 		ClusterDomain:   metadata.AlibabaCloud.ClusterDomain,
+		PrivateZoneID:   metadata.AlibabaCloud.PrivateZoneID,
 		Tags: []map[string]string{
 			{
 				fmt.Sprintf("kubernetes.io/cluster/%s", metadata.InfraID): "owned",
@@ -863,9 +865,6 @@ func (o *ClusterUninstaller) deleteSecurityGroups(logger logrus.FieldLogger) (er
 				if err == nil {
 					return true, nil
 				}
-				if strings.Contains(err.Error(), "DependencyViolation") {
-					return false, nil
-				}
 				return false, err
 			},
 		)
@@ -877,7 +876,7 @@ func (o *ClusterUninstaller) deleteSecurityGroups(logger logrus.FieldLogger) (er
 
 	err = wait.Poll(
 		1*time.Second,
-		1*time.Minute,
+		3*time.Minute,
 		func() (bool, error) {
 			response, err := o.listSecurityGroup(securityGroupIDs)
 			if err != nil {
@@ -906,6 +905,9 @@ func (o *ClusterUninstaller) deleteSecurityGroupRules(securityGroupID string, lo
 	logger.WithField("securityGroupID", securityGroupID).Debug("Revoking")
 	response, err := o.getSecurityGroup(securityGroupID)
 	if err != nil {
+		if strings.Contains(err.Error(), "InvalidSecurityGroupId.NotFound") {
+			return nil
+		}
 		return err
 	}
 	for _, permission := range response.Permissions.Permission {
@@ -1205,6 +1207,10 @@ func (o *ClusterUninstaller) detachPolicy(policyName string, policyType string, 
 }
 
 func (o *ClusterUninstaller) deletePrivateZones(logger logrus.FieldLogger) (err error) {
+	if o.PrivateZoneID != "" {
+		return nil
+	}
+
 	clusterDomain := o.ClusterDomain
 	logger.WithField("clusterDomain", clusterDomain).Debug("Searching private zone")
 	zoneID, err := o.getPrivateZoneID()

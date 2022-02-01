@@ -9,8 +9,7 @@ locals {
     },
     var.ali_extra_tags,
   )
-  system_disk_size     = 120
-  system_disk_category = "cloud_essd"
+  is_external = var.ali_publish_strategy == "External" ? true : false
 }
 
 provider "alicloud" {
@@ -139,13 +138,13 @@ resource "alicloud_instance" "bootstrap" {
   image_id                   = var.ali_image_id
   vswitch_id                 = var.vswitch_ids[0]
   security_groups            = [alicloud_security_group.sg_bootstrap.id, var.sg_master_id]
-  internet_max_bandwidth_out = 5
+  internet_max_bandwidth_out = local.is_external ? 5 : 0
   role_name                  = alicloud_ram_role.role.name
 
   system_disk_name        = "${local.prefix}_sys_disk-bootstrap"
   system_disk_description = local.description
-  system_disk_category    = local.system_disk_category
-  system_disk_size        = local.system_disk_size
+  system_disk_category    = var.ali_system_disk_category
+  system_disk_size        = var.ali_system_disk_size
 
   user_data = var.ali_bootstrap_stub_ignition
   tags = merge(

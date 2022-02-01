@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	machineapi "github.com/openshift/api/machine/v1beta1"
-	alibabacloudapi "github.com/openshift/cluster-api-provider-alibaba/pkg/apis"
-	alibabacloudprovider "github.com/openshift/cluster-api-provider-alibaba/pkg/apis/alibabacloudprovider/v1beta1"
+	machinev1 "github.com/openshift/api/machine/v1"
+	machinev1beta1 "github.com/openshift/api/machine/v1beta1"
 	baremetalapi "github.com/openshift/cluster-api-provider-baremetal/pkg/apis"
 	baremetalprovider "github.com/openshift/cluster-api-provider-baremetal/pkg/apis/baremetal/v1alpha1"
 	ibmcloudapi "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis"
@@ -123,7 +122,7 @@ func defaultGCPMachinePoolPlatform() gcptypes.MachinePool {
 
 func defaultIBMCloudMachinePoolPlatform() ibmcloudtypes.MachinePool {
 	return ibmcloudtypes.MachinePool{
-		InstanceType: "bx2d-4x16",
+		InstanceType: "bx2-4x16",
 	}
 }
 
@@ -587,9 +586,8 @@ func (w *Worker) Load(f asset.FileFetcher) (found bool, err error) {
 }
 
 // MachineSets returns MachineSet manifest structures.
-func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
+func (w *Worker) MachineSets() ([]machinev1beta1.MachineSet, error) {
 	scheme := runtime.NewScheme()
-	alibabacloudapi.AddToScheme(scheme)
 	awsapi.AddToScheme(scheme)
 	baremetalapi.AddToScheme(scheme)
 	ibmcloudapi.AddToScheme(scheme)
@@ -597,14 +595,16 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 	openstackapi.AddToScheme(scheme)
 	ovirtproviderapi.AddToScheme(scheme)
 	powervsapi.AddToScheme(scheme)
-	scheme.AddKnownTypes(machineapi.SchemeGroupVersion,
-		&machineapi.VSphereMachineProviderSpec{},
-		&machineapi.AzureMachineProviderSpec{},
-		&machineapi.GCPMachineProviderSpec{},
+	scheme.AddKnownTypes(machinev1beta1.SchemeGroupVersion,
+		&machinev1beta1.VSphereMachineProviderSpec{},
+		&machinev1beta1.AzureMachineProviderSpec{},
+		&machinev1beta1.GCPMachineProviderSpec{},
 	)
-	machineapi.AddToScheme(scheme)
+	scheme.AddKnownTypes(machinev1.GroupVersion,
+		&machinev1.AlibabaCloudMachineProviderConfig{},
+	)
+	machinev1beta1.AddToScheme(scheme)
 	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(
-		alibabacloudprovider.SchemeGroupVersion,
 		awsprovider.SchemeGroupVersion,
 		baremetalprovider.SchemeGroupVersion,
 		ibmcloudprovider.SchemeGroupVersion,
@@ -612,12 +612,13 @@ func (w *Worker) MachineSets() ([]machineapi.MachineSet, error) {
 		openstackprovider.SchemeGroupVersion,
 		ovirtprovider.SchemeGroupVersion,
 		powervsprovider.GroupVersion,
-		machineapi.SchemeGroupVersion,
+		machinev1beta1.SchemeGroupVersion,
+		machinev1.GroupVersion,
 	)
 
-	machineSets := []machineapi.MachineSet{}
+	machineSets := []machinev1beta1.MachineSet{}
 	for i, file := range w.MachineSetFiles {
-		machineSet := &machineapi.MachineSet{}
+		machineSet := &machinev1beta1.MachineSet{}
 		err := yaml.Unmarshal(file.Data, &machineSet)
 		if err != nil {
 			return machineSets, errors.Wrapf(err, "unmarshal worker %d", i)
