@@ -211,11 +211,13 @@ func (ci *CloudInfo) collectInfo(ic *types.InstallConfig, opts *clientconfig.Cli
 	if err != nil {
 		if isUnauthorized(err) {
 			logrus.Warnf("Missing permissions to fetch Quotas and therefore will skip checking them: %v", err)
-		} else if isNotFoundError(err) {
-			logrus.Warnf("Quota API is not available and therefore will skip checking them: %v", err)
-		} else {
-			return errors.Wrap(err, "failed to load Quota")
+			return nil
 		}
+		if isNotFoundError(err) {
+			logrus.Warnf("Quota API is not available and therefore will skip checking them: %v", err)
+			return nil
+		}
+		return errors.Wrap(err, "failed to load Quota")
 	}
 
 	ci.NetworkExtensions, err = networkextensions.Get(ci.clients.networkClient)

@@ -14,9 +14,12 @@ func knownRegions(architecture types.Architecture) map[string]string {
 	required := rhcos.AMIRegions(architecture)
 
 	regions := make(map[string]string)
-	for _, region := range endpoints.AwsPartition().Regions() {
-		if required.Has(region.ID()) {
-			regions[region.ID()] = region.Description()
+	for _, partition := range endpoints.DefaultPartitions() {
+		for _, partitionRegion := range partition.Regions() {
+			partitionRegion := partitionRegion
+			if required.Has(partitionRegion.ID()) {
+				regions[partitionRegion.ID()] = partitionRegion.Description()
+			}
 		}
 	}
 	return regions
