@@ -22,7 +22,6 @@ type config struct {
 	PowerVSResourceGroup string `json:"powervs_resource_group"`
 	CISInstanceCRN       string `json:"powervs_cis_crn"`
 	ImageBucketFileName  string `json:"powervs_image_bucket_file_name"`
-	ImageID              string `json:"powervs_image_id"`
 	NetworkName          string `json:"powervs_network_name"`
 	VPCName              string `json:"powervs_vpc_name"`
 	VPCSubnetName        string `json:"powervs_vpc_subnet_name"`
