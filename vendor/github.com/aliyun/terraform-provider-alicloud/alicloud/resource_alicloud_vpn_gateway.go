@@ -2,12 +2,9 @@ package alicloud
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/denverdino/aliyungo/common"
 
@@ -16,6 +13,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -267,10 +265,6 @@ func resourceAliyunVpnGatewayUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAliyunVpnGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	if d.Get("instance_charge_type").(string) == "PrePaid" {
-		log.Printf("[WARN] Cannot destroy resource Alicloud Resource VPN Gateway. Terraform will remove this resource from the state file, however resources may remain.")
-		return nil
-	}
 	client := meta.(*connectivity.AliyunClient)
 	vpnGatewayService := VpnGatewayService{client}
 

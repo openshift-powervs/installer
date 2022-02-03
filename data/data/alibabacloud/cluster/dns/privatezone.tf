@@ -3,7 +3,6 @@ locals {
   prefix          = var.cluster_id
   cluster_name    = split(".", var.cluster_domain)[0]
   private_zone_id = var.private_zone_id == "" ? alicloud_pvtz_zone.pvtz.0.id : var.private_zone_id
-  is_external     = var.publish_strategy == "External" ? true : false
 }
 
 // Using this data source can open Private Zone service automatically.
@@ -11,7 +10,13 @@ data "alicloud_pvtz_service" "open" {
   enable = "On"
 }
 
+data "alicloud_alidns_domains" "dns_public" {
+  domain_name_regex = "^${var.base_domain}$"
+}
+
 resource "alicloud_alidns_record" "dns_public_record" {
+  count = length(data.alicloud_alidns_domains.dns_public.domains) == 0 ? 0 : 1
+
   domain_name = var.base_domain
   rr          = "api.${local.cluster_name}"
   type        = "A"

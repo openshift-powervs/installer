@@ -67,12 +67,6 @@ func resourceAlicloudCddcDedicatedHostGroup() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"open_permission": {
-				Type:     schema.TypeBool,
-				Computed: true,
-				Optional: true,
-				ForceNew: true,
-			},
 		},
 	}
 }
@@ -95,9 +89,7 @@ func resourceAlicloudCddcDedicatedHostGroupCreate(d *schema.ResourceData, meta i
 	if v, ok := d.GetOk("dedicated_host_group_desc"); ok {
 		request["DedicatedHostGroupDesc"] = v
 	}
-	if v, ok := d.GetOk("open_permission"); ok {
-		request["OpenPermission"] = convertCddcDedicatedHostGroupOpenPermissionRequest(v.(bool))
-	}
+
 	request["Engine"] = d.Get("engine")
 	if v, ok := d.GetOk("disk_allocation_ratio"); ok {
 		if d.Get("engine").(string) == "SQLServer" && v.(int) > 100 {
@@ -164,7 +156,6 @@ func resourceAlicloudCddcDedicatedHostGroupRead(d *schema.ResourceData, meta int
 		d.Set("mem_allocation_ratio", formatInt(v))
 	}
 	d.Set("vpc_id", object["VPCId"])
-	d.Set("open_permission", convertCddcDedicatedHostGroupOpenPermissionResponse(formatInt(object["OpenPermission"])))
 	return nil
 }
 func resourceAlicloudCddcDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -282,24 +273,4 @@ func switchEngine(engine string) string {
 		engine = "MongoDB"
 	}
 	return engine
-}
-
-func convertCddcDedicatedHostGroupOpenPermissionRequest(source interface{}) interface{} {
-	switch source {
-	case true:
-		return 3
-	case false:
-		return 0
-	}
-	return 3
-}
-
-func convertCddcDedicatedHostGroupOpenPermissionResponse(source interface{}) interface{} {
-	switch source {
-	case 0:
-		return false
-	case 3:
-		return true
-	}
-	return false
 }

@@ -77,10 +77,7 @@ func dataSourceAlicloudRegionsRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("no matching regions found")
 	}
 	name, nameOk := d.GetOk("name")
-	current := false
-	if v, exist := d.GetOk("current"); exist {
-		current = v.(bool)
-	}
+	current := d.Get("current").(bool)
 	var filterRegions []ecs.Region
 	for _, region := range resp.Regions.Region {
 		if current {

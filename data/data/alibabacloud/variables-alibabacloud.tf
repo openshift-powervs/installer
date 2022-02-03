@@ -19,11 +19,6 @@ variable "ali_vswitch_ids" {
   type = list(string)
 }
 
-variable "ali_publish_strategy" {
-  type        = string
-  description = "The cluster publishing strategy, either Internal or External"
-}
-
 variable "ali_private_zone_id" {
   type = string
 }

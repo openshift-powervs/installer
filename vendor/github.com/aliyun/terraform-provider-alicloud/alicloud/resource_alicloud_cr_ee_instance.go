@@ -158,8 +158,7 @@ func resourceAlicloudCrEEInstanceCreate(d *schema.ResourceData, meta interface{}
 			// if account site is international, should route to  ap-southeast-1
 			if serverErr, ok := errCreate.(*errors.ServerError); ok && serverErr.ErrorCode() == "NotApplicable" {
 				request.RegionId = "ap-southeast-1"
-				request.Domain = "business.ap-southeast-1.aliyuncs.com"
-				request.ProductType = "acr_ee_public_intl"
+				request.Domain = ""
 				resp, errCreate = bssopenapiClient.CreateInstance(request)
 			}
 		}
@@ -219,8 +218,7 @@ func resourceAlicloudCrEEInstanceRead(d *schema.ResourceData, meta interface{}) 
 		if regionRedirect {
 			// if account site is international, should route to  ap-southeast-1
 			request.RegionId = "ap-southeast-1"
-			request.Domain = "business.ap-southeast-1.aliyuncs.com"
-			request.ProductType = "acr_ee_public_intl"
+			request.Domain = ""
 			resp, errQuery = bssopenapiClient.QueryAvailableInstances(request)
 		}
 		return resp, errQuery

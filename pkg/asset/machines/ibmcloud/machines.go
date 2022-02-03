@@ -74,7 +74,12 @@ func provider(clusterID string,
 ) (*ibmcloudprovider.IBMCloudMachineProviderSpec, error) {
 	az := mpool.Zones[azIdx]
 
-	var vpc = fmt.Sprintf("%s-vpc", clusterID)
+	var vpc string
+	if platform.VPC != "" {
+		vpc = platform.VPC
+	} else {
+		vpc = fmt.Sprintf("%s-vpc", clusterID)
+	}
 
 	var resourceGroup string
 	if platform.ResourceGroupName != "" {

@@ -32,7 +32,6 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"application_name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
 			},
 			"cluster_id": {
@@ -81,23 +80,19 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 			"internet_slb_id": {
 				Optional: true,
 				Type:     schema.TypeString,
-				ForceNew: true,
 			},
 			"internet_slb_protocol": {
 				Optional:     true,
 				Type:         schema.TypeString,
-				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"TCP", "HTTP", "HTTPS"}, false),
 			},
 			"internet_slb_port": {
 				Type:     schema.TypeInt,
-				ForceNew: true,
 				Optional: true,
 			},
 			"internet_target_port": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ForceNew: true,
 			},
 			"envs": {
 				Type: schema.TypeMap,
@@ -166,7 +161,7 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 			"package_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  strconv.FormatInt(time.Now().Unix(), 10),
 			},
 			"jdk": {
 				Type:     schema.TypeString,
@@ -218,8 +213,6 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 		}
 		if v, ok := d.GetOk("package_version"); ok {
 			request.PackageVersion = v.(string)
-		} else {
-			request.PackageVersion = strconv.FormatInt(time.Now().Unix(), 10)
 		}
 		if v, ok := d.GetOk("jdk"); !ok {
 			return WrapError(Error("jdk is needed for creating non-image k8s application"))
@@ -473,12 +466,7 @@ func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta inter
 		if len(request.PackageUrl) == 0 {
 			return WrapError(Error("package_url is needed for creating fatjar k8s application"))
 		}
-
-		if v, ok := d.GetOk("package_version"); ok {
-			request.PackageVersion = v.(string)
-		} else {
-			request.PackageVersion = strconv.FormatInt(time.Now().Unix(), 10)
-		}
+		request.PackageVersion = d.Get("package_version").(string)
 
 		if d.HasChange("jdk") {
 			partialKeys = append(partialKeys, "jdk")

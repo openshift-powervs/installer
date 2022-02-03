@@ -71,7 +71,7 @@ func (client *Client) GetQosAttributeWithCallback(request *GetQosAttributeReques
 // GetQosAttributeRequest is the request struct for api GetQosAttribute
 type GetQosAttributeRequest struct {
 	*requests.RpcRequest
-	QosId string `position:"Query" name:"QosId"`
+	QosId string `position:"Query"`
 }
 
 // GetQosAttributeResponse is the response struct for api GetQosAttribute

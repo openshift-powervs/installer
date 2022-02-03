@@ -23,38 +23,12 @@ func resourceAlicloudHbrEcsBackupPlan() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"ecs_backup_plan_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"instance_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"vault_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"backup_type": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"COMPLETE"}, false),
-			},
-			"retention": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"schedule": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"path": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"disabled": {
 				Type:     schema.TypeBool,
@@ -65,6 +39,10 @@ func resourceAlicloudHbrEcsBackupPlan() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"ecs_backup_plan_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"exclude": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -73,18 +51,40 @@ func resourceAlicloudHbrEcsBackupPlan() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"instance_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 			"options": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"path": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"retention": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"schedule": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"speed_limit": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"update_paths": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "Attribute update_paths has been deprecated in v1.139.0+ and you do not need to set it anymore.",
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"vault_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -227,10 +227,13 @@ func resourceAlicloudHbrEcsBackupPlanUpdate(d *schema.ResourceData, meta interfa
 	}
 	if d.HasChange("path") {
 		update = true
-		request["UpdatePaths"] = true
 		if v, ok := d.GetOk("path"); ok {
 			request["Path"] = v
+			request["UpdatePaths"] = true
 		}
+	}
+	if v, ok := d.GetOkExists("update_paths"); ok {
+		request["UpdatePaths"] = v
 	}
 	if !d.IsNewResource() && d.HasChange("retention") {
 		update = true

@@ -139,34 +139,6 @@ func dataSourceAlicloudEssScalingConfigurations() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"instance_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"host_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"spot_strategy": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"spot_price_limit": {
-							Type: schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"instance_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"price_limit": {
-										Type:     schema.TypeFloat,
-										Optional: true,
-									},
-								},
-							},
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -273,10 +245,6 @@ func scalingConfigurationsDescriptionAttribute(d *schema.ResourceData, scalingCo
 			"data_disks":                    essService.flattenDataDiskMappings(scalingConfiguration.DataDisks.DataDisk),
 			"lifecycle_state":               scalingConfiguration.LifecycleState,
 			"creation_time":                 scalingConfiguration.CreationTime,
-			"instance_name":                 scalingConfiguration.InstanceName,
-			"host_name":                     scalingConfiguration.HostName,
-			"spot_strategy":                 scalingConfiguration.SpotStrategy,
-			"spot_price_limit":              essService.flattenSpotPriceLimitMappings(scalingConfiguration.SpotPriceLimit.SpotPriceModel),
 		}
 		ids = append(ids, scalingConfiguration.ScalingConfigurationId)
 		names = append(names, scalingConfiguration.ScalingConfigurationName)

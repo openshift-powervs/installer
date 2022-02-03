@@ -15,6 +15,7 @@ aliases:
     - kirankt
     - patrickdillon
     - rna-afk
+    - squidboylan
   libvirt-approvers:
     - praveenkumar
     - cfergeau

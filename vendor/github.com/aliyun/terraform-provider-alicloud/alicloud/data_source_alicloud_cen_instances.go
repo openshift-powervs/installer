@@ -85,10 +85,6 @@ func dataSourceAlicloudCenInstances() *schema.Resource {
 							Type:     schema.TypeMap,
 							Computed: true,
 						},
-						"create_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -183,7 +179,6 @@ func dataSourceAlicloudCenInstancesRead(d *schema.ResourceData, meta interface{}
 			"description":               object.Description,
 			"protection_level":          object.ProtectionLevel,
 			"status":                    object.Status,
-			"create_time":               object.CreationTime,
 		}
 		ids = append(ids, object.CenId)
 		tags := make(map[string]string)

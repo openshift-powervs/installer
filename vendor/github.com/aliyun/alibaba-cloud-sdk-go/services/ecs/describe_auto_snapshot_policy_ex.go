@@ -74,7 +74,6 @@ type DescribeAutoSnapshotPolicyExRequest struct {
 	ResourceOwnerId      requests.Integer                   `position:"Query" name:"ResourceOwnerId"`
 	AutoSnapshotPolicyId string                             `position:"Query" name:"AutoSnapshotPolicyId"`
 	PageNumber           requests.Integer                   `position:"Query" name:"PageNumber"`
-	ResourceGroupId      string                             `position:"Query" name:"ResourceGroupId"`
 	PageSize             requests.Integer                   `position:"Query" name:"PageSize"`
 	Tag                  *[]DescribeAutoSnapshotPolicyExTag `position:"Query" name:"Tag"  type:"Repeated"`
 	ResourceOwnerAccount string                             `position:"Query" name:"ResourceOwnerAccount"`
@@ -91,10 +90,10 @@ type DescribeAutoSnapshotPolicyExTag struct {
 // DescribeAutoSnapshotPolicyExResponse is the response struct for api DescribeAutoSnapshotPolicyEx
 type DescribeAutoSnapshotPolicyExResponse struct {
 	*responses.BaseResponse
-	PageSize             int                  `json:"PageSize" xml:"PageSize"`
 	RequestId            string               `json:"RequestId" xml:"RequestId"`
-	PageNumber           int                  `json:"PageNumber" xml:"PageNumber"`
 	TotalCount           int                  `json:"TotalCount" xml:"TotalCount"`
+	PageNumber           int                  `json:"PageNumber" xml:"PageNumber"`
+	PageSize             int                  `json:"PageSize" xml:"PageSize"`
 	AutoSnapshotPolicies AutoSnapshotPolicies `json:"AutoSnapshotPolicies" xml:"AutoSnapshotPolicies"`
 }
 

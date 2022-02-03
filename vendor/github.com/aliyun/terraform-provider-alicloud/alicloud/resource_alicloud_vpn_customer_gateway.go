@@ -66,7 +66,7 @@ func resourceAliyunVpnCustomerGatewayCreate(d *schema.ResourceData, meta interfa
 			return vpcClient.CreateCustomerGateway(&args)
 		})
 		if err != nil {
-			if IsExpectedErrors(err, []string{Throttling, "OperationConflict"}) {
+			if IsExpectedErrors(err, []string{Throttling}) {
 				wait()
 				return resource.RetryableError(err)
 			}

@@ -61,6 +61,9 @@ func (s *PolarDBService) DescribePolarDBClusterAttribute(id string) (instance *p
 
 	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	response, _ := raw.(*polardb.DescribeDBClusterAttributeResponse)
+	if len(response.DBClusterId) < 1 {
+		return nil, WrapErrorf(Error(GetNotFoundMessage("Cluster", id)), NotFoundMsg, ProviderERROR)
+	}
 
 	return response, nil
 }
@@ -425,6 +428,7 @@ func (s *PolarDBService) WaitForPolarDBEndpoints(d *schema.ResourceData, status 
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
+	return "", nil
 }
 
 func (s *PolarDBService) DescribePolarDBConnection(id string) (*polardb.Address, error) {
@@ -989,7 +993,7 @@ func (s *PolarDBService) WaitForCluster(id string, status Status, timeout int) e
 	return nil
 }
 
-func (s *PolarDBService) DescribeDBSecurityIps(clusterId string, dbClusterIPArrayName string) (ips []string, err error) {
+func (s *PolarDBService) DescribeDBSecurityIps(clusterId string) (ips []string, err error) {
 
 	request := polardb.CreateDescribeDBClusterAccessWhitelistRequest()
 	request.RegionId = s.client.RegionId
@@ -1008,7 +1012,7 @@ func (s *PolarDBService) DescribeDBSecurityIps(clusterId string, dbClusterIPArra
 	var ipstr, separator string
 	ipsMap := make(map[string]string)
 	for _, ip := range resp.Items.DBClusterIPArray {
-		if ip.DBClusterIPArrayName == dbClusterIPArrayName {
+		if ip.DBClusterIPArrayAttribute != "hidden" {
 			ipstr += separator + ip.SecurityIps
 			separator = COMMA_SEPARATED
 		}
@@ -1338,7 +1342,7 @@ func (s *PolarDBService) ModifyDBAccessWhitelistSecurityIps(d *schema.ResourceDa
 	return nil
 }
 
-func (s *PolarDBService) DBClusterIPArrays(d *schema.ResourceData, attribute string, dbClusterIPArrayName string) error {
+func (s *PolarDBService) DBClusterIPArrays(d *schema.ResourceData, attribute string) error {
 	request := polardb.CreateDescribeDBClusterAccessWhitelistRequest()
 	request.RegionId = s.client.RegionId
 	request.DBClusterId = d.Id()
@@ -1355,7 +1359,7 @@ func (s *PolarDBService) DBClusterIPArrays(d *schema.ResourceData, attribute str
 	dbClusterIPArray := response.Items.DBClusterIPArray
 	var dbClusterIPArrays = make([]map[string]interface{}, 0, len(dbClusterIPArray))
 	for _, i := range dbClusterIPArray {
-		if i.DBClusterIPArrayName == dbClusterIPArrayName {
+		if i.DBClusterIPArrayAttribute != "hidden" && i.DBClusterIPArrayName != "default" {
 			l := map[string]interface{}{
 				"db_cluster_ip_array_name": i.DBClusterIPArrayName,
 				"security_ips":             convertPolarDBIpsSetToString(i.SecurityIps),

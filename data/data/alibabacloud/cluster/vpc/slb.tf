@@ -1,7 +1,5 @@
 
 resource "alicloud_slb_load_balancer" "slb_external" {
-  count = local.is_external ? 1 : 0
-
   resource_group_id  = var.resource_group_id
   load_balancer_name = "${local.prefix}-slb-external"
   address_type       = "internet"
@@ -16,9 +14,7 @@ resource "alicloud_slb_load_balancer" "slb_external" {
 }
 
 resource "alicloud_slb_listener" "listener_external_6443" {
-  count = local.is_external ? 1 : 0
-
-  load_balancer_id          = alicloud_slb_load_balancer.slb_external[0].id
+  load_balancer_id          = alicloud_slb_load_balancer.slb_external.id
   backend_port              = 6443
   frontend_port             = 6443
   protocol                  = "tcp"

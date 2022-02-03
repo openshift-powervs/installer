@@ -18,12 +18,12 @@ package ecs
 // ImagePipelineExecutionSet is a nested struct in ecs response
 type ImagePipelineExecutionSet struct {
 	CreationTime    string                                `json:"CreationTime" xml:"CreationTime"`
-	ImagePipelineId string                                `json:"ImagePipelineId" xml:"ImagePipelineId"`
-	Status          string                                `json:"Status" xml:"Status"`
 	ModifiedTime    string                                `json:"ModifiedTime" xml:"ModifiedTime"`
-	ResourceGroupId string                                `json:"ResourceGroupId" xml:"ResourceGroupId"`
-	Message         string                                `json:"Message" xml:"Message"`
 	ImageId         string                                `json:"ImageId" xml:"ImageId"`
+	ImagePipelineId string                                `json:"ImagePipelineId" xml:"ImagePipelineId"`
 	ExecutionId     string                                `json:"ExecutionId" xml:"ExecutionId"`
+	Status          string                                `json:"Status" xml:"Status"`
+	Message         string                                `json:"Message" xml:"Message"`
+	ResourceGroupId string                                `json:"ResourceGroupId" xml:"ResourceGroupId"`
 	Tags            TagsInDescribeImagePipelineExecutions `json:"Tags" xml:"Tags"`
 }

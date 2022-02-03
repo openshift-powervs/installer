@@ -52,14 +52,6 @@ func dataSourceAlicloudImages() *schema.Resource {
 				Default:      "Available",
 				ValidateFunc: validation.StringInSlice([]string{"Available", "Creating", "Waiting", "UnAvailable", "CreateFailed", "Deprecated"}, false),
 			},
-			"image_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"image_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"is_support_io_optimized": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -248,7 +240,7 @@ func dataSourceAlicloudImagesRead(d *schema.ResourceData, meta interface{}) erro
 
 	request := ecs.CreateDescribeImagesRequest()
 	request.PageNumber = requests.NewInteger(1)
-	request.PageSize = requests.NewInteger(PageSizeXLarge)
+	request.PageSize = requests.NewInteger(PageSizeLarge)
 
 	if ownersOk {
 		request.ImageOwnerAlias = owners.(string)
@@ -256,14 +248,6 @@ func dataSourceAlicloudImagesRead(d *schema.ResourceData, meta interface{}) erro
 
 	if status, ok := d.GetOk("status"); ok && status.(string) != "" {
 		request.Status = status.(string)
-	}
-
-	if v, ok := d.GetOk("image_id"); ok && v.(string) != "" {
-		request.ImageId = v.(string)
-	}
-
-	if v, ok := d.GetOk("image_name"); ok && v.(string) != "" {
-		request.ImageName = v.(string)
 	}
 
 	if v, ok := d.GetOk("snapshot_id"); ok && v.(string) != "" {

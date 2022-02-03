@@ -98,12 +98,6 @@ func resourceAlicloudDBInstance() *schema.Resource {
 				Computed: true,
 			},
 
-			"db_time_zone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"vswitch_id": {
 				Type:     schema.TypeString,
 				ForceNew: true,
@@ -287,7 +281,6 @@ func resourceAlicloudDBInstance() *schema.Resource {
 			"zone_id_slave_a": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 			},
 			"zone_id_slave_b": {
@@ -390,15 +383,6 @@ func resourceAlicloudDBInstance() *schema.Resource {
 					}
 					return true
 				},
-			},
-			"released_keep_policy": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"None", "Lastest", "All"}, false),
-			},
-			"fresh_white_list_readins": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 		},
 	}
@@ -911,9 +895,6 @@ func resourceAlicloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) 
 		if v, ok := d.GetOk("modify_mode"); ok && v.(string) != "" {
 			request["ModifyMode"] = v
 		}
-		if v, ok := d.GetOk("fresh_white_list_readins"); ok && v.(string) != "" {
-			request["FreshWhiteListReadins"] = v
-		}
 		var response map[string]interface{}
 		wait := incrementalWait(3*time.Second, 3*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -932,7 +913,7 @@ func resourceAlicloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 		addDebug(action, response, request)
-		stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
+		stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 3*time.Minute, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -1182,12 +1163,7 @@ func resourceAlicloudDBInstanceRead(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	dbInstanceIpArrayName := "default"
-	if v, ok := d.GetOk("db_instance_ip_array_name"); ok {
-		dbInstanceIpArrayName = v.(string)
-	}
-
-	ips, err := rdsService.GetSecurityIps(d.Id(), dbInstanceIpArrayName)
+	ips, err := rdsService.GetSecurityIps(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
@@ -1279,9 +1255,7 @@ func resourceAlicloudDBInstanceRead(d *schema.ResourceData, meta interface{}) er
 	if err = rdsService.RefreshParameters(d, "parameters"); err != nil {
 		return WrapError(err)
 	}
-	if err = rdsService.SetTimeZone(d); err != nil {
-		return WrapError(err)
-	}
+
 	if instance["PayType"] == string(Prepaid) {
 		action := "DescribeInstanceAutoRenewalAttribute"
 		request := map[string]interface{}{
@@ -1317,10 +1291,8 @@ func resourceAlicloudDBInstanceRead(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return WrapError(err)
 	}
-	if len(groups) > 0 {
-		d.Set("security_group_id", strings.Join(groups, COMMA_SEPARATED))
-		d.Set("security_group_ids", groups)
-	}
+	d.Set("security_group_id", strings.Join(groups, COMMA_SEPARATED))
+	d.Set("security_group_ids", groups)
 
 	sslAction, err := rdsService.DescribeDBInstanceSSL(d.Id())
 	if err != nil && !IsExpectedErrors(err, []string{"InvaildEngineInRegion.ValueNotSupported", "InstanceEngineType.NotSupport", "OperationDenied.DBInstanceType"}) {
@@ -1371,9 +1343,6 @@ func resourceAlicloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) 
 		"RegionId":     client.RegionId,
 		"DBInstanceId": d.Id(),
 		"SourceIp":     client.SourceIp,
-	}
-	if v, ok := d.GetOk("released_keep_policy"); ok && v.(string) != "" {
-		request["ReleasedKeepPolicy"] = v
 	}
 	conn, err := client.NewRdsClient()
 	if err != nil {
@@ -1500,10 +1469,6 @@ func buildDBCreateRequest(d *schema.ResourceData, meta interface{}) (map[string]
 
 	if v, ok := d.GetOk("zone_id_slave_b"); ok {
 		request["ZoneIdSlave2"] = v
-	}
-
-	if v, ok := d.GetOk("db_time_zone"); ok {
-		request["DBTimeZone"] = v
 	}
 
 	uuid, err := uuid.GenerateUUID()

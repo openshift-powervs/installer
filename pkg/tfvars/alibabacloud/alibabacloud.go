@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	machinev1 "github.com/openshift/api/machine/v1"
+	alibabacloudprovider "github.com/openshift/cluster-api-provider-alibaba/pkg/apis/alibabacloudprovider/v1beta1"
 	"github.com/openshift/installer/pkg/asset/ignition/bootstrap"
 	"github.com/openshift/installer/pkg/types"
 	"github.com/pkg/errors"
@@ -34,7 +34,6 @@ type config struct {
 	ExtraTags                 map[string]string `json:"ali_extra_tags"`
 	IgnitionBucket            string            `json:"ali_ignition_bucket"`
 	BootstrapIgnitionStub     string            `json:"ali_bootstrap_stub_ignition"`
-	PublishStrategy           string            `json:"ali_publish_strategy"`
 }
 
 // TFVarsSources contains the parameters to be converted into Terraform variables
@@ -46,8 +45,8 @@ type TFVarsSources struct {
 	ResourceGroupID       string
 	BaseDomain            string
 	NatGatewayZoneID      string
-	MasterConfigs         []*machinev1.AlibabaCloudMachineProviderConfig
-	WorkerConfigs         []*machinev1.AlibabaCloudMachineProviderConfig
+	MasterConfigs         []*alibabacloudprovider.AlibabaCloudMachineProviderConfig
+	WorkerConfigs         []*alibabacloudprovider.AlibabaCloudMachineProviderConfig
 	IgnitionBucket        string
 	IgnitionPresignedURL  string
 	Publish               types.PublishingStrategy
@@ -93,11 +92,10 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		BootstrapInstanceType:     masterConfig.InstanceType,
 		MasterInstanceType:        masterConfig.InstanceType,
 		ImageID:                   masterConfig.ImageID,
-		SystemDiskSize:            int(masterConfig.SystemDisk.Size),
+		SystemDiskSize:            masterConfig.SystemDisk.Size,
 		SystemDiskCategory:        masterConfig.SystemDisk.Category,
 		ExtraTags:                 tags,
 		IgnitionBucket:            sources.IgnitionBucket,
-		PublishStrategy:           string(sources.Publish),
 	}
 
 	stubIgn, err := bootstrap.GenerateIgnitionShimWithCertBundle(sources.IgnitionPresignedURL, sources.AdditionalTrustBundle)

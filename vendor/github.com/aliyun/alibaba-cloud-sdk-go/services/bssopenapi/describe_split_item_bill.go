@@ -71,18 +71,16 @@ func (client *Client) DescribeSplitItemBillWithCallback(request *DescribeSplitIt
 // DescribeSplitItemBillRequest is the request struct for api DescribeSplitItemBill
 type DescribeSplitItemBillRequest struct {
 	*requests.RpcRequest
+	SplitItemID      string                            `position:"Query" name:"SplitItemID"`
 	ProductCode      string                            `position:"Query" name:"ProductCode"`
 	SubscriptionType string                            `position:"Query" name:"SubscriptionType"`
-	BillOwnerId      requests.Integer                  `position:"Query" name:"BillOwnerId"`
-	ProductType      string                            `position:"Query" name:"ProductType"`
-	NextToken        string                            `position:"Query" name:"NextToken"`
-	SplitItemID      string                            `position:"Query" name:"SplitItemID"`
 	BillingCycle     string                            `position:"Query" name:"BillingCycle"`
 	OwnerId          requests.Integer                  `position:"Query" name:"OwnerId"`
+	BillOwnerId      requests.Integer                  `position:"Query" name:"BillOwnerId"`
 	TagFilter        *[]DescribeSplitItemBillTagFilter `position:"Query" name:"TagFilter"  type:"Repeated"`
-	BillingDate      string                            `position:"Query" name:"BillingDate"`
+	ProductType      string                            `position:"Query" name:"ProductType"`
 	InstanceID       string                            `position:"Query" name:"InstanceID"`
-	Granularity      string                            `position:"Query" name:"Granularity"`
+	NextToken        string                            `position:"Query" name:"NextToken"`
 	MaxResults       requests.Integer                  `position:"Query" name:"MaxResults"`
 }
 
@@ -95,11 +93,11 @@ type DescribeSplitItemBillTagFilter struct {
 // DescribeSplitItemBillResponse is the response struct for api DescribeSplitItemBill
 type DescribeSplitItemBillResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
-	Success   bool   `json:"Success" xml:"Success"`
-	Code      string `json:"Code" xml:"Code"`
-	Message   string `json:"Message" xml:"Message"`
-	Data      Data   `json:"Data" xml:"Data"`
+	RequestId string                      `json:"RequestId" xml:"RequestId"`
+	Success   bool                        `json:"Success" xml:"Success"`
+	Code      string                      `json:"Code" xml:"Code"`
+	Message   string                      `json:"Message" xml:"Message"`
+	Data      DataInDescribeSplitItemBill `json:"Data" xml:"Data"`
 }
 
 // CreateDescribeSplitItemBillRequest creates a request to invoke DescribeSplitItemBill API

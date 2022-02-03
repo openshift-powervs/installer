@@ -43,7 +43,6 @@ func resourceAlicloudEcsDedicatedHost() *schema.Resource {
 			"auto_release_time": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"auto_renew": {
 				Type:     schema.TypeBool,
@@ -113,8 +112,8 @@ func resourceAlicloudEcsDedicatedHost() *schema.Resource {
 			"payment_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PostPaid", "PrePaid"}, false),
+				Default:      "PostPaid",
 			},
 			"resource_group_id": {
 				Type:     schema.TypeString,
@@ -276,6 +275,7 @@ func resourceAlicloudEcsDedicatedHostRead(d *schema.ResourceData, meta interface
 	d.Set("dedicated_host_name", object["DedicatedHostName"])
 	d.Set("dedicated_host_type", object["DedicatedHostType"])
 	d.Set("description", object["Description"])
+	d.Set("expired_time", object["ExpiredTime"])
 
 	networkAttributesSli := make([]map[string]interface{}, 0)
 	if len(object["NetworkAttributes"].(map[string]interface{})) > 0 {
@@ -545,10 +545,6 @@ func resourceAlicloudEcsDedicatedHostUpdate(d *schema.ResourceData, meta interfa
 	return resourceAlicloudEcsDedicatedHostRead(d, meta)
 }
 func resourceAlicloudEcsDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
-	if d.Get("payment_type").(string) == "PrePaid" {
-		log.Printf("[WARN] Cannot destroy Subscription resource: alicloud_ecs_dedicated_host. Terraform will remove this resource from the state file, however resources may remain.")
-		return nil
-	}
 	client := meta.(*connectivity.AliyunClient)
 	action := "ReleaseDedicatedHost"
 	var response map[string]interface{}

@@ -16,19 +16,17 @@ Requirements:
 
 set -Eeuo pipefail
 
-declare catalog san
-catalog="$(mktemp)"
+declare san
 san="$(mktemp)"
-readonly catalog san
+readonly san
 
 declare invalid=0
 
 openstack catalog list --format json --column Name --column Endpoints \
 	| jq -r '.[] | .Name as $name | .Endpoints[] | [$name, .interface, .url] | join(" ")' \
 	| sort \
-	> "$catalog"
-
-while read -r name interface url; do
+	| while read -r name interface url
+do
 	# Ignore HTTP
 	if [[ ${url#"http://"} != "$url" ]]; then
 		continue
@@ -66,19 +64,19 @@ while read -r name interface url; do
 	if [[ "$(grep -c "Subject Alternative Name" "$san" || true)" -gt 0 ]]; then
 		echo "PASS: $name $interface $url"
 	else
-		invalid=$((invalid+1))
+		i=$((i+1))
 		echo "INVALID: $name $interface $url"
 	fi
-done < "$catalog"
+done
 
-# clean up temporary files
-rm "$catalog" "$san"
+# clean the tmp files
+rm "$san"
 
 if [[ $invalid -gt 0 ]]; then
 	echo "${invalid} legacy certificates were detected. Update your certificates to include a SAN field."
 	exit 1
 else
-	echo "All HTTPS certificates for this cloud are valid."
+	echo "All certificates for this cloud are valid."
 fi
 ```
 

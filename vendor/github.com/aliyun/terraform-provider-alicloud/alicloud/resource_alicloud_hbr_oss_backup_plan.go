@@ -25,7 +25,8 @@ func resourceAlicloudHbrOssBackupPlan() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"backup_type": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"COMPLETE"}, false),
 			},
@@ -36,7 +37,7 @@ func resourceAlicloudHbrOssBackupPlan() *schema.Resource {
 			},
 			"bucket": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"oss_backup_plan_name": {
@@ -57,7 +58,7 @@ func resourceAlicloudHbrOssBackupPlan() *schema.Resource {
 			},
 			"vault_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 		},

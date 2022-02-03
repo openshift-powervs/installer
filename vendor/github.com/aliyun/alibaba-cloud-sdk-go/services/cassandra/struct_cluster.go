@@ -24,7 +24,6 @@ type Cluster struct {
 	MajorVersion      string                `json:"MajorVersion" xml:"MajorVersion"`
 	CreatedTime       string                `json:"CreatedTime" xml:"CreatedTime"`
 	IsLatestVersion   bool                  `json:"IsLatestVersion" xml:"IsLatestVersion"`
-	ResourceGroupId   string                `json:"ResourceGroupId" xml:"ResourceGroupId"`
 	AutoRenewal       bool                  `json:"AutoRenewal" xml:"AutoRenewal"`
 	MinorVersion      string                `json:"MinorVersion" xml:"MinorVersion"`
 	MaintainEndTime   string                `json:"MaintainEndTime" xml:"MaintainEndTime"`

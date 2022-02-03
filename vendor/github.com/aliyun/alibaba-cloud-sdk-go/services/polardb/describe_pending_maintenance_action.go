@@ -86,8 +86,8 @@ type DescribePendingMaintenanceActionRequest struct {
 // DescribePendingMaintenanceActionResponse is the response struct for api DescribePendingMaintenanceAction
 type DescribePendingMaintenanceActionResponse struct {
 	*responses.BaseResponse
-	TotalRecordCount int         `json:"TotalRecordCount" xml:"TotalRecordCount"`
 	RequestId        string      `json:"RequestId" xml:"RequestId"`
+	TotalRecordCount int         `json:"TotalRecordCount" xml:"TotalRecordCount"`
 	PageSize         int         `json:"PageSize" xml:"PageSize"`
 	PageNumber       int         `json:"PageNumber" xml:"PageNumber"`
 	Items            []ItemsItem `json:"Items" xml:"Items"`

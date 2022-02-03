@@ -17,20 +17,20 @@ package smartag
 
 // Acr is a nested struct in smartag response
 type Acr struct {
-	Direction       string                                `json:"Direction" xml:"Direction"`
-	Type            string                                `json:"Type" xml:"Type"`
-	IpProtocol      string                                `json:"IpProtocol" xml:"IpProtocol"`
-	Priority        int                                   `json:"Priority" xml:"Priority"`
-	AclId           string                                `json:"AclId" xml:"AclId"`
 	Policy          string                                `json:"Policy" xml:"Policy"`
 	Description     string                                `json:"Description" xml:"Description"`
-	GmtCreate       int64                                 `json:"GmtCreate" xml:"GmtCreate"`
-	DestCidr        string                                `json:"DestCidr" xml:"DestCidr"`
-	DestPortRange   string                                `json:"DestPortRange" xml:"DestPortRange"`
-	Name            string                                `json:"Name" xml:"Name"`
-	AcrId           string                                `json:"AcrId" xml:"AcrId"`
-	SourceCidr      string                                `json:"SourceCidr" xml:"SourceCidr"`
 	SourcePortRange string                                `json:"SourcePortRange" xml:"SourcePortRange"`
+	SourceCidr      string                                `json:"SourceCidr" xml:"SourceCidr"`
+	Priority        int                                   `json:"Priority" xml:"Priority"`
+	AclId           string                                `json:"AclId" xml:"AclId"`
+	AcrId           string                                `json:"AcrId" xml:"AcrId"`
+	DestPortRange   string                                `json:"DestPortRange" xml:"DestPortRange"`
+	Direction       string                                `json:"Direction" xml:"Direction"`
+	Name            string                                `json:"Name" xml:"Name"`
+	GmtCreate       int64                                 `json:"GmtCreate" xml:"GmtCreate"`
+	Type            string                                `json:"Type" xml:"Type"`
+	DestCidr        string                                `json:"DestCidr" xml:"DestCidr"`
+	IpProtocol      string                                `json:"IpProtocol" xml:"IpProtocol"`
 	DpiSignatureIds DpiSignatureIdsInDescribeACLAttribute `json:"DpiSignatureIds" xml:"DpiSignatureIds"`
 	DpiGroupIds     DpiGroupIdsInDescribeACLAttribute     `json:"DpiGroupIds" xml:"DpiGroupIds"`
 }

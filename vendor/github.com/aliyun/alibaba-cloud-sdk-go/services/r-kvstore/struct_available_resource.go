@@ -19,5 +19,4 @@ package r_kvstore
 type AvailableResource struct {
 	InstanceClass       string `json:"InstanceClass" xml:"InstanceClass"`
 	InstanceClassRemark string `json:"InstanceClassRemark" xml:"InstanceClassRemark"`
-	Capacity            int64  `json:"Capacity" xml:"Capacity"`
 }

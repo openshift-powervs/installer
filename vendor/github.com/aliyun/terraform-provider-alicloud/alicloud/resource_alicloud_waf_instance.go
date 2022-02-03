@@ -89,10 +89,6 @@ func resourceAlicloudWafInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"region": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
@@ -120,10 +116,6 @@ func resourceAlicloudWafInstanceCreate(d *schema.ResourceData, meta interface{})
 		request["RenewalStatus"] = v
 	}
 
-	region := client.RegionId
-	if v, ok := d.GetOk("region"); ok && v.(string) != "" {
-		region = v.(string)
-	}
 	request["SubscriptionType"] = d.Get("subscription_type")
 	request["Parameter"] = []map[string]string{
 		{
@@ -160,7 +152,7 @@ func resourceAlicloudWafInstanceCreate(d *schema.ResourceData, meta interface{})
 		},
 		{
 			"Code":  "Region",
-			"Value": region,
+			"Value": client.RegionId,
 		},
 		{
 			"Code":  "WafLog",

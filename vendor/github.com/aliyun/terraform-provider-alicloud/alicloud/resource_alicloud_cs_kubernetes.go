@@ -9,9 +9,6 @@ import (
 	"strings"
 	"time"
 
-	roacs "github.com/alibabacloud-go/cs-20151215/v2/client"
-	"github.com/alibabacloud-go/tea/tea"
-
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -755,13 +752,6 @@ func resourceAlicloudCSKubernetes() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"retain_resources": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 		},
 	}
 }
@@ -1375,23 +1365,33 @@ func resourceAlicloudCSKubernetesRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAlicloudCSKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
-	csService := CsService{meta.(*connectivity.AliyunClient)}
-	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, ResourceName, "InitializeClient", err)
-	}
+	client := meta.(*connectivity.AliyunClient)
+	csService := CsService{client}
+	invoker := NewInvoker()
 
-	args := &roacs.DeleteClusterRequest{}
-	if v := d.Get("retain_resources"); len(v.([]interface{})) > 0 {
-		args.RetainResources = tea.StringSlice(expandStringList(v.([]interface{})))
-	}
-
-	_, err = client.DeleteCluster(tea.String(d.Id()), args)
+	var response interface{}
+	err := resource.Retry(30*time.Minute, func() *resource.RetryError {
+		if err := invoker.Run(func() error {
+			raw, err := client.WithCsClient(func(csClient *cs.Client) (interface{}, error) {
+				return nil, csClient.DeleteKubernetesCluster(d.Id())
+			})
+			response = raw
+			return err
+		}); err != nil {
+			return resource.RetryableError(err)
+		}
+		if debugOn() {
+			requestMap := make(map[string]interface{})
+			requestMap["ClusterId"] = d.Id()
+			addDebug("DeleteCluster", response, d.Id(), requestMap)
+		}
+		return nil
+	})
 	if err != nil {
 		if IsExpectedErrors(err, []string{"ErrorClusterNotFound"}) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, ResourceName, "DeleteCluster", AliyunTablestoreGoSdk)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCluster", DenverdinoAliyungo)
 	}
 
 	stateConf := BuildStateConf([]string{"running", "deleting"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, csService.CsKubernetesInstanceStateRefreshFunc(d.Id(), []string{}))
@@ -1677,19 +1677,6 @@ func buildKubernetesArgs(d *schema.ResourceData, meta interface{}) (*cs.Delicate
 	// Cluster maintenance window. Effective only in the professional managed cluster
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		creationArgs.MaintenanceWindow = expandMaintenanceWindowConfig(v.([]interface{}))
-	}
-
-	// Configure control plane log. Effective only in the professional managed cluster
-	if v, ok := d.GetOk("control_plane_log_components"); ok {
-		creationArgs.ControlplaneComponents = expandStringList(v.([]interface{}))
-		// ttl default is 30 days
-		creationArgs.ControlplaneLogTTL = "30"
-	}
-	if v, ok := d.GetOk("control_plane_log_ttl"); ok {
-		creationArgs.ControlplaneLogTTL = v.(string)
-	}
-	if v, ok := d.GetOk("control_plane_log_project"); ok {
-		creationArgs.ControlplaneLogProject = v.(string)
 	}
 
 	return creationArgs, nil

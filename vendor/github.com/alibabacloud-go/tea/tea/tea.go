@@ -69,12 +69,11 @@ type Response struct {
 
 // SDKError struct is used save error code and message
 type SDKError struct {
-	Code       *string
-	StatusCode *int
-	Message    *string
-	Data       *string
-	Stack      *string
-	errMsg     *string
+	Code    *string
+	Message *string
+	Data    *string
+	Stack   *string
+	errMsg  *string
 }
 
 // RuntimeObject is used for converting http configuration
@@ -178,15 +177,6 @@ func NewSDKError(obj map[string]interface{}) *SDKError {
 		err.Code = String(val)
 	}
 
-	if statusCode, ok := obj["statusCode"].(int); ok {
-		err.StatusCode = Int(statusCode)
-	} else if status, ok := obj["statusCode"].(string); ok {
-		statusCode, err2 := strconv.Atoi(status)
-		if err2 == nil {
-			err.StatusCode = Int(statusCode)
-		}
-	}
-
 	if obj["message"] != nil {
 		err.Message = String(obj["message"].(string))
 	}
@@ -204,8 +194,8 @@ func (err *SDKError) SetErrMsg(msg string) {
 
 func (err *SDKError) Error() string {
 	if err.errMsg == nil {
-		str := fmt.Sprintf("SDKError:\n   StatusCode: %d\n   Code: %s\n   Message: %s\n   Data: %s\n",
-			IntValue(err.StatusCode), StringValue(err.Code), StringValue(err.Message), StringValue(err.Data))
+		str := fmt.Sprintf("SDKError:\n   Code: %s\n   Message: %s\n   Data: %s\n",
+			StringValue(err.Code), StringValue(err.Message), StringValue(err.Data))
 		err.SetErrMsg(str)
 	}
 	return StringValue(err.errMsg)
@@ -219,9 +209,7 @@ func (err *CastError) Error() string {
 // Convert is use convert map[string]interface object to struct
 func Convert(in interface{}, out interface{}) error {
 	byt, _ := json.Marshal(in)
-	decoder := jsonParser.NewDecoder(bytes.NewReader(byt))
-	decoder.UseNumber()
-	err := decoder.Decode(&out)
+	err := jsonParser.Unmarshal(byt, out)
 	return err
 }
 
@@ -777,10 +765,10 @@ func Retryable(err error) *bool {
 		return Bool(false)
 	}
 	if realErr, ok := err.(*SDKError); ok {
-		if realErr.StatusCode == nil {
-			return Bool(false)
+		code, err := strconv.Atoi(StringValue(realErr.Code))
+		if err != nil {
+			return Bool(true)
 		}
-		code := IntValue(realErr.StatusCode)
 		return Bool(code >= http.StatusInternalServerError)
 	}
 	return Bool(true)

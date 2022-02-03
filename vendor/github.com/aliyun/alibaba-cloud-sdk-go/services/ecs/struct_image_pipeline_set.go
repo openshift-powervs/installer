@@ -18,20 +18,20 @@ package ecs
 // ImagePipelineSet is a nested struct in ecs response
 type ImagePipelineSet struct {
 	CreationTime            string                       `json:"CreationTime" xml:"CreationTime"`
-	DeleteInstanceOnFailure bool                         `json:"DeleteInstanceOnFailure" xml:"DeleteInstanceOnFailure"`
+	ImagePipelineId         string                       `json:"ImagePipelineId" xml:"ImagePipelineId"`
+	Name                    string                       `json:"Name" xml:"Name"`
+	Description             string                       `json:"Description" xml:"Description"`
+	BaseImageType           string                       `json:"BaseImageType" xml:"BaseImageType"`
+	BaseImage               string                       `json:"BaseImage" xml:"BaseImage"`
+	ImageName               string                       `json:"ImageName" xml:"ImageName"`
+	VSwitchId               string                       `json:"VSwitchId" xml:"VSwitchId"`
 	InstanceType            string                       `json:"InstanceType" xml:"InstanceType"`
 	InternetMaxBandwidthOut int                          `json:"InternetMaxBandwidthOut" xml:"InternetMaxBandwidthOut"`
-	ImagePipelineId         string                       `json:"ImagePipelineId" xml:"ImagePipelineId"`
-	VSwitchId               string                       `json:"VSwitchId" xml:"VSwitchId"`
 	SystemDiskSize          int                          `json:"SystemDiskSize" xml:"SystemDiskSize"`
-	Description             string                       `json:"Description" xml:"Description"`
-	BaseImage               string                       `json:"BaseImage" xml:"BaseImage"`
-	ResourceGroupId         string                       `json:"ResourceGroupId" xml:"ResourceGroupId"`
-	ImageName               string                       `json:"ImageName" xml:"ImageName"`
-	BaseImageType           string                       `json:"BaseImageType" xml:"BaseImageType"`
-	Name                    string                       `json:"Name" xml:"Name"`
+	DeleteInstanceOnFailure bool                         `json:"DeleteInstanceOnFailure" xml:"DeleteInstanceOnFailure"`
 	BuildContent            string                       `json:"BuildContent" xml:"BuildContent"`
-	ToRegionIds             ToRegionIds                  `json:"ToRegionIds" xml:"ToRegionIds"`
+	ResourceGroupId         string                       `json:"ResourceGroupId" xml:"ResourceGroupId"`
 	AddAccounts             AddAccounts                  `json:"AddAccounts" xml:"AddAccounts"`
+	ToRegionIds             ToRegionIds                  `json:"ToRegionIds" xml:"ToRegionIds"`
 	Tags                    TagsInDescribeImagePipelines `json:"Tags" xml:"Tags"`
 }

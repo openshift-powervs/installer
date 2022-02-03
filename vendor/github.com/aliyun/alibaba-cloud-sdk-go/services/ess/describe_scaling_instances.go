@@ -80,7 +80,6 @@ type DescribeScalingInstancesRequest struct {
 	ResourceOwnerAccount   string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount           string           `position:"Query" name:"OwnerAccount"`
 	OwnerId                requests.Integer `position:"Query" name:"OwnerId"`
-	ScalingActivityId      string           `position:"Query" name:"ScalingActivityId"`
 	ScalingConfigurationId string           `position:"Query" name:"ScalingConfigurationId"`
 	InstanceId             *[]string        `position:"Query" name:"InstanceId"  type:"Repeated"`
 	HealthStatus           string           `position:"Query" name:"HealthStatus"`

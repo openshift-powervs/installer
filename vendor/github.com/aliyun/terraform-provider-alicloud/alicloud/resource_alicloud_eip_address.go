@@ -28,10 +28,6 @@ func resourceAlicloudEipAddress() *schema.Resource {
 			Delete: schema.DefaultTimeout(9 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"auto_pay": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 			"activity_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -71,7 +67,7 @@ func resourceAlicloudEipAddress() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PayByBandwidth", "PayByTraffic", "PayByDominantTraffic"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"PayByBandwidth", "PayByTraffic"}, false),
 			},
 			"isp": {
 				Type:         schema.TypeString,
@@ -169,17 +165,13 @@ func resourceAlicloudEipAddressCreate(d *schema.ResourceData, meta interface{}) 
 		if v, ok := d.GetOk("period"); ok {
 			period = v.(int)
 		}
-		request["Period"] = period
+		request["Duration"] = period
 		request["PricingCycle"] = string(Month)
 		if period > 9 {
-			request["Period"] = period / 12
+			request["Duration"] = period / 12
 			request["PricingCycle"] = string(Year)
 		}
-		autoPay := true
-		if v, ok := d.GetOkExists("auto_pay"); ok {
-			autoPay = v.(bool)
-		}
-		request["AutoPay"] = autoPay
+		request["AutoPay"] = true
 	}
 	request["RegionId"] = client.RegionId
 	if v, ok := d.GetOk("resource_group_id"); ok {
@@ -383,10 +375,6 @@ func resourceAlicloudEipAddressUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceAlicloudEipAddressRead(d, meta)
 }
 func resourceAlicloudEipAddressDelete(d *schema.ResourceData, meta interface{}) error {
-	if d.Get("payment_type").(string) == "Subscription" || d.Get("instance_charge_type").(string) == "Prepaid" {
-		log.Printf("[WARN] Cannot destroy Subscription resource: alicloud_eip_address. Terraform will remove this resource from the state file, however resources may remain.")
-		return nil
-	}
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	action := "ReleaseEipAddress"

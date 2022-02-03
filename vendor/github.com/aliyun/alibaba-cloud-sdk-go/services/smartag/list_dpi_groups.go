@@ -72,21 +72,21 @@ func (client *Client) ListDpiGroupsWithCallback(request *ListDpiGroupsRequest, c
 type ListDpiGroupsRequest struct {
 	*requests.RpcRequest
 	DpiGroupIds          *[]string        `position:"Query" name:"DpiGroupIds"  type:"Repeated"`
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	NextToken            string           `position:"Query" name:"NextToken"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
+	ResourceOwnerId      requests.Integer `position:"Query"`
+	NextToken            string           `position:"Query"`
+	ResourceOwnerAccount string           `position:"Query"`
+	OwnerAccount         string           `position:"Query"`
+	OwnerId              requests.Integer `position:"Query"`
 	DpiGroupNames        *[]string        `position:"Query" name:"DpiGroupNames"  type:"Repeated"`
-	MaxResults           requests.Integer `position:"Query" name:"MaxResults"`
+	MaxResults           requests.Integer `position:"Query"`
 }
 
 // ListDpiGroupsResponse is the response struct for api ListDpiGroups
 type ListDpiGroupsResponse struct {
 	*responses.BaseResponse
 	TotalCount int            `json:"TotalCount" xml:"TotalCount"`
-	NextToken  string         `json:"NextToken" xml:"NextToken"`
 	RequestId  string         `json:"RequestId" xml:"RequestId"`
+	NextToken  string         `json:"NextToken" xml:"NextToken"`
 	DpiGroup   []DpiGroupItem `json:"DpiGroup" xml:"DpiGroup"`
 }
 

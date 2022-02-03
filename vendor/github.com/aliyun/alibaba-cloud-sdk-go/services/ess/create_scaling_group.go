@@ -84,7 +84,6 @@ type CreateScalingGroupRequest struct {
 	CompensateWithOnDemand              requests.Boolean                            `position:"Query" name:"CompensateWithOnDemand"`
 	MinSize                             requests.Integer                            `position:"Query" name:"MinSize"`
 	OwnerId                             requests.Integer                            `position:"Query" name:"OwnerId"`
-	AlbServerGroup                      *[]CreateScalingGroupAlbServerGroup         `position:"Query" name:"AlbServerGroup"  type:"Repeated"`
 	VSwitchId                           string                                      `position:"Query" name:"VSwitchId"`
 	InstanceId                          string                                      `position:"Query" name:"InstanceId"`
 	MaxSize                             requests.Integer                            `position:"Query" name:"MaxSize"`
@@ -116,13 +115,6 @@ type CreateScalingGroupTag struct {
 type CreateScalingGroupLaunchTemplateOverride struct {
 	WeightedCapacity string `name:"WeightedCapacity"`
 	InstanceType     string `name:"InstanceType"`
-}
-
-// CreateScalingGroupAlbServerGroup is a repeated param struct in CreateScalingGroupRequest
-type CreateScalingGroupAlbServerGroup struct {
-	AlbServerGroupId string `name:"AlbServerGroupId"`
-	Port             string `name:"Port"`
-	Weight           string `name:"Weight"`
 }
 
 // CreateScalingGroupLifecycleHook is a repeated param struct in CreateScalingGroupRequest

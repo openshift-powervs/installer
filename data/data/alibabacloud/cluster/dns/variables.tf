@@ -38,8 +38,3 @@ variable "tags" {
   type        = map(string)
   description = "Tags to be applied to created resources."
 }
-
-variable "publish_strategy" {
-  type        = string
-  description = "The publishing strategy for endpoints like load balancers"
-}

@@ -18,13 +18,12 @@ package ecs
 // ImageComponentSet is a nested struct in ecs response
 type ImageComponentSet struct {
 	CreationTime     string                        `json:"CreationTime" xml:"CreationTime"`
+	ImageComponentId string                        `json:"ImageComponentId" xml:"ImageComponentId"`
+	Name             string                        `json:"Name" xml:"Name"`
 	Description      string                        `json:"Description" xml:"Description"`
 	SystemType       string                        `json:"SystemType" xml:"SystemType"`
-	ImageComponentId string                        `json:"ImageComponentId" xml:"ImageComponentId"`
 	ComponentType    string                        `json:"ComponentType" xml:"ComponentType"`
-	ResourceGroupId  string                        `json:"ResourceGroupId" xml:"ResourceGroupId"`
-	Name             string                        `json:"Name" xml:"Name"`
 	Content          string                        `json:"Content" xml:"Content"`
-	Owner            string                        `json:"Owner" xml:"Owner"`
+	ResourceGroupId  string                        `json:"ResourceGroupId" xml:"ResourceGroupId"`
 	Tags             TagsInDescribeImageComponents `json:"Tags" xml:"Tags"`
 }

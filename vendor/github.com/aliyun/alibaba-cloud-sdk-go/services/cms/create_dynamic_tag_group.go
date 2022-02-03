@@ -78,7 +78,6 @@ type CreateDynamicTagGroupRequest struct {
 	ContactGroupList           *[]string                            `position:"Query" name:"ContactGroupList"  type:"Repeated"`
 	TemplateIdList             *[]string                            `position:"Query" name:"TemplateIdList"  type:"Repeated"`
 	TagKey                     string                               `position:"Query" name:"TagKey"`
-	TagRegionId                string                               `position:"Query" name:"TagRegionId"`
 }
 
 // CreateDynamicTagGroupMatchExpress is a repeated param struct in CreateDynamicTagGroupRequest

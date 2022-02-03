@@ -2,7 +2,6 @@ package baremetal
 
 import (
 	"github.com/openshift/installer/pkg/ipnet"
-	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 // BMC stores the information about a baremetal host's management controller.
@@ -40,7 +39,7 @@ type Host struct {
 	HardwareProfile string           `json:"hardwareProfile"`
 	RootDeviceHints *RootDeviceHints `json:"rootDeviceHints,omitempty"`
 	BootMode        BootMode         `json:"bootMode,omitempty"`
-	NetworkConfig   *apiextv1.JSON   `json:"networkConfig,omitempty"`
+	NetworkConfig   string           `json:"networkConfig,omitempty"`
 }
 
 // IsMaster checks if the current host is a master

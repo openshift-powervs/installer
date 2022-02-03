@@ -10,8 +10,6 @@ import (
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/baremetal"
 	"github.com/openshift/installer/pkg/types/baremetal/defaults"
-
-	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -767,7 +765,7 @@ func (hb *hostBuilder) Role(value string) *hostBuilder {
 }
 
 func (hb *hostBuilder) NetworkConfig(value string) *hostBuilder {
-	yaml.Unmarshal([]byte(value), &hb.Host.NetworkConfig)
+	hb.Host.NetworkConfig = value
 	return hb
 }
 

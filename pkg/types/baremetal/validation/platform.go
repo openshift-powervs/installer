@@ -329,12 +329,10 @@ func validateHostsCount(hosts []*baremetal.Host, installConfig *types.InstallCon
 // ensure that the NetworkConfig field contains a valid Yaml string
 func validateNetworkConfig(hosts []*baremetal.Host, fldPath *field.Path) (errors field.ErrorList) {
 	for idx, host := range hosts {
-		if host.NetworkConfig != nil {
-			networkConfig := make(map[string]interface{})
-			err := yaml.Unmarshal(host.NetworkConfig.Raw, &networkConfig)
-			if err != nil {
-				errors = append(errors, field.Invalid(fldPath.Index(idx).Child("networkConfig"), host.NetworkConfig, fmt.Sprintf("Not a valid yaml: %s", err.Error())))
-			}
+		networkConfig := make(map[string]interface{})
+		err := yaml.Unmarshal([]byte(host.NetworkConfig), &networkConfig)
+		if err != nil {
+			errors = append(errors, field.Invalid(fldPath.Index(idx).Child("networkConfig"), host.NetworkConfig, fmt.Sprintf("Not a valid yaml: %s", err.Error())))
 		}
 	}
 	return

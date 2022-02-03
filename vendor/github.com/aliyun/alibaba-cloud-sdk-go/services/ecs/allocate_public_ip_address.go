@@ -83,8 +83,8 @@ type AllocatePublicIpAddressRequest struct {
 // AllocatePublicIpAddressResponse is the response struct for api AllocatePublicIpAddress
 type AllocatePublicIpAddressResponse struct {
 	*responses.BaseResponse
-	IpAddress string `json:"IpAddress" xml:"IpAddress"`
 	RequestId string `json:"RequestId" xml:"RequestId"`
+	IpAddress string `json:"IpAddress" xml:"IpAddress"`
 }
 
 // CreateAllocatePublicIpAddressRequest creates a request to invoke AllocatePublicIpAddress API

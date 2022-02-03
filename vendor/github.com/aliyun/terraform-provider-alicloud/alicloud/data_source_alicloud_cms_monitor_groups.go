@@ -81,9 +81,7 @@ func dataSourceAlicloudCmsMonitorGroups() *schema.Resource {
 						"contact_groups": {
 							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"dynamic_tag_rule_id": {
 							Type:     schema.TypeString,
@@ -248,7 +246,6 @@ func dataSourceAlicloudCmsMonitorGroupsRead(d *schema.ResourceData, meta interfa
 					contactGroups = append(contactGroups, contactGroup.(map[string]interface{})["Name"])
 				}
 			}
-			mapping["contact_groups"] = contactGroups
 		}
 
 		tags := make(map[string]interface{})

@@ -103,14 +103,6 @@ func dataSourceAlicloudHbrNasBackupPlans() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"created_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"updated_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -225,8 +217,6 @@ func dataSourceAlicloudHbrNasBackupPlansRead(d *schema.ResourceData, meta interf
 			"retention":            fmt.Sprint(object["Retention"]),
 			"schedule":             object["Schedule"],
 			"vault_id":             object["VaultId"],
-			"created_time":         fmt.Sprint(object["CreatedTime"]),
-			"updated_time":         fmt.Sprint(object["UpdatedTime"]),
 		}
 		if object["Path"] != nil {
 			mapping["path"] = object["Paths"].(map[string]interface{})["Path"]

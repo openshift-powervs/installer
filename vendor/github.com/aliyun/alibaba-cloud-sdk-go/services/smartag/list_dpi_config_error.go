@@ -71,20 +71,20 @@ func (client *Client) ListDpiConfigErrorWithCallback(request *ListDpiConfigError
 // ListDpiConfigErrorRequest is the request struct for api ListDpiConfigError
 type ListDpiConfigErrorRequest struct {
 	*requests.RpcRequest
-	DpiConfigType  string           `position:"Query" name:"DpiConfigType"`
-	NextToken      string           `position:"Query" name:"NextToken"`
-	SmartAGId      string           `position:"Query" name:"SmartAGId"`
-	RuleInstanceId string           `position:"Query" name:"RuleInstanceId"`
-	MaxResults     requests.Integer `position:"Query" name:"MaxResults"`
+	DpiConfigType  string           `position:"Query"`
+	NextToken      string           `position:"Query"`
+	SmartAGId      string           `position:"Query"`
+	RuleInstanceId string           `position:"Query"`
+	MaxResults     requests.Integer `position:"Query"`
 }
 
 // ListDpiConfigErrorResponse is the response struct for api ListDpiConfigError
 type ListDpiConfigErrorResponse struct {
 	*responses.BaseResponse
-	NextToken      string               `json:"NextToken" xml:"NextToken"`
 	RequestId      string               `json:"RequestId" xml:"RequestId"`
-	Total          int                  `json:"Total" xml:"Total"`
+	NextToken      string               `json:"NextToken" xml:"NextToken"`
 	MaxResults     int                  `json:"MaxResults" xml:"MaxResults"`
+	Total          int                  `json:"Total" xml:"Total"`
 	DpiConfigError []DpiConfigErrorItem `json:"DpiConfigError" xml:"DpiConfigError"`
 }
 

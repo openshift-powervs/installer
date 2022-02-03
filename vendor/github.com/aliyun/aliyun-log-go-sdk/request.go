@@ -5,13 +5,12 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/go-kit/kit/log/level"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"time"
-
-	"github.com/go-kit/kit/log/level"
 
 	"github.com/cenkalti/backoff"
 	"golang.org/x/net/context"
@@ -19,12 +18,13 @@ import (
 
 // timeout configs
 var (
-	defaultRequestTimeout = 60 * time.Second
-	defaultRetryTimeout   = 90 * time.Second
+	defaultRequestTimeout = 10 * time.Second
+	defaultRetryTimeout   = 30 * time.Second
 	defaultHttpClient     = &http.Client{
 		Timeout: defaultRequestTimeout,
 	}
 )
+
 
 func retryReadErrorCheck(ctx context.Context, err error) (bool, error) {
 	if err == nil {

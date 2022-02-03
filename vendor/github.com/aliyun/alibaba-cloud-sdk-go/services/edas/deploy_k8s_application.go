@@ -109,7 +109,6 @@ type DeployK8sApplicationRequest struct {
 	AppId                  string           `position:"Query" name:"AppId"`
 	BatchTimeout           requests.Integer `position:"Query" name:"BatchTimeout"`
 	PvcMountDescs          string           `position:"Query" name:"PvcMountDescs"`
-	EmptyDirs              string           `position:"Query" name:"EmptyDirs"`
 	McpuRequest            requests.Integer `position:"Query" name:"McpuRequest"`
 	McpuLimit              requests.Integer `position:"Query" name:"McpuLimit"`
 	VolumesStr             string           `position:"Query" name:"VolumesStr"`

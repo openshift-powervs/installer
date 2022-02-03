@@ -37,7 +37,6 @@ type CenBandwidthPackage struct {
 	ReservationInternetChargeType   string                             `json:"ReservationInternetChargeType" xml:"ReservationInternetChargeType"`
 	ReservationActiveTime           string                             `json:"ReservationActiveTime" xml:"ReservationActiveTime"`
 	ReservationOrderType            string                             `json:"ReservationOrderType" xml:"ReservationOrderType"`
-	ResourceGroupId                 string                             `json:"ResourceGroupId" xml:"ResourceGroupId"`
 	CenIds                          CenIds                             `json:"CenIds" xml:"CenIds"`
 	OrginInterRegionBandwidthLimits OrginInterRegionBandwidthLimits    `json:"OrginInterRegionBandwidthLimits" xml:"OrginInterRegionBandwidthLimits"`
 	Tags                            TagsInDescribeCenBandwidthPackages `json:"Tags" xml:"Tags"`

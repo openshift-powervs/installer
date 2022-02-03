@@ -74,7 +74,6 @@ type SubscribeBillToOSSRequest struct {
 	BucketOwnerId           requests.Integer `position:"Query" name:"BucketOwnerId"`
 	SubscribeType           string           `position:"Query" name:"SubscribeType"`
 	SubscribeBucket         string           `position:"Query" name:"SubscribeBucket"`
-	BeginBillingCycle       string           `position:"Query" name:"BeginBillingCycle"`
 	MultAccountRelSubscribe string           `position:"Query" name:"MultAccountRelSubscribe"`
 }
 

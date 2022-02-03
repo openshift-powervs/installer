@@ -17,16 +17,16 @@ package ecs
 
 // SnapshotLink is a nested struct in ecs response
 type SnapshotLink struct {
-	InstantAccess  bool   `json:"InstantAccess" xml:"InstantAccess"`
-	TotalSize      int64  `json:"TotalSize" xml:"TotalSize"`
+	SnapshotLinkId string `json:"SnapshotLinkId" xml:"SnapshotLinkId"`
+	RegionId       string `json:"RegionId" xml:"RegionId"`
+	InstanceId     string `json:"InstanceId" xml:"InstanceId"`
+	InstanceName   string `json:"InstanceName" xml:"InstanceName"`
+	SourceDiskId   string `json:"SourceDiskId" xml:"SourceDiskId"`
 	SourceDiskName string `json:"SourceDiskName" xml:"SourceDiskName"`
 	SourceDiskSize int    `json:"SourceDiskSize" xml:"SourceDiskSize"`
 	SourceDiskType string `json:"SourceDiskType" xml:"SourceDiskType"`
-	InstanceId     string `json:"InstanceId" xml:"InstanceId"`
-	SnapshotLinkId string `json:"SnapshotLinkId" xml:"SnapshotLinkId"`
-	TotalCount     int    `json:"TotalCount" xml:"TotalCount"`
-	RegionId       string `json:"RegionId" xml:"RegionId"`
-	SourceDiskId   string `json:"SourceDiskId" xml:"SourceDiskId"`
-	InstanceName   string `json:"InstanceName" xml:"InstanceName"`
 	Category       string `json:"Category" xml:"Category"`
+	InstantAccess  bool   `json:"InstantAccess" xml:"InstantAccess"`
+	TotalSize      int64  `json:"TotalSize" xml:"TotalSize"`
+	TotalCount     int    `json:"TotalCount" xml:"TotalCount"`
 }

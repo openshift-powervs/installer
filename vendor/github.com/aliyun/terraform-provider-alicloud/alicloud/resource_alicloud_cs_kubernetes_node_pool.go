@@ -3,7 +3,6 @@ package alicloud
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -89,10 +88,9 @@ func resourceAlicloudCSKubernetesNodePool() *schema.Resource {
 				ConflictsWith: []string{"password", "key_name"},
 			},
 			"security_group_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "Field 'security_group_id' has been deprecated from provider version 1.145.0. New field 'security_group_ids' instead",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"system_disk_category": {
 				Type:     schema.TypeString,
@@ -116,7 +114,6 @@ func resourceAlicloudCSKubernetesNodePool() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"AliyunLinux", "Windows", "CentOS", "WindowsCore"}, false),
-				Deprecated:   "Field 'platform' has been deprecated from provider version 1.145.0. New field 'image_type' instead",
 			},
 			"image_id": {
 				Type:     schema.TypeString,
@@ -301,6 +298,7 @@ func resourceAlicloudCSKubernetesNodePool() *schema.Resource {
 			"scaling_config": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -406,39 +404,6 @@ func resourceAlicloudCSKubernetesNodePool() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-			},
-			"security_group_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				MaxItems: 5,
-				Computed: true,
-			},
-			"image_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AliyunLinux", "AliyunLinux3", "AliyunLinux3Arm64", "AliyunLinuxUEFI", "CentOS", "Windows", "WindowsCore", "AliyunLinux Qboot", "ContainerOS"}, false),
-			},
-			"runtime_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-			"runtime_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-			"deployment_set_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
 			},
 		},
 	}
@@ -574,16 +539,14 @@ func resourceAlicloudCSNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if v, ok := d.GetOk("install_cloud_monitor"); ok && v != nil {
-		args.CmsEnabled = v.(bool)
-	}
 	if d.HasChange("install_cloud_monitor") {
 		update = true
 		args.CmsEnabled = d.Get("install_cloud_monitor").(bool)
 	}
 
-	if v, ok := d.GetOk("unschedulable"); ok {
-		args.Unschedulable = v.(bool)
+	if d.HasChange("unschedulable") {
+		update = true
+		args.Unschedulable = d.Get("unschedulable").(bool)
 	}
 
 	if d.HasChange("instance_types") {
@@ -654,14 +617,6 @@ func resourceAlicloudCSNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 		args.KubernetesConfig.NodeNameMode = d.Get("node_name_mode").(string)
 	}
 
-	if v, ok := d.GetOk("user_data"); ok && v != nil {
-		_, base64DecodeError := base64.StdEncoding.DecodeString(v.(string))
-		if base64DecodeError == nil {
-			args.KubernetesConfig.UserData = v.(string)
-		} else {
-			args.KubernetesConfig.UserData = base64.StdEncoding.EncodeToString([]byte(v.(string)))
-		}
-	}
 	if d.HasChange("user_data") {
 		update = true
 		if v := d.Get("user_data").(string); v != "" {
@@ -674,9 +629,6 @@ func resourceAlicloudCSNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if v, ok := d.GetOk("scaling_config"); ok && v != nil {
-		args.AutoScaling = setAutoScalingConfig(v.([]interface{}))
-	}
 	if d.HasChange("scaling_config") {
 		update = true
 		if v, ok := d.GetOk("scaling_config"); ok {
@@ -740,7 +692,7 @@ func resourceAlicloudCSNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 			addDebug("UpdateKubernetesNodePool", resoponse, resizeRequestMap)
 		}
 
-		stateConf := BuildStateConf([]string{"scaling", "updating"}, []string{"active"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, csService.CsKubernetesNodePoolStateRefreshFunc(d.Id(), []string{"deleting", "failed"}))
+		stateConf := BuildStateConf([]string{"scaling", "updating"}, []string{"active"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, csService.CsKubernetesNodePoolStateRefreshFunc(d.Id(), []string{"deleting", "failed"}))
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -765,21 +717,6 @@ func resourceAlicloudCSNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 			removeNodePoolNodes(d, meta, parts, oldValue, newValue)
 		}
 	}
-
-	_ = resource.Retry(10*time.Minute, func() *resource.RetryError {
-		log.Printf("[DEBUG] Start retry fetch node pool info: %s", d.Id())
-		nodePoolDetail, err := csService.DescribeCsKubernetesNodePool(d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if nodePoolDetail.TotalNodes != d.Get("node_count").(int) {
-			time.Sleep(20 * time.Second)
-			return resource.RetryableError(Error("[ERROR] The number of nodes is inconsistent %s", d.Id()))
-		}
-
-		return resource.NonRetryableError(Error("[DEBUG] The number of nodes is the same"))
-	})
 
 	update = false
 	d.Partial(false)
@@ -822,11 +759,6 @@ func resourceAlicloudCSNodePoolRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("internet_charge_type", object.InternetChargeType)
 	d.Set("internet_max_bandwidth_out", object.InternetMaxBandwidthOut)
 	d.Set("install_cloud_monitor", object.CmsEnabled)
-	d.Set("image_type", object.ScalingGroup.ImageType)
-	d.Set("security_group_ids", object.ScalingGroup.SecurityGroupIds)
-	d.Set("runtime_name", object.Runtime)
-	d.Set("runtime_version", object.RuntimeVersion)
-	d.Set("deployment_set_id", object.DeploymentSetId)
 	if object.InstanceChargeType == "PrePaid" {
 		d.Set("period", object.Period)
 		d.Set("period_unit", object.PeriodUnit)
@@ -997,10 +929,6 @@ func buildNodePoolArgs(d *schema.ResourceData, meta interface{}) (*cs.CreateNode
 		}
 	}
 
-	if v, ok := d.GetOk("deployment_set_id"); ok {
-		creationArgs.DeploymentSetId = v.(string)
-	}
-
 	if v, ok := d.GetOk("install_cloud_monitor"); ok {
 		creationArgs.CmsEnabled = v.(bool)
 	}
@@ -1057,22 +985,6 @@ func buildNodePoolArgs(d *schema.ResourceData, meta interface{}) (*cs.CreateNode
 	}
 	if v, ok := d.GetOk("internet_max_bandwidth_out"); ok {
 		creationArgs.InternetMaxBandwidthOut = v.(int)
-	}
-
-	if v, ok := d.GetOk("security_group_ids"); ok {
-		creationArgs.SecurityGroupIds = expandStringList(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("image_type"); ok {
-		creationArgs.ImageType = v.(string)
-	}
-
-	if v, ok := d.GetOk("runtime_name"); ok {
-		creationArgs.Runtime = v.(string)
-	}
-
-	if v, ok := d.GetOk("runtime_version"); ok {
-		creationArgs.RuntimeVersion = v.(string)
 	}
 
 	return creationArgs, nil

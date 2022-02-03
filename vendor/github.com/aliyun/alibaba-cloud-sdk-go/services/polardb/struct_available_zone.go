@@ -17,7 +17,7 @@ package polardb
 
 // AvailableZone is a nested struct in polardb response
 type AvailableZone struct {
-	ZoneId           string            `json:"ZoneId" xml:"ZoneId"`
 	RegionId         string            `json:"RegionId" xml:"RegionId"`
+	ZoneId           string            `json:"ZoneId" xml:"ZoneId"`
 	SupportedEngines []SupportedEngine `json:"SupportedEngines" xml:"SupportedEngines"`
 }

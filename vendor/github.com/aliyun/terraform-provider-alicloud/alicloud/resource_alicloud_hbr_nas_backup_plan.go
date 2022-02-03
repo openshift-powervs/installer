@@ -26,7 +26,8 @@ func resourceAlicloudHbrNasBackupPlan() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"backup_type": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"COMPLETE"}, false),
 			},
@@ -36,15 +37,26 @@ func resourceAlicloudHbrNasBackupPlan() *schema.Resource {
 				Optional: true,
 			},
 			"create_time": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "Field 'create_time' has been deprecated from provider version 1.153.0.",
-			},
-			"file_system_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"detail": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"exclude": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"file_system_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"include": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"nas_backup_plan_name": {
 				Type:     schema.TypeString,
@@ -56,7 +68,7 @@ func resourceAlicloudHbrNasBackupPlan() *schema.Resource {
 			},
 			"path": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"retention": {
@@ -67,9 +79,17 @@ func resourceAlicloudHbrNasBackupPlan() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"speed_limit": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"update_paths": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"vault_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 		},
@@ -89,8 +109,17 @@ func resourceAlicloudHbrNasBackupPlanCreate(d *schema.ResourceData, meta interfa
 	if v, ok := d.GetOk("create_time"); ok {
 		request["CreateTime"] = ConvertNasFileSystemStringToUnix(v.(string))
 	}
+	if v, ok := d.GetOk("detail"); ok {
+		request["Detail"] = v
+	}
+	if v, ok := d.GetOk("exclude"); ok {
+		request["Exclude"] = v
+	}
 	if v, ok := d.GetOk("file_system_id"); ok {
 		request["FileSystemId"] = v
+	}
+	if v, ok := d.GetOk("include"); ok {
+		request["Include"] = v
 	}
 	request["PlanName"] = d.Get("nas_backup_plan_name")
 	if v, ok := d.GetOk("options"); ok {
@@ -101,6 +130,9 @@ func resourceAlicloudHbrNasBackupPlanCreate(d *schema.ResourceData, meta interfa
 	}
 	request["Schedule"] = d.Get("schedule")
 	request["SourceType"] = "NAS"
+	if v, ok := d.GetOk("speed_limit"); ok {
+		request["SpeedLimit"] = v
+	}
 	if v, ok := d.GetOk("vault_id"); ok {
 		request["VaultId"] = v
 	}
@@ -187,9 +219,9 @@ func resourceAlicloudHbrNasBackupPlanUpdate(d *schema.ResourceData, meta interfa
 	}
 	if d.HasChange("path") {
 		update = true
-		request["UpdatePaths"] = true
 		if v, ok := d.GetOk("path"); ok {
 			request["Path"] = v
+			request["UpdatePaths"] = true
 		}
 	}
 	if !d.IsNewResource() && d.HasChange("schedule") {
@@ -198,6 +230,21 @@ func resourceAlicloudHbrNasBackupPlanUpdate(d *schema.ResourceData, meta interfa
 	}
 	request["SourceType"] = "NAS"
 	if update {
+		if v, ok := d.GetOk("detail"); ok {
+			request["Detail"] = v
+		}
+		if v, ok := d.GetOk("exclude"); ok {
+			request["Exclude"] = v
+		}
+		if v, ok := d.GetOk("include"); ok {
+			request["Include"] = v
+		}
+		if v, ok := d.GetOk("speed_limit"); ok {
+			request["SpeedLimit"] = v
+		}
+		if v, ok := d.GetOkExists("update_paths"); ok {
+			request["UpdatePaths"] = v
+		}
 		action := "UpdateBackupPlan"
 		conn, err := client.NewHbrClient()
 		if err != nil {
@@ -342,9 +389,6 @@ func resourceAlicloudHbrNasBackupPlanDelete(d *schema.ResourceData, meta interfa
 		})
 		addDebug(action, response, request)
 		if err != nil {
-			if IsExpectedErrors(err, []string{"NasFileSystemNotExist"}) {
-				return nil
-			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 		if fmt.Sprint(response["Success"]) == "false" {

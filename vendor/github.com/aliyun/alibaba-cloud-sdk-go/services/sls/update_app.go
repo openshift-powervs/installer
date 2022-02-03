@@ -73,7 +73,6 @@ type UpdateAppRequest struct {
 	*requests.RpcRequest
 	AppName     string `position:"Query" name:"AppName"`
 	DisplayName string `position:"Query" name:"DisplayName"`
-	ClientIp    string `position:"Query" name:"ClientIp"`
 	Config      string `position:"Body" name:"Config"`
 }
 

@@ -22,14 +22,9 @@ func resourceAlicloudHbrEcsBackupClient() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Minute),
+			Create: schema.DefaultTimeout(1 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"instance_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"data_network_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -41,6 +36,11 @@ func resourceAlicloudHbrEcsBackupClient() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"CUSTOM", "DISABLE", "USE_CONTROL_PROXY"}, false),
+			},
+			"instance_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"max_cpu_core": {
 				Type:     schema.TypeString,

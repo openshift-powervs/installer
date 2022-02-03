@@ -84,7 +84,7 @@ func dataSourceAlicloudOtsInstanceAttachmentsRead(d *schema.ResourceData, meta i
 	otsService := OtsService{client}
 	instanceName := d.Get("instance_name").(string)
 	allVpcs, err := otsService.ListOtsInstanceVpc(instanceName)
-	if err != nil {
+	if err != err {
 		return WrapError(err)
 	}
 

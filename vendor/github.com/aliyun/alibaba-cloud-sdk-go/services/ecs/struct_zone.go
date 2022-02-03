@@ -20,13 +20,12 @@ type Zone struct {
 	ZoneNo                      string                                      `json:"ZoneNo" xml:"ZoneNo"`
 	ZoneId                      string                                      `json:"ZoneId" xml:"ZoneId"`
 	LocalName                   string                                      `json:"LocalName" xml:"LocalName"`
-	ZoneType                    string                                      `json:"ZoneType" xml:"ZoneType"`
 	AvailableResourceCreation   AvailableResourceCreation                   `json:"AvailableResourceCreation" xml:"AvailableResourceCreation"`
 	AvailableVolumeCategories   AvailableVolumeCategories                   `json:"AvailableVolumeCategories" xml:"AvailableVolumeCategories"`
 	AvailableInstanceTypes      AvailableInstanceTypesInDescribeZones       `json:"AvailableInstanceTypes" xml:"AvailableInstanceTypes"`
 	AvailableDedicatedHostTypes AvailableDedicatedHostTypes                 `json:"AvailableDedicatedHostTypes" xml:"AvailableDedicatedHostTypes"`
 	NetworkTypes                NetworkTypesInDescribeRecommendInstanceType `json:"NetworkTypes" xml:"NetworkTypes"`
-	DedicatedHostGenerations    DedicatedHostGenerations                    `json:"DedicatedHostGenerations" xml:"DedicatedHostGenerations"`
 	AvailableDiskCategories     AvailableDiskCategories                     `json:"AvailableDiskCategories" xml:"AvailableDiskCategories"`
+	DedicatedHostGenerations    DedicatedHostGenerations                    `json:"DedicatedHostGenerations" xml:"DedicatedHostGenerations"`
 	AvailableResources          AvailableResourcesInDescribeZones           `json:"AvailableResources" xml:"AvailableResources"`
 }

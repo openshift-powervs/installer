@@ -113,10 +113,10 @@ func dataSourceAlicloudAlbSecurityPoliciesRead(d *schema.ResourceData, meta inte
 		request["ResourceGroupId"] = v
 	}
 	if v, ok := d.GetOk("security_policy_ids"); ok {
-		request["SecurityPolicyIds"] = v
+		request["SecurityPolicyIds"] = convertListToJsonString(v.(*schema.Set).List())
 	}
 	if v, ok := d.GetOk("security_policy_name"); ok {
-		request["SecurityPolicyNames"] = []string{v.(string)}
+		request["SecurityPolicyNames"] = v
 	}
 	request["MaxResults"] = PageSizeLarge
 	var objects []map[string]interface{}
@@ -164,7 +164,7 @@ func dataSourceAlicloudAlbSecurityPoliciesRead(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_alb_security_policies", action, AlibabaCloudSdkGoERROR)
 		}
 		resp, err := jsonpath.Get("$.SecurityPolicies", response)
-		if formatInt(response["Total"]) != 0 && err != nil {
+		if err != nil {
 			return WrapErrorf(err, FailedGetAttributeMsg, action, "$.SecurityPolicies", response)
 		}
 		result, _ := resp.([]interface{})

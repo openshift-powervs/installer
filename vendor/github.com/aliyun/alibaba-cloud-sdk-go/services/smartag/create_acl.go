@@ -71,20 +71,18 @@ func (client *Client) CreateACLWithCallback(request *CreateACLRequest, callback 
 // CreateACLRequest is the request struct for api CreateACL
 type CreateACLRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ResourceGroupId      string           `position:"Query" name:"ResourceGroupId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	Name                 string           `position:"Query" name:"Name"`
+	ResourceOwnerId      requests.Integer `position:"Query"`
+	ResourceOwnerAccount string           `position:"Query"`
+	OwnerAccount         string           `position:"Query"`
+	OwnerId              requests.Integer `position:"Query"`
+	Name                 string           `position:"Query"`
 }
 
 // CreateACLResponse is the response struct for api CreateACL
 type CreateACLResponse struct {
 	*responses.BaseResponse
-	RequestId       string `json:"RequestId" xml:"RequestId"`
-	AclId           string `json:"AclId" xml:"AclId"`
-	ResourceGroupId string `json:"ResourceGroupId" xml:"ResourceGroupId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
+	AclId     string `json:"AclId" xml:"AclId"`
 }
 
 // CreateCreateACLRequest creates a request to invoke CreateACL API

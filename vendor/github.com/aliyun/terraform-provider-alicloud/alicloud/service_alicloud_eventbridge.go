@@ -126,7 +126,7 @@ func (s *EventbridgeService) EventBridgeRuleStateRefreshFunc(id string, failStat
 	}
 }
 
-func (s *EventbridgeService) DescribeEventBridgeServiceLinkedRole(id string) (object map[string]interface{}, err error) {
+func (s *EventbridgeService) DescribeEventBridgeSlr(id string) (object map[string]interface{}, err error) {
 	var response map[string]interface{}
 	conn, err := s.client.NewEventbridgeClient()
 	if err != nil {
@@ -168,7 +168,7 @@ func (s *EventbridgeService) DescribeEventBridgeServiceLinkedRole(id string) (ob
 
 func (s *EventbridgeService) CheckRoleForProductRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeEventBridgeServiceLinkedRole(id)
+		object, err := s.DescribeEventBridgeSlr(id)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil, "", nil

@@ -139,8 +139,11 @@ func resourceAlicloudSnatEntryRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("snat_table_id", parts[0])
 	d.Set("snat_entry_name", object["SnatEntryName"])
 	d.Set("snat_ip", object["SnatIp"])
-	d.Set("source_cidr", object["SourceCIDR"])
-	d.Set("source_vswitch_id", object["SourceVSwitchId"])
+	if _, ok := d.GetOk("source_cidr"); ok {
+		d.Set("source_cidr", object["SourceCIDR"])
+	} else {
+		d.Set("source_vswitch_id", object["SourceVSwitchId"])
+	}
 	d.Set("status", object["Status"])
 	return nil
 }

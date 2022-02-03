@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"regexp"
-	"strconv"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -79,14 +78,6 @@ func dataSourceAlicloudInstances() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-			},
-			"page_number": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"page_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
 			},
 
 			// Computed values
@@ -218,10 +209,6 @@ func dataSourceAlicloudInstances() *schema.Resource {
 					},
 				},
 			},
-			"total_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -260,18 +247,9 @@ func dataSourceAlicloudInstancesRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	var allInstances []ecs.Instance
+	request.PageSize = requests.NewInteger(PageSizeLarge)
+	request.PageNumber = requests.NewInteger(1)
 
-	if v, ok := d.GetOk("page_number"); ok && v.(int) > 0 {
-		request.PageNumber = requests.NewInteger(v.(int))
-	} else {
-		request.PageNumber = requests.NewInteger(1)
-	}
-	if v, ok := d.GetOk("page_size"); ok && v.(int) > 0 {
-		request.PageSize = requests.NewInteger(v.(int))
-	} else {
-		request.PageSize = requests.NewInteger(PageSizeLarge)
-	}
-	var response *ecs.DescribeInstancesResponse
 	for {
 		raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
 			return ecsClient.DescribeInstances(request)
@@ -280,22 +258,14 @@ func dataSourceAlicloudInstancesRead(d *schema.ResourceData, meta interface{}) e
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_instances", request.GetActionName(), AlibabaCloudSdkGoERROR)
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		response, _ = raw.(*ecs.DescribeInstancesResponse)
-		if isPagingRequest(d) {
-			allInstances = response.Instances.Instance
-			break
-		}
+		response, _ := raw.(*ecs.DescribeInstancesResponse)
 		if len(response.Instances.Instance) < 1 {
 			break
 		}
 
 		allInstances = append(allInstances, response.Instances.Instance...)
-		pageSize, err := strconv.Atoi(string(request.PageSize))
-		if err != nil {
-			return WrapError(err)
-		}
 
-		if len(response.Instances.Instance) < pageSize {
+		if len(response.Instances.Instance) < PageSizeLarge {
 			break
 		}
 
@@ -379,11 +349,11 @@ func dataSourceAlicloudInstancesRead(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
-	return instancessDescriptionAttributes(d, filteredInstancesTemp, instanceRoleNameMap, instanceDiskMappings, meta, response.TotalCount)
+	return instancessDescriptionAttributes(d, filteredInstancesTemp, instanceRoleNameMap, instanceDiskMappings, meta)
 }
 
 // populate the numerous fields that the instance description returns.
-func instancessDescriptionAttributes(d *schema.ResourceData, instances []ecs.Instance, instanceRoleNameMap map[string]string, instanceDisksMap map[string][]map[string]interface{}, meta interface{}, totalCount int) error {
+func instancessDescriptionAttributes(d *schema.ResourceData, instances []ecs.Instance, instanceRoleNameMap map[string]string, instanceDisksMap map[string][]map[string]interface{}, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	var ids []string
@@ -441,9 +411,7 @@ func instancessDescriptionAttributes(d *schema.ResourceData, instances []ecs.Ins
 	if err := d.Set("instances", s); err != nil {
 		return WrapError(err)
 	}
-	if err := d.Set("total_count", totalCount); err != nil {
-		return WrapError(err)
-	}
+
 	// create a json file in current directory and write data source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		writeToFile(output.(string), s)

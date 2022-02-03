@@ -73,7 +73,6 @@ type ModifyImageSharePermissionRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
 	ImageId              string           `position:"Query" name:"ImageId"`
-	IsPublic             requests.Boolean `position:"Query" name:"IsPublic"`
 	LaunchPermission     string           `position:"Query" name:"LaunchPermission"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`

@@ -50,15 +50,6 @@ func dataSourceAlicloudCloudStorageGatewayGateways() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"page_number": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"page_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  50,
-			},
 			"gateways": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -171,10 +162,6 @@ func dataSourceAlicloudCloudStorageGatewayGateways() *schema.Resource {
 					},
 				},
 			},
-			"total_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -184,8 +171,9 @@ func dataSourceAlicloudCloudStorageGatewayGatewaysRead(d *schema.ResourceData, m
 	action := "DescribeGateways"
 	request := make(map[string]interface{})
 	request["StorageBundleId"] = d.Get("storage_bundle_id")
-	setPagingRequest(d, request, PageSizeLarge)
-	var objects []interface{}
+	request["PageSize"] = PageSizeLarge
+	request["PageNumber"] = 1
+	var objects []map[string]interface{}
 	var nameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
@@ -237,10 +225,6 @@ func dataSourceAlicloudCloudStorageGatewayGatewaysRead(d *schema.ResourceData, m
 			return WrapErrorf(err, FailedGetAttributeMsg, action, "$.Gateways.Gateway", response)
 		}
 		result, _ := resp.([]interface{})
-		if isPagingRequest(d) {
-			objects = result
-			break
-		}
 		for _, v := range result {
 			item := v.(map[string]interface{})
 			if nameRegex != nil && !nameRegex.MatchString(fmt.Sprint(item["Name"])) {
@@ -256,7 +240,7 @@ func dataSourceAlicloudCloudStorageGatewayGatewaysRead(d *schema.ResourceData, m
 			}
 			objects = append(objects, item)
 		}
-		if len(result) < request["PageSize"].(int) {
+		if len(result) < PageSizeLarge {
 			break
 		}
 		request["PageNumber"] = request["PageNumber"].(int) + 1
@@ -264,8 +248,7 @@ func dataSourceAlicloudCloudStorageGatewayGatewaysRead(d *schema.ResourceData, m
 	ids := make([]string, 0)
 	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
-	for _, v := range objects {
-		object := v.(map[string]interface{})
+	for _, object := range objects {
 		mapping := map[string]interface{}{
 			"activated_time":              fmt.Sprint(object["ActivatedTime"]),
 			"buy_url":                     object["BuyURL"],
@@ -311,11 +294,6 @@ func dataSourceAlicloudCloudStorageGatewayGatewaysRead(d *schema.ResourceData, m
 	if err := d.Set("gateways", s); err != nil {
 		return WrapError(err)
 	}
-
-	if err := d.Set("total_count", formatInt(response["TotalCount"])); err != nil {
-		return WrapError(err)
-	}
-
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		writeToFile(output.(string), s)
 	}

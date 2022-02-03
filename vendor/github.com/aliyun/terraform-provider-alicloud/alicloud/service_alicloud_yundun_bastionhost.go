@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
 	"log"
 	"regexp"
 	"strings"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	util "github.com/alibabacloud-go/tea-utils/service"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ram"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/yundun_bastionhost"
@@ -54,7 +54,30 @@ var bastionhostpolicyRequired = []BastionhostPolicyRequired{
 	},
 }
 
-func (s *YundunBastionhostService) DescribeBastionhostInstance(id string) (object map[string]interface{}, err error) {
+func (s *YundunBastionhostService) DescribeYundunBastionhostInstance(id string) (v yundun_bastionhost.Instance, err error) {
+	request := yundun_bastionhost.CreateDescribeInstanceBastionhostRequest()
+	var instanceIds []string
+	instanceIds = append(instanceIds, id)
+	request.InstanceId = &instanceIds
+	request.PageSize = requests.NewInteger(PageSizeSmall)
+	request.CurrentPage = requests.NewInteger(1)
+	raw, err := s.client.WithBastionhostClient(func(BastionhostClient *yundun_bastionhost.Client) (interface{}, error) {
+		return BastionhostClient.DescribeInstanceBastionhost(request)
+	})
+	if err != nil {
+		return v, WrapErrorf(err, DefaultErrorMsg, id, request.GetActionName(), AlibabaCloudSdkGoERROR)
+	}
+	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
+	response := raw.(*yundun_bastionhost.DescribeInstanceBastionhostResponse)
+
+	if len(response.Instances) == 0 || response.Instances[0].InstanceId != id {
+		return v, WrapErrorf(Error(GetNotFoundMessage("Yundun_bastionhost Instance", id)), NotFoundMsg, ProviderERROR)
+	}
+	v = response.Instances[0]
+	return
+}
+
+func (s *YundunBastionhostService) DescribeBastionhostInstanceAttribute(id string) (object map[string]interface{}, err error) {
 	var response map[string]interface{}
 	conn, err := s.client.NewBastionhostClient()
 	if err != nil {
@@ -81,7 +104,7 @@ func (s *YundunBastionhostService) DescribeBastionhostInstance(id string) (objec
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus"}) {
+		if IsExpectedErrors(err, []string{"OBJECT_NOT_FOUND"}) {
 			return object, WrapErrorf(Error(GetNotFoundMessage("Instance", id)), NotFoundWithResponse, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
@@ -149,7 +172,7 @@ func (s *YundunBastionhostService) UpdateInstanceSpec(schemaSpecMap map[string]s
 
 	params := make([]bssopenapi.ModifyInstanceParameter, 0, len(schemaSpecMap))
 	for schemaName, spec := range schemaSpecMap {
-		params = append(params, bssopenapi.ModifyInstanceParameter{Code: schemaName, Value: d.Get(spec).(string)})
+		params = append(params, bssopenapi.ModifyInstanceParameter{schemaName, d.Get(spec).(string)})
 	}
 
 	request.Parameter = &params
@@ -185,7 +208,7 @@ func (s *YundunBastionhostService) UpdateInstanceSpec(schemaSpecMap map[string]s
 
 func (s *YundunBastionhostService) BastionhostInstanceRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeBastionhostInstance(id)
+		object, err := s.DescribeYundunBastionhostInstance(id)
 		if err != nil {
 			if NotFoundError(err) {
 				// Set this to nil if nothing matched
@@ -195,11 +218,11 @@ func (s *YundunBastionhostService) BastionhostInstanceRefreshFunc(id string, fai
 		}
 
 		for _, failState := range failStates {
-			if fmt.Sprint(object["InstanceStatus"]) == failState {
-				return object, fmt.Sprint(object["InstanceStatus"]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object["InstanceStatus"])))
+			if object.InstanceStatus == failState {
+				return object, object.InstanceStatus, WrapError(Error(FailedToReachTargetStatus, object.InstanceStatus))
 			}
 		}
-		return object, fmt.Sprint(object["InstanceStatus"]), nil
+		return object, object.InstanceStatus, nil
 	}
 }
 
@@ -281,6 +304,28 @@ func (s *YundunBastionhostService) ProcessRolePolicy() error {
 	}
 
 	return nil
+}
+
+func (s *YundunBastionhostService) WaitForYundunBastionhostInstance(instanceId string, status Status, timeoutSenconds time.Duration) error {
+	deadline := time.Now().Add(timeoutSenconds * time.Second)
+	for {
+		_, err := s.DescribeYundunBastionhostInstance(instanceId)
+
+		if err != nil {
+			if NotFoundError(err) {
+				if status == Deleted {
+					return nil
+				}
+			} else {
+				return WrapError(err)
+			}
+		}
+
+		if time.Now().After(deadline) {
+			return WrapErrorf(err, WaitTimeoutMsg, instanceId, GetFunc(1), timeoutSenconds, "", "", ProviderERROR)
+		}
+		time.Sleep(DefaultIntervalShort * time.Second)
+	}
 }
 
 func (s *YundunBastionhostService) DescribeTags(resourceId string, resourceTags map[string]interface{}, resourceType TagResourceType) (tags []yundun_bastionhost.TagResource, err error) {
@@ -465,8 +510,8 @@ func (s *YundunBastionhostService) DescribeBastionhostUserGroup(id string) (obje
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:UserGroup", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
+		if IsExpectedErrors(err, []string{"OBJECT_NOT_FOUND"}) {
+			return object, WrapErrorf(Error(GetNotFoundMessage("UserGroup", id)), NotFoundWithResponse, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 	}
@@ -476,576 +521,4 @@ func (s *YundunBastionhostService) DescribeBastionhostUserGroup(id string) (obje
 	}
 	object = v.(map[string]interface{})
 	return object, nil
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostUser(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "GetUser"
-	parts, err := ParseResourceId(id, 2)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": parts[0],
-		"UserId":     parts[1],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:User", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.User", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.User", response)
-	}
-	object = v.(map[string]interface{})
-	return object, nil
-}
-func (s *YundunBastionhostService) DescribeBastionhostHostGroup(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "GetHostGroup"
-	parts, err := ParseResourceId(id, 2)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":    s.client.RegionId,
-		"HostGroupId": parts[1],
-		"InstanceId":  parts[0],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostGroup", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.HostGroup", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.HostGroup", response)
-	}
-	object = v.(map[string]interface{})
-	return object, nil
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostUserAttachment(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "ListUsers"
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":    s.client.RegionId,
-		"InstanceId":  parts[0],
-		"UserGroupId": parts[1],
-		"PageNumber":  1,
-		"PageSize":    50,
-	}
-	idExist := false
-	for {
-		runtime := util.RuntimeOptions{}
-		runtime.SetAutoretry(true)
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-			response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus"}) {
-				return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:UserAttachment", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-			}
-			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-		}
-		v, err := jsonpath.Get("$.Users", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Users", response)
-		}
-		if len(v.([]interface{})) < 1 {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-		}
-		for _, v := range v.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["UserId"]) == parts[2] {
-				idExist = true
-				return v.(map[string]interface{}), nil
-			}
-		}
-		if len(v.([]interface{})) < request["PageSize"].(int) {
-			break
-		}
-		request["PageNumber"] = request["PageNumber"].(int) + 1
-	}
-	if !idExist {
-		return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-	}
-	return
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostHost(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "GetHost"
-	parts, err := ParseResourceId(id, 2)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"HostId":     parts[1],
-		"InstanceId": parts[0],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(false)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:Host", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.Host", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Host", response)
-	}
-	object = v.(map[string]interface{})
-	return object, nil
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostHostAccount(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "GetHostAccount"
-	parts, err := ParseResourceId(id, 2)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":      s.client.RegionId,
-		"HostAccountId": parts[1],
-		"InstanceId":    parts[0],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostAccount", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.HostAccount", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.HostAccount", response)
-	}
-	object = v.(map[string]interface{})
-	return object, nil
-}
-func (s *YundunBastionhostService) DescribeBastionhostHostAttachment(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "ListHosts"
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":    s.client.RegionId,
-		"HostGroupId": parts[1],
-		"InstanceId":  parts[0],
-		"PageNumber":  1,
-		"PageSize":    0,
-	}
-	idExist := false
-	for {
-		runtime := util.RuntimeOptions{}
-		runtime.SetAutoretry(true)
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-			response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus"}) {
-				return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostAttachment", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-			}
-			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-		}
-		v, err := jsonpath.Get("$.Hosts", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Hosts", response)
-		}
-		if len(v.([]interface{})) < 1 {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-		}
-		for _, v := range v.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["HostId"]) == parts[2] {
-				idExist = true
-				return v.(map[string]interface{}), nil
-			}
-		}
-		if len(v.([]interface{})) < request["PageSize"].(int) {
-			break
-		}
-		request["PageNumber"] = request["PageNumber"].(int) + 1
-	}
-	if !idExist {
-		return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-	}
-	return
-}
-func (s *YundunBastionhostService) DescribeBastionhostHostAccountUserAttachment(id string) (object []interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "ListHostAccountsForUser"
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"HostId":     parts[2],
-		"InstanceId": parts[0],
-		"UserId":     parts[1],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(10*time.Second, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostAccountUserAttachment", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.HostAccounts", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.HostAccounts", response)
-	}
-	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-	}
-	return v.([]interface{}), nil
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostHostAccountUserGroupAttachment(id string) (object []interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "ListHostAccountsForUserGroup"
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":    s.client.RegionId,
-		"HostId":      parts[2],
-		"InstanceId":  parts[0],
-		"UserGroupId": parts[1],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(10*time.Second, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostAccountUserGroupAttachment", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.HostAccounts", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.HostAccounts", response)
-	}
-	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-	}
-	return v.([]interface{}), nil
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostHostGroupAccountUserAttachment(id string) (object []interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "ListHostGroupAccountNamesForUser"
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":    s.client.RegionId,
-		"HostGroupId": parts[2],
-		"InstanceId":  parts[0],
-		"UserId":      parts[1],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(10*time.Second, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostGroupAccountUserAttachment", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.HostAccountNames", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.HostAccountNames", response)
-	}
-	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-	}
-	return v.([]interface{}), nil
-}
-
-func (s *YundunBastionhostService) DescribeBastionhostHostGroupAccountUserGroupAttachment(id string) (object []interface{}, err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	action := "ListHostGroupAccountNamesForUserGroup"
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		err = WrapError(err)
-		return
-	}
-	request := map[string]interface{}{
-		"RegionId":    s.client.RegionId,
-		"HostGroupId": parts[2],
-		"InstanceId":  parts[0],
-		"UserGroupId": parts[1],
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(10*time.Second, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"Commodity.BizError.InvalidStatus", "OBJECT_NOT_FOUND"}) {
-			return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost:HostGroupAccountUserGroupAttachment", id)), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.HostAccountNames", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.HostAccountNames", response)
-	}
-	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(Error(GetNotFoundMessage("Bastionhost", id)), NotFoundWithResponse, response)
-	}
-	return v.([]interface{}), nil
-}
-
-func (s *YundunBastionhostService) EnableInstancePublicAccess(id string) (err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return WrapError(err)
-	}
-	action := "EnableInstancePublicAccess"
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": id,
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	return nil
-}
-func (s *YundunBastionhostService) DisableInstancePublicAccess(id string) (err error) {
-	var response map[string]interface{}
-	conn, err := s.client.NewBastionhostClient()
-	if err != nil {
-		return WrapError(err)
-	}
-	action := "DisableInstancePublicAccess"
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": id,
-	}
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-12-09"), StringPointer("AK"), nil, request, &runtime)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	return nil
 }

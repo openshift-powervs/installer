@@ -83,7 +83,7 @@ func resourceAliyunSlbListener() *schema.Resource {
 			},
 			"scheduler": {
 				Type:         schema.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{"wrr", "wlc", "rr", "sch", "tch", "qch"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"wrr", "wlc", "rr", "sch"}, false),
 				Optional:     true,
 				Default:      WRRScheduler,
 			},
@@ -235,7 +235,7 @@ func resourceAliyunSlbListener() *schema.Resource {
 				ValidateFunc: validateAllowedSplitStringValue([]string{
 					string(HTTP_2XX), string(HTTP_3XX), string(HTTP_4XX), string(HTTP_5XX)}, ","),
 				Optional:         true,
-				Computed:         true,
+				Default:          HTTP_2XX,
 				DiffSuppressFunc: httpHttpsTcpDiffSuppressFunc,
 			},
 			//https
@@ -357,6 +357,7 @@ func resourceAliyunSlbListener() *schema.Resource {
 			"delete_protection_validation": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 		},
 	}
@@ -368,7 +369,7 @@ func resourceAliyunSlbListenerCreate(d *schema.ResourceData, meta interface{}) e
 	slbService := SlbService{client}
 	httpForward := false
 	protocol := d.Get("protocol").(string)
-	lbId := d.Get("load_balancer_id").(string)
+	lb_id := d.Get("load_balancer_id").(string)
 	frontend := d.Get("frontend_port").(int)
 	if listenerForward, ok := d.GetOk("listener_forward"); ok && listenerForward.(string) == string(OnFlag) {
 		httpForward = true
@@ -416,7 +417,7 @@ func resourceAliyunSlbListenerCreate(d *schema.ResourceData, meta interface{}) e
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_slb_listener", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 	addDebug(request.GetActionName(), raw, request, request.QueryParams)
-	d.SetId(lbId + ":" + protocol + ":" + strconv.Itoa(frontend))
+	d.SetId(lb_id + ":" + protocol + ":" + strconv.Itoa(frontend))
 
 	if err := slbService.WaitForSlbListener(d.Id(), Stopped, DefaultTimeout); err != nil {
 		return WrapError(err)
@@ -424,7 +425,7 @@ func resourceAliyunSlbListenerCreate(d *schema.ResourceData, meta interface{}) e
 
 	startLoadBalancerListenerRequest := slb.CreateStartLoadBalancerListenerRequest()
 	startLoadBalancerListenerRequest.RegionId = client.RegionId
-	startLoadBalancerListenerRequest.LoadBalancerId = lbId
+	startLoadBalancerListenerRequest.LoadBalancerId = lb_id
 	startLoadBalancerListenerRequest.ListenerPort = requests.NewInteger(frontend)
 	startLoadBalancerListenerRequest.ListenerProtocol = protocol
 
@@ -674,7 +675,7 @@ func resourceAliyunSlbListenerUpdate(d *schema.ResourceData, meta interface{}) e
 		update = true
 	}
 	if d.HasChange("health_check_http_code") {
-		tcpArgs.QueryParams["HealthCheckHttpCode"] = getHealthCheckHttpCodeValue(d)
+		tcpArgs.QueryParams["HealthCheckHttpCode"] = d.Get("health_check_http_code").(string)
 		update = true
 	}
 
@@ -773,7 +774,7 @@ func resourceAliyunSlbListenerDelete(d *schema.ResourceData, meta interface{}) e
 		}
 		return WrapError(err)
 	}
-	if v, ok := d.GetOkExists("delete_protection_validation"); ok && v.(bool) {
+	if d.Get("delete_protection_validation").(bool) {
 		lbInstance, err := slbService.DescribeSlb(lbId)
 		if err != nil {
 			if NotFoundError(err) {
@@ -851,10 +852,6 @@ func buildListenerCommonArgs(d *schema.ResourceData, meta interface{}) (*request
 	if description, ok := d.GetOk("description"); ok && description.(string) != "" {
 		request.QueryParams["Description"] = description.(string)
 	}
-	// scheduler
-	if scheduler, ok := d.GetOk("scheduler"); ok && scheduler.(string) != "" {
-		request.QueryParams["Scheduler"] = scheduler.(string)
-	}
 
 	return request, nil
 
@@ -899,10 +896,10 @@ func buildHttpListenerArgs(d *schema.ResourceData, req *requests.CommonRequest) 
 		req.QueryParams["UnhealthyThreshold"] = string(requests.NewInteger(d.Get("unhealthy_threshold").(int)))
 		req.QueryParams["HealthCheckTimeout"] = string(requests.NewInteger(d.Get("health_check_timeout").(int)))
 		req.QueryParams["HealthCheckInterval"] = string(requests.NewInteger(d.Get("health_check_interval").(int)))
-		req.QueryParams["HealthCheckHttpCode"] = getHealthCheckHttpCodeValue(d)
+		req.QueryParams["HealthCheckHttpCode"] = d.Get("health_check_http_code").(string)
 		if d.Get("protocol").(string) == "http" || d.Get("protocol").(string) == "https" {
-			if healthCheckMethod, ok := d.GetOk("health_check_method"); ok && healthCheckMethod.(string) != "" {
-				req.QueryParams["HealthCheckMethod"] = healthCheckMethod.(string)
+			if health_check_method, ok := d.GetOk("health_check_method"); ok && health_check_method.(string) != "" {
+				req.QueryParams["HealthCheckMethod"] = health_check_method.(string)
 			}
 		}
 	}
@@ -1112,12 +1109,4 @@ func readListener(d *schema.ResourceData, listener map[string]interface{}) {
 	}
 
 	return
-}
-
-func getHealthCheckHttpCodeValue(d *schema.ResourceData) string {
-	if v, ok := d.GetOk("health_check_http_code"); ok && v.(string) != "" {
-		return v.(string)
-	}
-	// After the version 1.144.0, removes health_check_http_code Default and using Computed instead.
-	return string(HTTP_2XX)
 }

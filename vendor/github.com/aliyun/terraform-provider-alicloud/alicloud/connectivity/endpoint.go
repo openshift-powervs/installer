@@ -181,10 +181,7 @@ func (client *AliyunClient) loadEndpoint(productCode string) error {
 	if serviceCode == "" {
 		serviceCode = productCode
 	}
-	endpoint, err := client.describeEndpointForService(serviceCode)
-	if err == nil {
-		client.config.Endpoints[strings.ToLower(serviceCode)] = endpoint
-	}
+	_, err := client.describeEndpointForService(serviceCode)
 	return err
 }
 
@@ -262,6 +259,7 @@ func (client *AliyunClient) describeEndpointForService(serviceCode string) (stri
 		if endpointsResponse != nil && len(endpointsResponse.Endpoints.Endpoint) > 0 {
 			for _, e := range endpointsResponse.Endpoints.Endpoint {
 				if e.Type == "openAPI" {
+					client.config.Endpoints[strings.ToLower(serviceCode)] = e.Endpoint
 					endpointResult = e.Endpoint
 					return nil
 				}
@@ -309,5 +307,4 @@ const (
 const (
 	BssOpenAPIEndpointDomestic      = "business.aliyuncs.com"
 	BssOpenAPIEndpointInternational = "business.ap-southeast-1.aliyuncs.com"
-	EcdOpenAPIEndpointUser          = "eds-user.ap-southeast-1.aliyuncs.com"
 )

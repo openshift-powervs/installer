@@ -71,27 +71,26 @@ func (client *Client) DescribeSAGDeviceInfoWithCallback(request *DescribeSAGDevi
 // DescribeSAGDeviceInfoRequest is the request struct for api DescribeSAGDeviceInfo
 type DescribeSAGDeviceInfoRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	SmartAGId            string           `position:"Query" name:"SmartAGId"`
-	SmartAGSn            string           `position:"Query" name:"SmartAGSn"`
+	ResourceOwnerId      requests.Integer `position:"Query"`
+	ResourceOwnerAccount string           `position:"Query"`
+	OwnerAccount         string           `position:"Query"`
+	OwnerId              requests.Integer `position:"Query"`
+	SmartAGId            string           `position:"Query"`
+	SmartAGSn            string           `position:"Query"`
 }
 
 // DescribeSAGDeviceInfoResponse is the response struct for api DescribeSAGDeviceInfo
 type DescribeSAGDeviceInfoResponse struct {
 	*responses.BaseResponse
-	ServiceIP                   string `json:"ServiceIP" xml:"ServiceIP"`
 	ControllerState             string `json:"ControllerState" xml:"ControllerState"`
-	RequestId                   string `json:"RequestId" xml:"RequestId"`
-	SynStatus                   string `json:"SynStatus" xml:"SynStatus"`
+	ServiceIP                   string `json:"ServiceIP" xml:"ServiceIP"`
 	SmartAGType                 string `json:"SmartAGType" xml:"SmartAGType"`
+	SynStatus                   string `json:"SynStatus" xml:"SynStatus"`
+	RequestId                   string `json:"RequestId" xml:"RequestId"`
 	Version                     string `json:"Version" xml:"Version"`
 	VpnState                    string `json:"VpnState" xml:"VpnState"`
 	StartupTime                 string `json:"StartupTime" xml:"StartupTime"`
 	LastConnectedControllerTime string `json:"LastConnectedControllerTime" xml:"LastConnectedControllerTime"`
-	ResettableStatus            string `json:"ResettableStatus" xml:"ResettableStatus"`
 }
 
 // CreateDescribeSAGDeviceInfoRequest creates a request to invoke DescribeSAGDeviceInfo API

@@ -2,7 +2,6 @@ package alibabacloud
 
 import (
 	"fmt"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -127,19 +126,16 @@ func validatePlatform(client *Client, ic *types.InstallConfig, path *field.Path)
 
 func validateResourceGroup(client *Client, ic *types.InstallConfig, path *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
-	resourceGroupID := ic.AlibabaCloud.ResourceGroupID
-	resourceGroups, err := client.ListResourceGroups(resourceGroupID)
+	resourceGroups, err := client.ListResourceGroups()
 	if err != nil {
-		if strings.Contains(err.Error(), "InvalidParameter.ResourceGroupId") {
-			return append(allErrs, field.Invalid(path.Child("resourceGroupID"), resourceGroupID, "resourceGroupID is invalid"))
-		}
 		return append(allErrs, field.InternalError(path.Child("resourceGroupID"), err))
 	}
-	if resourceGroups.TotalCount == 0 {
-		return append(allErrs, field.NotFound(path.Child("resourceGroupID"), ic.AlibabaCloud.ResourceGroupID))
+	for _, rg := range resourceGroups.ResourceGroups.ResourceGroup {
+		if rg.Id == ic.AlibabaCloud.ResourceGroupID {
+			return allErrs
+		}
 	}
-
-	return allErrs
+	return append(allErrs, field.NotFound(path.Child("resourceGroupID"), ic.AlibabaCloud.ResourceGroupID))
 }
 
 func validateVpc(client *Client, ic *types.InstallConfig, path *field.Path) field.ErrorList {
@@ -213,7 +209,6 @@ func validatePrivateZoneID(client *Client, ic *types.InstallConfig, path *field.
 func ValidateForProvisioning(client *Client, ic *types.InstallConfig, metadata *Metadata) error {
 	allErrs := field.ErrorList{}
 	allErrs = append(allErrs, validateClusterName(client, ic)...)
-	allErrs = append(allErrs, validateNatGateway(client, ic)...)
 	return allErrs.ToAggregate()
 }
 
@@ -234,20 +229,6 @@ func validateClusterName(client *Client, ic *types.InstallConfig) field.ErrorLis
 			allErrs = append(allErrs, field.Invalid(namePath, ic.ObjectMeta.Name, fmt.Sprintf("cluster name is unavailable, private zone name %s already exists", zoneName)))
 			break
 		}
-	}
-	return allErrs
-}
-
-func validateNatGateway(client *Client, ic *types.InstallConfig) field.ErrorList {
-	allErrs := field.ErrorList{}
-	regionPath := field.NewPath("platform").Child("alibabacloud").Child("region")
-
-	natGatewayZones, err := client.ListEnhanhcedNatGatewayAvailableZones()
-	if err != nil {
-		return append(allErrs, field.InternalError(regionPath, err))
-	}
-	if len(natGatewayZones.Zones) == 0 {
-		allErrs = append(allErrs, field.Invalid(regionPath, ic.Platform.AlibabaCloud.Region, "enhanced NAT gateway is not supported in the current region"))
 	}
 	return allErrs
 }

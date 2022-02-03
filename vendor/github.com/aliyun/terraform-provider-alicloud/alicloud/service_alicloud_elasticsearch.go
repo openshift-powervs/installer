@@ -246,20 +246,10 @@ func updateDescription(d *schema.ResourceData, meta interface{}) error {
 		"clientToken": StringPointer(buildClientToken(action)),
 	}
 	elasticsearchClient, err := client.NewElasticsearchClient()
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err := elasticsearchClient.DoRequestWithAction(StringPointer(action), StringPointer("2017-06-13"), nil, StringPointer("POST"), StringPointer("AK"),
-			String(fmt.Sprintf("/openapi/instances/%s/description", d.Id())), requestQuery, nil, content, &util.RuntimeOptions{})
-		if err != nil {
-			if IsExpectedErrors(err, []string{"GetCustomerLabelFail"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, nil)
-		return nil
-	})
+	response, err := elasticsearchClient.DoRequestWithAction(StringPointer(action), StringPointer("2017-06-13"), nil, StringPointer("POST"), StringPointer("AK"),
+		String(fmt.Sprintf("/openapi/instances/%s/description", d.Id())), requestQuery, nil, content, &util.RuntimeOptions{})
+
+	addDebug(action, response, content)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}

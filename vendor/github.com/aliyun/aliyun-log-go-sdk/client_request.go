@@ -37,7 +37,7 @@ func (c *Client) request(project, method, uri string, headers map[string]string,
 	// SLS public request headers
 	var hostStr string
 	if len(project) == 0 {
-		hostStr = endpoint
+		hostStr = project
 	} else {
 		hostStr = project + "." + endpoint
 	}

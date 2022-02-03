@@ -478,26 +478,6 @@ func resourceAlicloudEciContainerGroup() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"image_registry_credential": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"password": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"server": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"user_name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -733,18 +713,6 @@ func resourceAlicloudEciContainerGroupCreate(d *schema.ResourceData, meta interf
 		if request["ZoneId"] == nil {
 			request["ZoneId"] = vsw.ZoneId
 		}
-	}
-	if v, ok := d.GetOk("image_registry_credential"); ok {
-		imageRegisryCredentialMaps := make([]map[string]interface{}, 0)
-		for _, raw := range v.(*schema.Set).List() {
-			obj := raw.(map[string]interface{})
-			imageRegisryCredentialMaps = append(imageRegisryCredentialMaps, map[string]interface{}{
-				"Password": obj["password"],
-				"Server":   obj["server"],
-				"UserName": obj["user_name"],
-			})
-		}
-		request["ImageRegistryCredential"] = imageRegisryCredentialMaps
 	}
 	runtime := util.RuntimeOptions{}
 	runtime.SetAutoretry(true)
@@ -1176,21 +1144,6 @@ func resourceAlicloudEciContainerGroupUpdate(d *schema.ResourceData, meta interf
 		}
 		request["Volume"] = Volumes
 
-	}
-	if d.HasChange("image_registry_credential") {
-		update = true
-		if v, ok := d.GetOk("image_registry_credential"); ok {
-			imageRegisryCredentialMaps := make([]map[string]interface{}, 0)
-			for _, raw := range v.(*schema.Set).List() {
-				obj := raw.(map[string]interface{})
-				imageRegisryCredentialMaps = append(imageRegisryCredentialMaps, map[string]interface{}{
-					"Password": obj["password"],
-					"Server":   obj["server"],
-					"UserName": obj["user_name"],
-				})
-			}
-			request["ImageRegistryCredential"] = imageRegisryCredentialMaps
-		}
 	}
 	if update {
 		action := "UpdateContainerGroup"

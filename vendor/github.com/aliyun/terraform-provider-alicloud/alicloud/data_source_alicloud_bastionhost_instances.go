@@ -174,7 +174,7 @@ func dataSourceAlicloudBastionhostInstancesRead(d *schema.ResourceData, meta int
 	BastionhostService := YundunBastionhostService{client}
 
 	for _, instanceId := range instanceIds {
-		object, err := BastionhostService.DescribeBastionhostInstance(instanceId)
+		object, err := BastionhostService.DescribeBastionhostInstanceAttribute(instanceId)
 		if err != nil {
 			return WrapError(err)
 		}
