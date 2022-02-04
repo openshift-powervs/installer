@@ -42,6 +42,27 @@ func validIPIInstallConfig() *types.InstallConfig {
 	}
 }
 
+func validUPIInstallConfig() *types.InstallConfig {
+	return &types.InstallConfig{
+		Networking: &types.Networking{
+			MachineNetwork: []types.MachineNetworkEntry{
+				{CIDR: *ipnet.MustParseCIDR(validCIDR)},
+			},
+		},
+		Publish: types.ExternalPublishingStrategy,
+		Platform: types.Platform{
+			VSphere: &vsphere.Platform{
+				Datacenter:       "valid_dc",
+				DefaultDatastore: "valid_ds",
+				Password:         "valid_password",
+				Username:         "valid_username",
+				VCenter:          "valid-vcenter",
+				Network:          "valid_network",
+			},
+		},
+	}
+}
+
 func TestValidate(t *testing.T) {
 	tests := []struct {
 		name             string
@@ -49,6 +70,10 @@ func TestValidate(t *testing.T) {
 		validationMethod func(Finder, *types.InstallConfig) error
 		expectErr        string
 	}{{
+		name:             "valid UPI install config",
+		installConfig:    validUPIInstallConfig(),
+		validationMethod: validateResources,
+	}, {
 		name:             "valid IPI install config",
 		installConfig:    validIPIInstallConfig(),
 		validationMethod: validateProvisioning,
@@ -68,7 +93,7 @@ func TestValidate(t *testing.T) {
 			c.Platform.VSphere.Datacenter = "invalid_dc"
 			return c
 		}(),
-		validationMethod: validateProvisioning,
+		validationMethod: validateResources,
 		expectErr:        `^platform.vsphere.network: Invalid value: "invalid_dc": 404$`,
 	}, {
 		name: "invalid IPI - invalid network",
@@ -77,7 +102,7 @@ func TestValidate(t *testing.T) {
 			c.Platform.VSphere.Network = "invalid_network"
 			return c
 		}(),
-		validationMethod: validateProvisioning,
+		validationMethod: validateResources,
 		expectErr:        `^platform.vsphere.network: Invalid value: "invalid_network": unable to find network provided$`,
 	}, {
 		name: "invalid IPI - no cluster",
