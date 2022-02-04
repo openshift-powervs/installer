@@ -136,15 +136,7 @@ func askCredentials() (auth.Credential, error) {
 }
 
 func (client *Client) doActionWithSetDomain(request requests.AcsRequest, response responses.AcsResponse) (err error) {
-	endpoint, err := endpoints.Resolve(&endpoints.ResolveParam{
-		Product:  strings.ToLower(request.GetProduct()),
-		RegionId: strings.ToLower(client.RegionID),
-	})
-
-	if err != nil {
-		endpoint = defaultEndpoint()[strings.ToLower(request.GetProduct())]
-	}
-
+	endpoint := getEndpoint(strings.ToLower(request.GetProduct()), strings.ToLower(client.RegionID))
 	request.SetDomain(endpoint)
 	err = client.DoAction(request, response)
 	return
@@ -212,10 +204,11 @@ func (client *Client) DescribeAvailableZoneByInstanceType(instanceType string) (
 }
 
 // ListResourceGroups gets the list of resource groups.
-func (client *Client) ListResourceGroups() (response *resourcemanager.ListResourceGroupsResponse, err error) {
+func (client *Client) ListResourceGroups(resourceGroupID string) (response *resourcemanager.ListResourceGroupsResponse, err error) {
 	request := resourcemanager.CreateListResourceGroupsRequest()
 	request.Status = "OK"
 	request.Scheme = "https"
+	request.QueryParams["ResourceGroupId"] = resourceGroupID
 	response = &resourcemanager.ListResourceGroupsResponse{
 		BaseResponse: &responses.BaseResponse{},
 	}
@@ -331,12 +324,47 @@ func (client *Client) GetAvailableZonesByInstanceType(instanceType string) ([]st
 	return zones, nil
 }
 
+func getEndpoint(productName string, regionID string) string {
+	if additionEndpoint, ok := additionEndpoint(productName, regionID); ok {
+		return additionEndpoint
+	}
+
+	endpoint, err := endpoints.Resolve(&endpoints.ResolveParam{
+		Product:  productName,
+		RegionId: regionID,
+	})
+
+	if err != nil {
+		endpoint = defaultEndpoint()[productName]
+	}
+
+	return endpoint
+}
+
 func defaultEndpoint() map[string]string {
 	return map[string]string{
 		"pvtz":            "pvtz.aliyuncs.com",
 		"resourcemanager": "resourcemanager.aliyuncs.com",
 		"ecs":             "ecs.aliyuncs.com",
 	}
+}
+
+func additionEndpoint(productName string, regionID string) (string, bool) {
+	endpoints := map[string]map[string]string{
+		"ecs": {
+			"cn-wulanchabu":  "ecs.cn-wulanchabu.aliyuncs.com",
+			"cn-guangzhou":   "ecs.cn-guangzhou.aliyuncs.com",
+			"ap-southeast-6": "ecs.ap-southeast-6.aliyuncs.com",
+			"cn-heyuan":      "ecs.cn-heyuan.aliyuncs.com",
+			"cn-chengdu":     "ecs.cn-chengdu.aliyuncs.com",
+		},
+	}
+	if regionEndpoints, ok := endpoints[productName]; ok {
+		if endpoint, ok := regionEndpoints[regionID]; ok {
+			return endpoint, true
+		}
+	}
+	return "", false
 }
 
 func storeCredentials(accessKeyID string, accessKeySecret string) (err error) {
