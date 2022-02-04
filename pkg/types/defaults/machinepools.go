@@ -3,7 +3,6 @@ package defaults
 import (
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/libvirt"
-	"github.com/openshift/installer/pkg/types/powervs"
 	"github.com/openshift/installer/pkg/version"
 )
 
@@ -12,8 +11,6 @@ func SetMachinePoolDefaults(p *types.MachinePool, platform string) {
 	defaultReplicaCount := int64(3)
 	if platform == libvirt.Name {
 		defaultReplicaCount = 1
-	} else if platform == powervs.Name {
-		p.Architecture = "ppc64le"
 	}
 	if p.Replicas == nil {
 		p.Replicas = &defaultReplicaCount
