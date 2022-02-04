@@ -149,3 +149,8 @@ variable "powervs_cis_crn" {
   description = "The CRN of CIS instance to use."
 }
 
+################################################################
+# Output Variables
+################################################################
+variable "bootstrap_ip" { default = "" }
+variable "control_plane_ips" { default = [] }
