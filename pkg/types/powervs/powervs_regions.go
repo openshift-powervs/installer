@@ -84,3 +84,25 @@ func Zones() []string {
 	}
 	return zones
 }
+
+// ZonesForRegion returns Zones for a given region
+func ZonesForRegion(region string) []string {
+	var zones []string
+	for _, r := range Regions {
+		if r.Name != region {
+			continue
+		}
+		zones = append(zones, r.Zones...)
+	}
+	return zones
+}
+
+func VPCRegionForRegion(region string) string {
+	var vpcRegion string
+	for _, r := range Regions {
+		if r.Name == region {
+			vpcRegion = r.VPCRegion
+		}
+	}
+	return vpcRegion
+}
