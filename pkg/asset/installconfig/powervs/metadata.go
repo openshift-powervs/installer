@@ -14,6 +14,7 @@ import (
 type Metadata struct {
 	BaseDomain string
 
+	accountID      string
 	cisInstanceCRN string
 	client         *ibmcloud.Client
 
@@ -23,6 +24,28 @@ type Metadata struct {
 // NewMetadata initializes a new Metadata object.
 func NewMetadata(baseDomain string) *Metadata {
 	return &Metadata{BaseDomain: baseDomain}
+}
+
+// AccountID returns the IBM Cloud account ID associated with the authentication
+// credentials.
+func (m *Metadata) AccountID(ctx context.Context) (string, error) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	if m.accountID == "" {
+		client, err := m.Client()
+		if err != nil {
+			return "", err
+		}
+
+		apiKeyDetails, err := client.GetAuthenticatorAPIKeyDetails(ctx)
+		if err != nil {
+			return "", err
+		}
+
+		m.accountID = *apiKeyDetails.AccountID
+	}
+	return m.accountID, nil
 }
 
 // CISInstanceCRN returns the Cloud Internet Services instance CRN that is
