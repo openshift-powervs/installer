@@ -67,8 +67,9 @@ resource "ibm_pi_instance" "bootstrap" {
   pi_image_id          = var.image_id
   pi_sys_type          = var.sys_type
   pi_cloud_instance_id = var.cloud_instance_id
-  pi_network_ids       = [data.ibm_pi_network.network.id]
-
+  pi_network {
+    network_id = data.ibm_pi_network.network.id
+  }
   pi_user_data         = base64encode(data.ignition_config.bootstrap.rendered)
   pi_key_pair_name     = var.key_id
   pi_health_status     = "WARNING"
