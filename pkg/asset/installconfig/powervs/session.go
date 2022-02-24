@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
 
 	"github.com/sirupsen/logrus"
@@ -27,6 +28,7 @@ var (
 // A bluemix session object may be a better fit here
 type Session struct {
 	Session *ibmpisession.IBMPISession
+	APIKey   string
 }
 
 // PISessionVars is an object that holds the variables required to create an ibmpisession object
@@ -39,18 +41,18 @@ type PISessionVars struct {
 
 // GetSession returns an ibmpisession object
 func GetSession() (*Session, error) {
-	s, err := getPISession()
+	s, apiKey, err := getPISession()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load credentials")
 	}
-	return &Session{Session: s}, nil
+	return &Session{Session: s, APIKey: apiKey}, nil
 }
 
 var (
 	defaultAuthFilePath = filepath.Join(os.Getenv("HOME"), ".powervs", "config.json")
 )
 
-func getPISession() (*ibmpisession.IBMPISession, error) {
+func getPISession() (*ibmpisession.IBMPISession, string, error) {
 
 	var err error
 	var pisv PISessionVars
@@ -59,40 +61,43 @@ func getPISession() (*ibmpisession.IBMPISession, error) {
 	logrus.Debug("Gathering variables from AuthFile")
 	err = getPISessionVarsFromAuthFile(&pisv)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// Frab variables from the users environment
 	logrus.Debug("Gathering variables from user environment")
 	err = getPISessionVarsFromEnv(&pisv)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// Prompt the user for the remaining variables
 	logrus.Debug("Gathering variables from user")
 	err = getPISessionVarsFromUser(&pisv)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// Save variables to disk
 	err = savePISessionVars(&pisv)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// This is needed by ibmcloud code to gather dns information later
 	os.Setenv("IC_API_KEY", pisv.APIKey)
 
-	// We are using the iamtoken field to hold the api key
-	s, err := ibmpisession.New(pisv.APIKey, pisv.Region, false, defSessionTimeout, pisv.ID, pisv.Zone)
-	if err != nil {
-		return nil, err
+	var authenticator core.Authenticator = &core.IamAuthenticator{
+		ApiKey: pisv.APIKey,
 	}
 
-	return s, err
+	// We are using the iamtoken field to hold the api key
+	s, err := ibmpisession.New(authenticator, pisv.Region, false, defSessionTimeout, pisv.ID, pisv.Zone)
+	if err != nil {
+		return nil, "", err
+	}
 
+	return s, pisv.APIKey, err
 }
 
 func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
