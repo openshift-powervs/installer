@@ -20,12 +20,3 @@ resource "ibm_cis_dns_record" "kubernetes_api_internal" {
   content   = var.load_balancer_int_hostname
   ttl       = 60
 }
-
-resource "ibm_cis_dns_record" "apps" {
-  cis_id    = var.cis_id
-  domain_id = data.ibm_cis_domain.base_domain.id
-  type      = "CNAME"
-  name      = "*.apps.${var.cluster_domain}"
-  content   = var.load_balancer_hostname
-  ttl       = 60
-}
