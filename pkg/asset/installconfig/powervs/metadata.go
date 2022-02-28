@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-
-	"github.com/openshift/installer/pkg/asset/installconfig/ibmcloud"
 )
 
 // Metadata holds additional metadata for InstallConfig resources that
@@ -14,8 +12,9 @@ import (
 type Metadata struct {
 	BaseDomain string
 
+	accountID      string
 	cisInstanceCRN string
-	client         *ibmcloud.Client
+	client         *Client
 
 	mutex sync.Mutex
 }
@@ -23,6 +22,28 @@ type Metadata struct {
 // NewMetadata initializes a new Metadata object.
 func NewMetadata(baseDomain string) *Metadata {
 	return &Metadata{BaseDomain: baseDomain}
+}
+
+// AccountID returns the IBM Cloud account ID associated with the authentication
+// credentials.
+func (m *Metadata) AccountID(ctx context.Context) (string, error) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	if m.accountID == "" {
+		client, err := m.Client()
+		if err != nil {
+			return "", err
+		}
+
+		apiKeyDetails, err := client.GetAuthenticatorAPIKeyDetails(ctx)
+		if err != nil {
+			return "", err
+		}
+
+		m.accountID = *apiKeyDetails.AccountID
+	}
+	return m.accountID, nil
 }
 
 // CISInstanceCRN returns the Cloud Internet Services instance CRN that is
@@ -59,9 +80,9 @@ func (m *Metadata) SetCISInstanceCRN(crn string) {
 }
 
 // Client returns a client used for making API calls to IBM Cloud services.
-func (m *Metadata) Client() (*ibmcloud.Client, error) {
+func (m *Metadata) Client() (*Client, error) {
 	if m.client == nil {
-		client, err := ibmcloud.NewClient()
+		client, err := NewClient()
 		if err != nil {
 			return nil, err
 		}
