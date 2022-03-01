@@ -20,6 +20,7 @@ import (
 	gcpmanifests "github.com/openshift/installer/pkg/asset/manifests/gcp"
 	ibmcloudmanifests "github.com/openshift/installer/pkg/asset/manifests/ibmcloud"
 	openstackmanifests "github.com/openshift/installer/pkg/asset/manifests/openstack"
+	powervsmanifests "github.com/openshift/installer/pkg/asset/manifests/powervs"
 	vspheremanifests "github.com/openshift/installer/pkg/asset/manifests/vsphere"
 	alibabacloudtypes "github.com/openshift/installer/pkg/types/alibabacloud"
 	awstypes "github.com/openshift/installer/pkg/types/aws"
@@ -91,7 +92,7 @@ func (cpc *CloudProviderConfig) Generate(dependencies asset.Parents) error {
 	}
 
 	switch installConfig.Config.Platform.Name() {
-	case libvirttypes.Name, nonetypes.Name, baremetaltypes.Name, ovirttypes.Name, powervstypes.Name:
+	case libvirttypes.Name, nonetypes.Name, baremetaltypes.Name, ovirttypes.Name:
 		return nil
 	case awstypes.Name:
 		// Store the additional trust bundle in the ca-bundle.pem key if the cluster is being installed on a C2S region.
@@ -214,6 +215,31 @@ func (cpc *CloudProviderConfig) Generate(dependencies asset.Parents) error {
 			return errors.Wrap(err, "could not create cloud provider config")
 		}
 		cm.Data[cloudProviderConfigDataKey] = ibmcloudConfig
+	case powervstypes.Name:
+		var vpcRegion string
+		var err error
+
+		accountID, err := installConfig.PowerVS.AccountID(context.TODO())
+		if err != nil {
+			return err
+		}
+
+		vpcRegion, err = powervstypes.VPCRegionForPowerVSRegion(installConfig.Config.PowerVS.Region)
+		if err != nil {
+			return err
+		}
+
+		powervsConfig, err := powervsmanifests.CloudProviderConfig(
+			clusterID.InfraID,
+			accountID,
+			installConfig.Config.PowerVS.VPC,
+			vpcRegion,
+			installConfig.Config.Platform.PowerVS.PowerVSResourceGroup,
+			installConfig.Config.PowerVS.Subnets)
+		if err != nil {
+			return errors.Wrap(err, "could not create cloud provider config")
+		}
+		cm.Data[cloudProviderConfigDataKey] = powervsConfig
 	case vspheretypes.Name:
 		folderPath := installConfig.Config.Platform.VSphere.Folder
 		if len(folderPath) == 0 {
