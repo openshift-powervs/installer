@@ -21,7 +21,7 @@ func Platform() (*powervs.Platform, error) {
 
 	p.Region = ssn.Session.Region
 	p.Zone = ssn.Session.Zone
-	p.APIKey = ssn.Session.IAMToken
+	p.APIKey = ssn.APIKey
 	p.UserID = ssn.Session.UserAccount
 
 	return &p, nil
