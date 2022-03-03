@@ -705,7 +705,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				Region:               installConfig.Config.Platform.PowerVS.Region,
 				Zone:                 installConfig.Config.Platform.PowerVS.Zone,
 				VPCZone:              installConfig.Config.Platform.PowerVS.VPCZone,
-				APIKey:               session.Session.IAMToken,
+				APIKey:               session.APIKey,
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
 				ImageBucketFileName:  string(*rhcosImage),
