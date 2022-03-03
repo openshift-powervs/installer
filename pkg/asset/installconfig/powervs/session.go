@@ -84,9 +84,6 @@ func getPISession() (*ibmpisession.IBMPISession, string, error) {
 		return nil, "", err
 	}
 
-	// This is needed by ibmcloud code to gather dns information later
-	os.Setenv("IC_API_KEY", pisv.APIKey)
-
 	var authenticator core.Authenticator = &core.IamAuthenticator{
 		ApiKey: pisv.APIKey,
 	}
