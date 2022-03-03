@@ -25,13 +25,13 @@ var (
 )
 
 // Session is an object representing a session for the IBM Power VS API.
-// A bluemix session object may be a better fit here
+// A bluemix session object may be a better fit here.
 type Session struct {
 	Session *ibmpisession.IBMPISession
 	APIKey  string
 }
 
-// PISessionVars is an object that holds the variables required to create an ibmpisession object
+// PISessionVars is an object that holds the variables required to create an ibmpisession object.
 type PISessionVars struct {
 	ID     string `json:"id,omitempty"`
 	APIKey string `json:"apikey,omitempty"`
@@ -39,7 +39,7 @@ type PISessionVars struct {
 	Zone   string `json:"zone,omitempty"`
 }
 
-// GetSession returns an ibmpisession object
+// GetSession returns an ibmpisession object.
 func GetSession() (*Session, error) {
 	s, apiKey, err := getPISession()
 	if err != nil {
@@ -83,9 +83,6 @@ func getPISession() (*ibmpisession.IBMPISession, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-
-	// This is needed by ibmcloud code to gather dns information later
-	os.Setenv("IC_API_KEY", pisv.APIKey)
 
 	var authenticator core.Authenticator = &core.IamAuthenticator{
 		ApiKey: pisv.APIKey,
