@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 
 	survey "github.com/AlecAivazis/survey/v2"
-	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
+	"github.com/IBM/go-sdk-core/v5/core"
 
 	"github.com/sirupsen/logrus"
 )
