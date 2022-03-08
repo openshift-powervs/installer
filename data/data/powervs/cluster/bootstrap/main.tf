@@ -7,12 +7,6 @@ data "ibm_pi_network" "network" {
   pi_cloud_instance_id = var.cloud_instance_id
 }
 
-data "ignition_config" "bootstrap" {
-  merge {
-    source = ibms3presign.bootstrap_ignition.presigned_url
-  }
-}
-
 data "ibm_resource_group" "cos_group" {
   name = var.resource_group
 }
@@ -41,22 +35,16 @@ resource "ibm_resource_key" "cos_service_cred" {
   parameters           = { HMAC = true }
 }
 
-resource "ibms3presign" "bootstrap_ignition" {
-  access_key_id     = ibm_resource_key.cos_service_cred.credentials["cos_hmac_keys.access_key_id"]
-  secret_access_key = ibm_resource_key.cos_service_cred.credentials["cos_hmac_keys.secret_access_key"]
-  bucket_name       = "${var.cluster_id}-bootstrap-ign"
-  key               = "bootstrap.ign"
-  region_location   = ibm_cos_bucket.ignition.region_location
-  storage_class     = ibm_cos_bucket.ignition.storage_class
-}
-
 # Place the bootstrap ignition file in the ignition COS bucket
 resource "ibm_cos_bucket_object" "ignition" {
   bucket_crn      = ibm_cos_bucket.ignition.crn
   bucket_location = ibm_cos_bucket.ignition.region_location
   content         = var.ignition
   key             = "bootstrap.ign"
+  etag            = md5(var.ignition)
 }
+
+data "ibm_iam_auth_token" "iam_token" {}
 
 # Create the bootstrap instance
 resource "ibm_pi_instance" "bootstrap" {
@@ -70,7 +58,12 @@ resource "ibm_pi_instance" "bootstrap" {
   pi_network {
     network_id = data.ibm_pi_network.network.id
   }
-  pi_user_data         = base64encode(data.ignition_config.bootstrap.rendered)
+  pi_user_data         = base64encode(templatefile("${path.module}/templates/bootstrap.ign", {
+    HOSTNAME    = ibm_cos_bucket.ignition.s3_endpoint_public
+    BUCKET_NAME = ibm_cos_bucket.ignition.bucket_name
+    OBJECT_NAME = ibm_cos_bucket_object.ignition.key
+    IAM_TOKEN   = data.ibm_iam_auth_token.iam_token.iam_access_token
+  }))
   pi_key_pair_name     = var.key_id
   pi_health_status     = "WARNING"
 }

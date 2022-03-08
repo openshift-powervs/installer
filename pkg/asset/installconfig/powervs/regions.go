@@ -15,8 +15,8 @@ func knownRegions() map[string]string {
 
 	regions := make(map[string]string)
 
-	for _, region := range powervs.Regions {
-		regions[region.Name] = region.Description
+	for name, region := range powervs.Regions {
+		regions[name] = region.Description
 	}
 	return regions
 }

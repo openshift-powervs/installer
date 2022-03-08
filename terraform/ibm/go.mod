@@ -2,7 +2,7 @@ module github.com/openshift/installer/terraform/ibm
 
 go 1.17
 
-require github.com/IBM-Cloud/terraform-provider-ibm v1.38.1
+require github.com/IBM-Cloud/terraform-provider-ibm v1.39.1
 
 require (
 	cloud.google.com/go v0.65.0 // indirect
