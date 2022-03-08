@@ -2,6 +2,6 @@
 # This file just uses aliases defined in OWNERS_ALIASES.
 
 approvers:
-  - multiarch-approvers
+  - powervs-approvers
 reviewers:
-  - multiarch-reviewers
+  - powervs-reviewers

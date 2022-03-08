@@ -2,35 +2,29 @@ package powervs
 
 // Platform stores all the global configuration that all machinesets
 // use.
-// Note: The subsequent mentions of future-TF support refer to work that is
-// undergoing and should be available to test well in time for 4.10 feature-
-// freeze. We do not plan to GA with these as required inputs.
 type Platform struct {
 
 	// ServiceInstanceID is the ID of the Power IAAS instance created from the IBM Cloud Catalog
-	ServiceInstanceID string `json:"serviceInstance"`
+	ServiceInstanceID string `json:"serviceInstanceID"`
 
-	// PowerVSResourceGroup is the resource group for creating Power VS resources.
+	// PowerVSResourceGroup is the resource group in which Power VS resources will be created.
 	PowerVSResourceGroup string `json:"powervsResourceGroup"`
 
-	// Region specifies the IBM Cloud region where the cluster will be created.
+	// Region specifies the IBM Cloud colo region where the cluster will be created.
 	Region string `json:"region"`
 
 	// Zone specifies the IBM Cloud colo region where the cluster will be created.
-	// Required for multi-zone regions.
+	// At this time, only single-zone clusters are supported.
 	Zone string `json:"zone"`
 
-	// Zone in the region used to create VPC resources. Leave unset
-	// to allow installer to randomly select a zone.
+	// VPCRegion specifies the IBM Cloud region in which to create VPC resources.
+	// Leave unset to allow installer to select the closest VPC region.
 	//
 	// +optional
-	VPCZone string `json:"vpcRegion,omitempty"`
+	VPCRegion string `json:"vpcRegion,omitempty"`
 
 	// UserID is the login for the user's IBM Cloud account.
 	UserID string `json:"userID"`
-
-	// APIKey is the API key for the user's IBM Cloud account.
-	APIKey string `json:"APIKey,omitempty"`
 
 	// VPC is a VPC inside IBM Cloud. Needed in order to create VPC Load Balancers.
 	//
