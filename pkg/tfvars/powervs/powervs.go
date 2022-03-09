@@ -43,7 +43,6 @@ type TFVarsSources struct {
 	ImageBucketFileName  string
 	NetworkName          string
 	PowerVSResourceGroup string
-	VPCZone              string
 	CISInstanceCRN       string
 	VPCName              string
 	VPCSubnetName        string
@@ -55,14 +54,11 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	// TODO(mjturek): Allow user to specify vpcRegion in install config like we're doing for vpcZone
 	vpcRegion := powervs.Regions[sources.Region].VPCRegion
 
-	vpcZone := sources.VPCZone
-	if vpcZone == "" {
-		// Randomly select a zone in the VPC region.
-		// @TODO: Align this with a region later.
-		rand.Seed(time.Now().UnixNano())
-		// All supported Regions are MZRs and have Zones named "region-[1-3]"
-		vpcZone = fmt.Sprintf("%s-%d", vpcRegion, rand.Intn(3))
-	}
+	// Randomly select a zone in the VPC region.
+	// @TODO: Align this with a region later.
+	rand.Seed(time.Now().UnixNano())
+	// All supported Regions are MZRs and have Zones named "region-[1-3]"
+	vpcZone := fmt.Sprintf("%s-%d", vpcRegion, rand.Intn(3))
 
 	//@TODO: Add resource group to platform
 	cfg := &config{

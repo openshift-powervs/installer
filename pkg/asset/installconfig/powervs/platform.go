@@ -19,10 +19,9 @@ func Platform() (*powervs.Platform, error) {
 		p.ClusterOSImage = osOverride
 	}
 
-	p.Region = ssn.Session.Region
-	p.Zone = ssn.Session.Zone
-	p.APIKey = ssn.APIKey
-	p.UserID = ssn.Session.UserAccount
+	p.Region = ssn.Session.Options.Region
+	p.Zone = ssn.Session.Options.Zone
+	p.UserID = ssn.Session.Options.UserAccount
 
 	return &p, nil
 }

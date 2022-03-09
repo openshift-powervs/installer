@@ -14,10 +14,5 @@ func ValidatePlatform(p *powervs.Platform, fldPath *field.Path) field.ErrorList 
 		allErrs = append(allErrs, field.Required(fldPath.Child("region"), "region must be specified"))
 	}
 
-	/*if p.DefaultMachinePlatform != nil {
-		allErrs = append(allErrs, ValidateMachinePool(p, p.DefaultMachinePlatform, fldPath.Child("defaultMachinePlatform"))...)
-	}*/
 	return allErrs
 }
-
-//var schemeRE = regexp.MustCompile("^([^:]+)://")

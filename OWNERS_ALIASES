@@ -8,7 +8,6 @@ aliases:
     - staebler
     - sdodson
     - smarterclayton
-    - wking
   installer-reviewers:
     - jhixson74
     - jstuever
@@ -32,16 +31,16 @@ aliases:
     - mandre
     - mdbooth
     - pierreprinetti
+    - stephenfin
   powervs-approvers:
-    - Prashanth684
     - clnperez
     - mkumatag
+    - Prashanth684
   powervs-reviewers:
-    - 23TNC
     - clnperez
-    - mjturek
     - mkumatag
     - Prashanth684
+    - mjturek
   vsphere-approvers:
     - dav1x
     - jcpowermac
@@ -83,15 +82,15 @@ aliases:
     - jhixson74
     - m1kola
   ovirt-approvers:
-    - rgolangh
-    - Gal-Zaidman
-    - eslutsky
     - janosdebugs
+    - eslutsky
+    - mmartinv
+    - bkhizgiy
   ovirt-reviewers:
-    - rgolangh
-    - Gal-Zaidman
-    - eslutsky
     - janosdebugs
+    - eslutsky
+    - mmartinv
+    - bkhizgiy
   ibmcloud-approvers:
     - bobbyradford
     - hasueki

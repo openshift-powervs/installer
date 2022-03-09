@@ -30,7 +30,6 @@ import (
 	awsconfig "github.com/openshift/installer/pkg/asset/installconfig/aws"
 	gcpconfig "github.com/openshift/installer/pkg/asset/installconfig/gcp"
 	ovirtconfig "github.com/openshift/installer/pkg/asset/installconfig/ovirt"
-	powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 	"github.com/openshift/installer/pkg/asset/machines"
 	"github.com/openshift/installer/pkg/asset/manifests"
 	"github.com/openshift/installer/pkg/asset/openshiftinstall"
@@ -677,12 +676,6 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			Data:     data,
 		})
 	case powervs.Name:
-		// @TODO: Can we just use the install config for all these values?
-		session, err := powervsconfig.GetSession()
-		if err != nil {
-			return err
-		}
-
 		masters, err := mastersAsset.Machines()
 		if err != nil {
 			return err
@@ -704,8 +697,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				MasterConfigs:        masterConfigs,
 				Region:               installConfig.Config.Platform.PowerVS.Region,
 				Zone:                 installConfig.Config.Platform.PowerVS.Zone,
-				VPCZone:              installConfig.Config.Platform.PowerVS.VPCZone,
-				APIKey:               session.Session.IAMToken,
+				APIKey:               os.Getenv("IC_API_KEY"),
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
 				ImageBucketFileName:  string(*rhcosImage),

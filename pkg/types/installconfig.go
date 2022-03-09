@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	configv1 "github.com/openshift/api/config/v1"
 	"github.com/openshift/installer/pkg/ipnet"
 	"github.com/openshift/installer/pkg/types/alibabacloud"
 	"github.com/openshift/installer/pkg/types/aws"
@@ -17,7 +20,6 @@ import (
 	"github.com/openshift/installer/pkg/types/ovirt"
 	"github.com/openshift/installer/pkg/types/powervs"
 	"github.com/openshift/installer/pkg/types/vsphere"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -157,6 +159,10 @@ type InstallConfig struct {
 	// BootstrapInPlace is the configuration for installing a single node
 	// with bootstrap in place installation.
 	BootstrapInPlace *BootstrapInPlace `json:"bootstrapInPlace,omitempty"`
+
+	// Capabilities configures the installation of optional core cluster components.
+	// +optional
+	Capabilities *Capabilities `json:"capabilities,omitempty"`
 }
 
 // ClusterDomain returns the DNS domain that all records for a cluster must belong to.
@@ -380,6 +386,21 @@ const (
 type BootstrapInPlace struct {
 	// InstallationDisk is the target disk drive for coreos-installer
 	InstallationDisk string `json:"installationDisk"`
+}
+
+// Capabilities selects the managed set of optional, core cluster components.
+type Capabilities struct {
+	// baselineCapabilitySet selects an initial set of
+	// optional capabilities to enable, which can be extended via
+	// additionalEnabledCapabilities. The default is vCurrent.
+	// +optional
+	BaselineCapabilitySet configv1.ClusterVersionCapabilitySet `json:"baselineCapabilitySet,omitempty"`
+
+	// additionalEnabledCapabilities extends the set of managed
+	// capabilities beyond the baseline defined in
+	// baselineCapabilitySet. The default is an empty set.
+	// +optional
+	AdditionalEnabledCapabilities []configv1.ClusterVersionCapability `json:"additionalEnabledCapabilities,omitempty"`
 }
 
 // WorkerMachinePool retrieves the worker MachinePool from InstallConfig.Compute

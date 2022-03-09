@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 
 	survey "github.com/AlecAivazis/survey/v2"
-	//89d3998a	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
+	"github.com/IBM/go-sdk-core/v5/core"
 
 	"github.com/sirupsen/logrus"
 )
@@ -87,13 +87,20 @@ func getPISession() (*ibmpisession.IBMPISession, string, error) {
 	// This is needed by ibmcloud code to gather dns information later
 	os.Setenv("IC_API_KEY", pisv.APIKey)
 
-	//89d3998a	var authenticator core.Authenticator = &core.IamAuthenticator{
-	//89d3998a		ApiKey: pisv.APIKey,
-	//89d3998a	}
+	var authenticator core.Authenticator = &core.IamAuthenticator{
+		ApiKey: pisv.APIKey,
+	}
 
-	// We are using the iamtoken field to hold the api key
-	//89d3998a	s, err := ibmpisession.New(authenticator, pisv.Region, false, defSessionTimeout, pisv.ID, pisv.Zone)
-	s, err := ibmpisession.New(pisv.APIKey, pisv.Region, false, defSessionTimeout, pisv.ID, pisv.Zone)
+	// Create the session
+	options := &ibmpisession.IBMPIOptions{
+		Authenticator: authenticator,
+		UserAccount:   pisv.ID,
+		Region:        pisv.Region,
+		Zone:          pisv.Zone,
+		Debug:         false,
+	}
+
+	s, err := ibmpisession.NewIBMPISession(options)
 	if err != nil {
 		return nil, "", err
 	}
