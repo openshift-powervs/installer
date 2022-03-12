@@ -43,35 +43,3 @@ resource "ibm_cos_bucket_object" "ignition" {
   key             = "bootstrap.ign"
   etag            = md5(var.ignition)
 }
-
-data "ibm_iam_auth_token" "iam_token" {}
-
-# Create the bootstrap instance
-resource "ibm_pi_instance" "bootstrap" {
-  pi_memory            = var.memory
-  pi_processors        = var.processors
-  pi_instance_name     = "${var.cluster_id}-bootstrap"
-  pi_proc_type         = var.proc_type
-  pi_image_id          = var.image_id
-  pi_sys_type          = var.sys_type
-  pi_cloud_instance_id = var.cloud_instance_id
-  pi_network {
-    network_id = data.ibm_pi_network.network.id
-  }
-  pi_user_data         = base64encode(templatefile("${path.module}/templates/bootstrap.ign", {
-    HOSTNAME    = ibm_cos_bucket.ignition.s3_endpoint_public
-    BUCKET_NAME = ibm_cos_bucket.ignition.bucket_name
-    OBJECT_NAME = ibm_cos_bucket_object.ignition.key
-    IAM_TOKEN   = data.ibm_iam_auth_token.iam_token.iam_access_token
-  }))
-  pi_key_pair_name     = var.key_id
-  pi_health_status     = "WARNING"
-}
-
-data "ibm_pi_instance_ip" "bootstrap_ip" {
-  depends_on = [ibm_pi_instance.bootstrap]
-
-  pi_instance_name     = ibm_pi_instance.bootstrap.pi_instance_name
-  pi_network_name      = data.ibm_pi_network.network.pi_network_name
-  pi_cloud_instance_id = var.cloud_instance_id
-}
