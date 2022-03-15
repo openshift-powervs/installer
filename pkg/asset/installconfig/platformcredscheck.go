@@ -67,8 +67,6 @@ func (a *PlatformCredsCheck) Generate(dependencies asset.Parents) error {
 		}
 	case ibmcloud.Name:
 		_, err = ibmcloudconfig.NewClient()
-	case powervs.Name:
-		_, err = powervsconfig.GetSession()
 		if err != nil {
 			return errors.Wrap(err, "creating IBM Cloud session")
 		}
@@ -92,6 +90,11 @@ func (a *PlatformCredsCheck) Generate(dependencies asset.Parents) error {
 		err = con.Test()
 		if err != nil {
 			return errors.Wrap(err, "testing Engine connection")
+		}
+	case powervs.Name:
+		_, err = powervsconfig.GetSession()
+		if err != nil {
+			return errors.Wrap(err, "creating IBM Cloud session")
 		}
 	default:
 		err = fmt.Errorf("unknown platform type %q", platform)

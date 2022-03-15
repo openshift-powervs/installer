@@ -22,7 +22,6 @@ func knownRegions() map[string]string {
 }
 
 // IsKnownRegion return true is a specified region is Known to the installer.
-// A known region is subset of AWS regions and the regions where RHEL CoreOS images are published.
 func IsKnownRegion(region string) bool {
 	if _, ok := knownRegions()[region]; ok {
 		return true
@@ -30,7 +29,6 @@ func IsKnownRegion(region string) bool {
 	return false
 }
 
-// Todo(cklokman): Need some form of error handing in this function...
 func knownZones(region string) []string {
 	return powervs.Regions[region].Zones
 }
@@ -49,7 +47,7 @@ func IsKnownZone(region string, zone string) bool {
 	return false
 }
 
-// GetRegion prompts the user to select a region and returns that region
+// GetRegion prompts the user to select a region and returns that region.
 func GetRegion() (string, error) {
 	regions := knownRegions()
 
@@ -99,7 +97,7 @@ func GetRegion() (string, error) {
 	return region, nil
 }
 
-// GetZone prompts the user for a zone given a zone
+// GetZone prompts the user for a zone given a zone.
 func GetZone(region string) (string, error) {
 	zones := knownZones(region)
 	defaultZone := zones[0]

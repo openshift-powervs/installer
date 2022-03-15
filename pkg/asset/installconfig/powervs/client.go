@@ -197,7 +197,7 @@ func (c *Client) loadVPCV1API() error {
 }
 
 // GetAuthenticatorAPIKeyDetails gets detailed information on the API key used
-// for authentication to the IBM Cloud APIs
+// for authentication to the IBM Cloud APIs.
 func (c *Client) GetAuthenticatorAPIKeyDetails(ctx context.Context) (*iamidentityv1.APIKey, error) {
 	authenticator := &core.IamAuthenticator{
 		ApiKey: c.APIKey,
