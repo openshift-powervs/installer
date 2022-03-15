@@ -140,6 +140,12 @@ variable "powervs_vpc_subnet_name" {
   description = "Name of the VPC subnet connected via DirectLink to the Power VS private network."
 }
 
+variable "powervs_expose_bootstrap" {
+  type = bool
+  description = "Setting this to false allows the bootstrap resources to be removed from the cluster load balancers."
+  default = true
+}
+
 ################################################################
 # Configure DNS
 ################################################################
