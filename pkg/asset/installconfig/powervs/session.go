@@ -7,31 +7,25 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/IBM/go-sdk-core/v4/core"
 	"github.com/pkg/errors"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
-	"github.com/IBM/go-sdk-core/v5/core"
-
-	"github.com/sirupsen/logrus"
 )
 
 var (
-	//reqAuthEnvs = []string{"IBMID", "IBMID_PASSWORD"}
-	//optAuthEnvs = []string{"IBMCLOUD_REGION", "IBMCLOUD_ZONE"}
-	//debug = false
 	defSessionTimeout time.Duration = 9000000000000000000.0
 	defRegion                       = "us_south"
 )
 
 // Session is an object representing a session for the IBM Power VS API.
-// A bluemix session object may be a better fit here
 type Session struct {
 	Session *ibmpisession.IBMPISession
 	APIKey  string
 }
 
-// PISessionVars is an object that holds the variables required to create an ibmpisession object
+// PISessionVars is an object that holds the variables required to create an ibmpisession object.
 type PISessionVars struct {
 	ID     string `json:"id,omitempty"`
 	APIKey string `json:"apikey,omitempty"`
@@ -39,7 +33,7 @@ type PISessionVars struct {
 	Zone   string `json:"zone,omitempty"`
 }
 
-// GetSession returns an ibmpisession object
+// GetSession returns an ibmpisession object.
 func GetSession() (*Session, error) {
 	s, apiKey, err := getPISession()
 	if err != nil {
@@ -57,50 +51,42 @@ func getPISession() (*ibmpisession.IBMPISession, string, error) {
 	var err error
 	var pisv PISessionVars
 
-	// Grab variables from the installer written authFilePath
-	logrus.Debug("Gathering variables from AuthFile")
+	// Grab variables from the installer written authFilePath.
 	err = getPISessionVarsFromAuthFile(&pisv)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// Frab variables from the users environment
-	logrus.Debug("Gathering variables from user environment")
+	// Grab variables from the users environment.
 	err = getPISessionVarsFromEnv(&pisv)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// Prompt the user for the remaining variables
-	logrus.Debug("Gathering variables from user")
+	// Prompt the user for the remaining variables.
 	err = getPISessionVarsFromUser(&pisv)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// Save variables to disk
+	// Save variables to disk.
 	err = savePISessionVars(&pisv)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// This is needed by ibmcloud code to gather dns information later
+	// This is needed by ibmcloud code to gather DNS information later.
 	os.Setenv("IC_API_KEY", pisv.APIKey)
 
-	var authenticator core.Authenticator = &core.IamAuthenticator{
-		ApiKey: pisv.APIKey,
+	piOpts := ibmpisession.IBMPIOptions{
+		Authenticator: &core.IamAuthenticator{
+			ApiKey: pisv.APIKey,
+		},
+		Region:      pisv.Region,
+		UserAccount: pisv.ID,
+		Zone:        pisv.Zone,
 	}
-
-	// Create the session
-	options := &ibmpisession.IBMPIOptions{
-		Authenticator: authenticator,
-		UserAccount:   pisv.ID,
-		Region:        pisv.Region,
-		Zone:          pisv.Zone,
-		Debug:         false,
-	}
-
-	s, err := ibmpisession.NewIBMPISession(options)
+	s, err := ibmpisession.NewIBMPISession(&piOpts)
 	if err != nil {
 		return nil, "", err
 	}
@@ -111,7 +97,7 @@ func getPISession() (*ibmpisession.IBMPISession, string, error) {
 func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
 
 	if pisv == nil {
-		return errors.New("PISession Variable Object pointer cannot be nil")
+		return errors.New("nil var: PISessionVars")
 	}
 
 	authFilePath := defaultAuthFilePath
@@ -119,7 +105,6 @@ func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
 		authFilePath = f
 	}
 
-	// Check if AuthFile exists, return if it does not
 	if _, err := os.Stat(authFilePath); os.IsNotExist(err) {
 		return nil
 	}
@@ -140,7 +125,7 @@ func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
 func getPISessionVarsFromEnv(pisv *PISessionVars) error {
 
 	if pisv == nil {
-		return errors.New("PISession Variable Object pointer cannot be nil")
+		return errors.New("nil var: PiSessionVars")
 	}
 
 	if len(pisv.ID) == 0 {
@@ -148,7 +133,7 @@ func getPISessionVarsFromEnv(pisv *PISessionVars) error {
 	}
 
 	if len(pisv.APIKey) == 0 {
-		// APIKeyEnvVars is a list of environment variable names containing an IBM Cloud API key
+		// APIKeyEnvVars is a list of environment variable names containing an IBM Cloud API key.
 		var APIKeyEnvVars = []string{"IC_API_KEY", "IBMCLOUD_API_KEY", "BM_API_KEY", "BLUEMIX_API_KEY"}
 		pisv.APIKey = getEnv(APIKeyEnvVars)
 	}
@@ -170,7 +155,7 @@ func getPISessionVarsFromUser(pisv *PISessionVars) error {
 	var err error
 
 	if pisv == nil {
-		return errors.New("PISession Variable Object pointer cannot be nil")
+		return errors.New("nil var: PiSessionVars")
 	}
 
 	if len(pisv.ID) == 0 {
@@ -237,7 +222,6 @@ func savePISessionVars(pisv *PISessionVars) error {
 	if err != nil {
 		return err
 	}
-	logrus.Debug("Saving variables to ", authFilePath)
 	return ioutil.WriteFile(authFilePath, jsonVars, 0600)
 }
 

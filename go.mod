@@ -9,7 +9,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.11.18
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.1
 	github.com/Azure/go-autorest/autorest/to v0.4.0
-	github.com/IBM-Cloud/bluemix-go v0.0.0-20210611051827-cdc80c935c05
+	github.com/IBM-Cloud/bluemix-go v0.0.0-20211102075456-ffc4e11dfb16
 	github.com/IBM-Cloud/power-go-client v1.1.4
 	github.com/IBM/go-sdk-core/v5 v5.9.1
 	github.com/IBM/networking-go-sdk v0.14.0
@@ -39,7 +39,7 @@ require (
 	github.com/metal3-io/baremetal-operator/apis v0.0.0
 	github.com/metal3-io/baremetal-operator/pkg/hardwareutils v0.0.0
 	github.com/openshift/api v0.0.0-20220222102030-354aa98a475c
-	github.com/openshift/client-go v0.0.0-20211025111749-96ca2abfc56c
+	github.com/openshift/client-go v0.0.0-20211209144617-7385dd6338e3
 	github.com/openshift/cloud-credential-operator v0.0.0-20200316201045-d10080b52c9e
 	github.com/openshift/cluster-api-provider-baremetal v0.0.0-20210924143856-c2d3ece4da38
 	github.com/openshift/cluster-api-provider-ibmcloud v0.0.0-20211008100740-4d7907adbd6b
@@ -76,7 +76,7 @@ require (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.30.0
-	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b
+	k8s.io/utils v0.0.0-20211208161948-7d6a63dca704
 	sigs.k8s.io/cluster-api-provider-aws v0.0.0
 	sigs.k8s.io/cluster-api-provider-openstack v0.0.0
 	sigs.k8s.io/controller-tools v0.7.0
@@ -104,10 +104,10 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimchansky/utfbom v1.1.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
-	github.com/fatih/color v1.7.0 // indirect
+	github.com/fatih/color v1.12.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
+	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.21.2 // indirect
 	github.com/go-openapi/errors v0.20.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -121,10 +121,10 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
-	github.com/gobuffalo/flect v0.2.2 // indirect
+	github.com/gobuffalo/flect v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/google/gofuzz v1.1.0 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/renameio v1.0.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
@@ -141,7 +141,7 @@ require (
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.2 // indirect
+	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
@@ -179,7 +179,7 @@ require (
 	k8s.io/component-base v0.23.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	sigs.k8s.io/controller-runtime v0.11.0 // indirect
-	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
+	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )

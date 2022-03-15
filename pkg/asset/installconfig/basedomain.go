@@ -72,14 +72,7 @@ func (a *baseDomain) Generate(parents asset.Parents) error {
 		if !(gcpconfig.IsForbidden(err) || gcpconfig.IsThrottled(err)) {
 			return err
 		}
-	case ibmcloud.Name:
-		zone, err := ibmcloudconfig.GetDNSZone()
-		if err != nil {
-			return err
-		}
-		a.BaseDomain = zone.Name
-		return nil
-	case powervs.Name:
+	case ibmcloud.Name, powervs.Name:
 		zone, err := ibmcloudconfig.GetDNSZone()
 		if err != nil {
 			return err
