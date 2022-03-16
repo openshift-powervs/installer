@@ -11,6 +11,7 @@ import (
 	azureconfig "github.com/openshift/installer/pkg/asset/installconfig/azure"
 	gcpconfig "github.com/openshift/installer/pkg/asset/installconfig/gcp"
 	ibmcloudconfig "github.com/openshift/installer/pkg/asset/installconfig/ibmcloud"
+	powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 	"github.com/openshift/installer/pkg/types/alibabacloud"
 	"github.com/openshift/installer/pkg/types/aws"
 	"github.com/openshift/installer/pkg/types/azure"
@@ -80,7 +81,7 @@ func (a *baseDomain) Generate(parents asset.Parents) error {
 		a.BaseDomain = zone.Name
 		return nil
 	case powervs.Name:
-		zone, err := ibmcloudconfig.GetDNSZone()
+		zone, err := powervsconfig.GetDNSZone()
 		if err != nil {
 			return err
 		}
