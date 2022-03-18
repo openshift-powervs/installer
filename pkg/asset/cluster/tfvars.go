@@ -712,8 +712,6 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				ImageBucketFileName:  string(*rhcosImage),
 				NetworkName:          installConfig.Config.PowerVS.PVSNetworkName,
 				CISInstanceCRN:       crn,
-				VPCSubnetName:        installConfig.Config.PowerVS.Subnets[0],
-				VPCName:              installConfig.Config.PowerVS.VPC,
 			},
 		)
 		if err != nil {

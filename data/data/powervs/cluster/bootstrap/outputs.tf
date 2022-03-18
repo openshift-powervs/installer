@@ -1,3 +1,3 @@
-output "bootstrap_private_ip" {
-  value = data.ibm_pi_instance_ip.bootstrap_ip.ip
+output bootstrap_ip {
+  value = module.vm.bootstrap_ip
 }

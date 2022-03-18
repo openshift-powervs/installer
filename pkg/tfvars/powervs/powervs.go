@@ -58,7 +58,7 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	// @TODO: Align this with a region later.
 	rand.Seed(time.Now().UnixNano())
 	// All supported Regions are MZRs and have Zones named "region-[1-3]"
-	vpcZone := fmt.Sprintf("%s-%d", vpcRegion, rand.Intn(3))
+	vpcZone := fmt.Sprintf("%s-%d", vpcRegion, rand.Intn(2)+1)
 
 	//@TODO: Add resource group to platform
 	cfg := &config{
