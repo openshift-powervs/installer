@@ -710,7 +710,6 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
 				ImageBucketFileName:  string(*rhcosImage),
-				NetworkName:          installConfig.Config.PowerVS.PVSNetworkName,
 				CISInstanceCRN:       crn,
 			},
 		)

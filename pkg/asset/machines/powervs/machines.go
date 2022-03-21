@@ -74,7 +74,7 @@ func Machines(clusterID string, config *types.InstallConfig, pool *types.Machine
 
 func provider(clusterID string, platform *powervs.Platform, mpool *powervs.MachinePool, userDataSecret string, image string, network string) (*powervsprovider.PowerVSMachineProviderConfig, error) {
 
-	if clusterID == "" || platform == nil || mpool == nil || userDataSecret == "" || image == "" || network == "" {
+	if clusterID == "" || platform == nil || mpool == nil || userDataSecret == "" || image == "" {
 		return nil, fmt.Errorf("invalid value passed to provider")
 	}
 
@@ -93,8 +93,10 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 		ProcType:          string(mpool.ProcType),
 		Processors:        mpool.Processors,
 		Memory:            mpool.Memory,
-		Network:           powervsprovider.PowerVSResourceReference{Name: &network},
 		KeyPairName:       fmt.Sprintf("%s-key", clusterID),
+	}
+	if network != "" {
+		config.Network = powervsprovider.PowerVSResourceReference{Name: &network}
 	}
 	return config, nil
 }
