@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 	"github.com/openshift/installer/pkg/types/powervs"
+	"github.com/openshift/machine-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 )
 
 type config struct {

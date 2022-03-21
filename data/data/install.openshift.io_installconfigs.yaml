@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
   name: installconfigs.install.openshift.io
 spec:
@@ -57,6 +57,7 @@ spec:
                     cluster components.
                   enum:
                   - openshift-samples
+                  - baremetal
                   type: string
                 type: array
               baselineCapabilitySet:
@@ -240,6 +241,11 @@ spec:
                           description: InstanceType defines the azure instance type.
                             eg. Standard_DS_V2
                           type: string
+                        ultraSSDCapability:
+                          description: ultraSSDCapability defines if the instance
+                            should use Ultra SSD disks. The valid values are Enabled,
+                            Disabled.
+                          type: string
                         zones:
                           description: Zones is list of availability zones that can
                             be used. eg. ["1", "2", "3"]
@@ -373,6 +379,35 @@ spec:
                     libvirt:
                       description: Libvirt is the configuration used when installing
                         on libvirt.
+                      type: object
+                    nutanix:
+                      description: Nutanix is the configuration used when installing
+                        on Nutanix.
+                      properties:
+                        coresPerSocket:
+                          description: NumCoresPerSocket is the number of cores per
+                            socket in a vm. The number of vCPUs on the vm will be
+                            NumCPUs/NumCoresPerSocket.
+                          format: int64
+                          type: integer
+                        cpus:
+                          description: NumCPUs is the total number of virtual processor
+                            cores to assign a vm.
+                          format: int64
+                          type: integer
+                        memoryMiB:
+                          description: Memory is the size of a VM's memory in MiB.
+                          format: int64
+                          type: integer
+                        osDisk:
+                          description: OSDisk defines the storage for instance.
+                          properties:
+                            diskSizeMiB:
+                              description: DiskSizeMiB defines the size of disk in
+                                MiB.
+                              format: int64
+                              type: integer
+                          type: object
                       type: object
                     openstack:
                       description: OpenStack is the configuration used when installing
@@ -755,6 +790,10 @@ spec:
                         description: InstanceType defines the azure instance type.
                           eg. Standard_DS_V2
                         type: string
+                      ultraSSDCapability:
+                        description: ultraSSDCapability defines if the instance should
+                          use Ultra SSD disks. The valid values are Enabled, Disabled.
+                        type: string
                       zones:
                         description: Zones is list of availability zones that can
                           be used. eg. ["1", "2", "3"]
@@ -887,6 +926,33 @@ spec:
                   libvirt:
                     description: Libvirt is the configuration used when installing
                       on libvirt.
+                    type: object
+                  nutanix:
+                    description: Nutanix is the configuration used when installing
+                      on Nutanix.
+                    properties:
+                      coresPerSocket:
+                        description: NumCoresPerSocket is the number of cores per
+                          socket in a vm. The number of vCPUs on the vm will be NumCPUs/NumCoresPerSocket.
+                        format: int64
+                        type: integer
+                      cpus:
+                        description: NumCPUs is the total number of virtual processor
+                          cores to assign a vm.
+                        format: int64
+                        type: integer
+                      memoryMiB:
+                        description: Memory is the size of a VM's memory in MiB.
+                        format: int64
+                        type: integer
+                      osDisk:
+                        description: OSDisk defines the storage for instance.
+                        properties:
+                          diskSizeMiB:
+                            description: DiskSizeMiB defines the size of disk in MiB.
+                            format: int64
+                            type: integer
+                        type: object
                     type: object
                   openstack:
                     description: OpenStack is the configuration used when installing
@@ -1112,9 +1178,9 @@ spec:
               \"Manual\": CredentialsRequests must be handled manually by the user
               \n For each of the following platforms, the field can set to the specified
               values. For all other platforms, the field must not be set. AWS: \"Mint\",
-              \"Passthrough\", \"Manual\" Azure: \"Mint\", \"Passthrough\", \"Manual\"
-              AzureStack: \"Manual\" GCP: \"Mint\", \"Passthrough\", \"Manual\" IBMCloud:
-              \"Manual\" AlibabaCloud: \"Manual\" PowerVS: \"Manual\""
+              \"Passthrough\", \"Manual\" Azure: \"Passthrough\", \"Manual\" AzureStack:
+              \"Manual\" GCP: \"Mint\", \"Passthrough\", \"Manual\" IBMCloud: \"Manual\"
+              AlibabaCloud: \"Manual\" PowerVS: \"Manual\""
             enum:
             - ""
             - Mint
@@ -1541,6 +1607,10 @@ spec:
                       type:
                         description: InstanceType defines the azure instance type.
                           eg. Standard_DS_V2
+                        type: string
+                      ultraSSDCapability:
+                        description: ultraSSDCapability defines if the instance should
+                          use Ultra SSD disks. The valid values are Enabled, Disabled.
                         type: string
                       zones:
                         description: Zones is list of availability zones that can
@@ -2018,6 +2088,83 @@ spec:
               none:
                 description: None is the empty configuration used when installing
                   on an unsupported platform.
+                type: object
+              nutanix:
+                description: Nutanix is the configuration used when installing on
+                  Nutanix.
+                properties:
+                  apiVIP:
+                    description: APIVIP is the virtual IP address for the api endpoint
+                    type: string
+                  clusterOSImage:
+                    description: ClusterOSImage overrides the url provided in rhcos.json
+                      to download the RHCOS Image
+                    type: string
+                  defaultMachinePlatform:
+                    description: DefaultMachinePlatform is the default configuration
+                      used when installing on Nutanix for machine pools which do not
+                      define their own platform configuration.
+                    properties:
+                      coresPerSocket:
+                        description: NumCoresPerSocket is the number of cores per
+                          socket in a vm. The number of vCPUs on the vm will be NumCPUs/NumCoresPerSocket.
+                        format: int64
+                        type: integer
+                      cpus:
+                        description: NumCPUs is the total number of virtual processor
+                          cores to assign a vm.
+                        format: int64
+                        type: integer
+                      memoryMiB:
+                        description: Memory is the size of a VM's memory in MiB.
+                        format: int64
+                        type: integer
+                      osDisk:
+                        description: OSDisk defines the storage for instance.
+                        properties:
+                          diskSizeMiB:
+                            description: DiskSizeMiB defines the size of disk in MiB.
+                            format: int64
+                            type: integer
+                        type: object
+                    type: object
+                  defaultStorageContainer:
+                    description: DefaultStorageContainer is the default datastore
+                      to use for provisioning volumes.
+                    type: string
+                  ingressVIP:
+                    description: IngressVIP is the virtual IP address for ingress
+                    type: string
+                  password:
+                    description: Password is the password for the user to use to connect
+                      to the Prism Central.
+                    type: string
+                  port:
+                    description: Port is the port to use to connect to the Prism Central.
+                    type: string
+                  prismCentral:
+                    description: PrismCentral is the domain name or IP address of
+                      the Prism Central.
+                    type: string
+                  prismElementUUID:
+                    description: PrismElementUUID is the UUID of the Prism Element
+                      cluster to use in the Prism Central.
+                    type: string
+                  subnetUUID:
+                    description: SubnetUUID specifies the UUID of the subnet to be
+                      used by the cluster.
+                    type: string
+                  username:
+                    description: Username is the name of the user to use to connect
+                      to the Prism Central.
+                    type: string
+                required:
+                - defaultStorageContainer
+                - password
+                - port
+                - prismCentral
+                - prismElementUUID
+                - username
                 type: object
               openstack:
                 description: OpenStack is the configuration used when installing on

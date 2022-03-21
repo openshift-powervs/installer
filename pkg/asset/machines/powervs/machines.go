@@ -7,9 +7,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	machineapi "github.com/openshift/api/machine/v1beta1"
-	powervsprovider "github.com/openshift/cluster-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/powervs"
+	powervsprovider "github.com/openshift/machine-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,28 +17,24 @@ import (
 
 // Machines returns a list of machines for a machinepool.
 func Machines(clusterID string, config *types.InstallConfig, pool *types.MachinePool, role, userDataSecret string) ([]machineapi.Machine, error) {
+	if configPlatform := config.Platform.Name(); configPlatform != powervs.Name {
+		return nil, fmt.Errorf("non-PowerVS configuration: %q", configPlatform)
+	}
 	if poolPlatform := pool.Platform.Name(); poolPlatform != powervs.Name {
 		return nil, fmt.Errorf("non-PowerVS machine-pool: %q", poolPlatform)
 	}
 	platform := config.Platform.PowerVS
 	mpool := pool.Platform.PowerVS
 
-	var (
-		image, network string
-	)
-
 	// Only the service instance is guaranteed to exist and be passed via the install config
 	// The other two, we should standardize a name including the cluster id.
-
+	image := fmt.Sprintf("rhcos-%s", clusterID)
+	network := fmt.Sprintf("pvs-net-%s", clusterID)
 	if platform.ClusterOSImage != "" {
 		image = platform.ClusterOSImage
-	} else {
-		image = fmt.Sprintf("rhcos-%s", clusterID)
 	}
 	if platform.PVSNetworkName != "" {
 		network = platform.PVSNetworkName
-	} else {
-		network = fmt.Sprintf("pvs-net-%s", clusterID)
 	}
 
 	total := int64(1)

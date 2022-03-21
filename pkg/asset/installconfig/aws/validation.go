@@ -348,7 +348,7 @@ var requiredServices = []string{
 
 // ValidateForProvisioning validates if the install config is valid for provisioning the cluster.
 func ValidateForProvisioning(session *session.Session, ic *types.InstallConfig, metadata *Metadata) error {
-	if ic.Publish == types.InternalPublishingStrategy {
+	if ic.Publish == types.InternalPublishingStrategy && ic.AWS.HostedZone == "" {
 		return nil
 	}
 
@@ -365,7 +365,9 @@ func ValidateForProvisioning(session *session.Session, ic *types.InstallConfig, 
 		zonePath := field.NewPath("aws", "hostedZone")
 		zoneOutput, errors := getHostedZone(client, zonePath, zoneName)
 		if len(errors) > 0 {
-			allErrs = append(allErrs, errors...)
+			return field.ErrorList{
+				field.Invalid(zonePath, zoneName, "cannot find hosted zone"),
+			}.ToAggregate()
 		}
 
 		if errors = validateHostedZone(zoneOutput, zonePath, zoneName, metadata); len(errors) > 0 {
@@ -378,7 +380,9 @@ func ValidateForProvisioning(session *session.Session, ic *types.InstallConfig, 
 		zonePath := field.NewPath("baseDomain")
 		zone, errors = getBaseDomain(session, zonePath, zoneName)
 		if len(errors) > 0 {
-			allErrs = append(allErrs, errors...)
+			return field.ErrorList{
+				field.Invalid(zonePath, zoneName, "cannot find base domain"),
+			}.ToAggregate()
 		}
 	}
 
