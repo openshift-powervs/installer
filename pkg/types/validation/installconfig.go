@@ -36,6 +36,8 @@ import (
 	ibmcloudvalidation "github.com/openshift/installer/pkg/types/ibmcloud/validation"
 	"github.com/openshift/installer/pkg/types/libvirt"
 	libvirtvalidation "github.com/openshift/installer/pkg/types/libvirt/validation"
+	"github.com/openshift/installer/pkg/types/nutanix"
+	nutanixvalidation "github.com/openshift/installer/pkg/types/nutanix/validation"
 	"github.com/openshift/installer/pkg/types/openstack"
 	openstackvalidation "github.com/openshift/installer/pkg/types/openstack/validation"
 	"github.com/openshift/installer/pkg/types/ovirt"
@@ -509,6 +511,11 @@ func validatePlatform(platform *types.Platform, fldPath *field.Path, network *ty
 			return ovirtvalidation.ValidatePlatform(platform.Ovirt, f)
 		})
 	}
+	if platform.Nutanix != nil {
+		validate(nutanix.Name, platform.Nutanix, func(f *field.Path) field.ErrorList {
+			return nutanixvalidation.ValidatePlatform(platform.Nutanix, f)
+		})
+	}
 	return allErrs
 }
 
@@ -616,7 +623,7 @@ func validateCloudCredentialsMode(mode types.CredentialsMode, fldPath *field.Pat
 	}
 	allErrs := field.ErrorList{}
 
-	allowedAzureModes := []types.CredentialsMode{types.MintCredentialsMode, types.PassthroughCredentialsMode, types.ManualCredentialsMode}
+	allowedAzureModes := []types.CredentialsMode{types.PassthroughCredentialsMode, types.ManualCredentialsMode}
 	if platform.Azure != nil && platform.Azure.CloudName == azure.StackCloud {
 		allowedAzureModes = []types.CredentialsMode{types.ManualCredentialsMode}
 	}

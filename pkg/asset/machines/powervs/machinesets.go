@@ -23,22 +23,15 @@ func MachineSets(clusterID string, config *types.InstallConfig, pool *types.Mach
 		return nil, fmt.Errorf("non-powerVS machine-pool: %q", poolPlatform)
 	}
 
-	var (
-		image, network string
-	)
-
 	platform := config.Platform.PowerVS
 	mpool := pool.Platform.PowerVS
-
+	image := fmt.Sprintf("rhcos-%s", clusterID)
+	network := fmt.Sprintf("pvs-net-%s", clusterID)
 	if platform.ClusterOSImage != "" {
 		image = platform.ClusterOSImage
-	} else {
-		image = fmt.Sprintf("rhcos-%s", clusterID)
 	}
 	if platform.PVSNetworkName != "" {
 		network = platform.PVSNetworkName
-	} else {
-		network = fmt.Sprintf("pvs-net-%s", clusterID)
 	}
 
 	total := int32(0)
