@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	typepowervs "github.com/openshift/installer/pkg/types/powervs"
 )
 
 // Metadata holds additional metadata for InstallConfig resources that
@@ -16,12 +18,15 @@ type Metadata struct {
 	cisInstanceCRN string
 	client         *Client
 
+	Region   string                        `json:"region,omitempty"`
+	Services []typepowervs.ServiceEndpoint `json:"services,omitempty"`
+
 	mutex sync.Mutex
 }
 
 // NewMetadata initializes a new Metadata object.
-func NewMetadata(baseDomain string) *Metadata {
-	return &Metadata{BaseDomain: baseDomain}
+func NewMetadata(baseDomain string, region string, services []typepowervs.ServiceEndpoint) *Metadata {
+	return &Metadata{BaseDomain: baseDomain, Region: region, Services: services}
 }
 
 // AccountID returns the IBM Cloud account ID associated with the authentication

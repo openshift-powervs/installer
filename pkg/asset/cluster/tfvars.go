@@ -705,6 +705,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				CISInstanceCRN:       crn,
 				VPCSubnetName:        installConfig.Config.PowerVS.Subnets[0],
 				VPCName:              installConfig.Config.PowerVS.VPC,
+				Services:             installConfig.Config.PowerVS.ServiceEndpoints,
 			},
 		)
 		if err != nil {

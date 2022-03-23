@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/openshift/installer/pkg/types/powervs"
+	typepowervs "github.com/openshift/installer/pkg/types/powervs"
 	"github.com/openshift/machine-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 )
 
@@ -46,6 +47,7 @@ type TFVarsSources struct {
 	CISInstanceCRN       string
 	VPCName              string
 	VPCSubnetName        string
+	Services             []typepowervs.ServiceEndpoint
 }
 
 // TFVars generates Power VS-specific Terraform variables launching the cluster.

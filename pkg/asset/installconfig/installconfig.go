@@ -165,7 +165,7 @@ func (a *InstallConfig) finish(filename string) error {
 		a.IBMCloud = icibmcloud.NewMetadata(a.Config.BaseDomain)
 	}
 	if a.Config.PowerVS != nil {
-		a.PowerVS = icpowervs.NewMetadata(a.Config.BaseDomain)
+		a.PowerVS = icpowervs.NewMetadata(a.Config.BaseDomain, a.Config.Platform.PowerVS.Region, a.Config.PowerVS.ServiceEndpoints)
 	}
 
 	if err := validation.ValidateInstallConfig(a.Config).ToAggregate(); err != nil {
