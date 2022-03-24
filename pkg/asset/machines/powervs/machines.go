@@ -78,6 +78,8 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 		return nil, fmt.Errorf("invalid value passed to provider")
 	}
 
+	dhcpNetRegex := "^DHCPSERVER[0-9a-z]{32}_Private$"
+
 	//Setting only the mandatory parameters
 	config := &powervsprovider.PowerVSMachineProviderConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -97,6 +99,8 @@ func provider(clusterID string, platform *powervs.Platform, mpool *powervs.Machi
 	}
 	if network != "" {
 		config.Network = powervsprovider.PowerVSResourceReference{Name: &network}
+	} else {
+		config.Network = powervsprovider.PowerVSResourceReference{RegEx: &dhcpNetRegex}
 	}
 	return config, nil
 }
