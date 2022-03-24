@@ -17,6 +17,7 @@ import (
 	icaws "github.com/openshift/installer/pkg/asset/installconfig/aws"
 	icgcp "github.com/openshift/installer/pkg/asset/installconfig/gcp"
 	icibmcloud "github.com/openshift/installer/pkg/asset/installconfig/ibmcloud"
+	icpowervs "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 	"github.com/openshift/installer/pkg/types"
 	alibabacloudtypes "github.com/openshift/installer/pkg/types/alibabacloud"
 	awstypes "github.com/openshift/installer/pkg/types/aws"
@@ -159,7 +160,26 @@ func (d *DNS) Generate(dependencies asset.Parents) error {
 		config.Spec.PrivateZone = &configv1.DNSZone{
 			ID: zoneID,
 		}
-	case libvirttypes.Name, openstacktypes.Name, baremetaltypes.Name, nonetypes.Name, vspheretypes.Name, ovirttypes.Name, powervstypes.Name:
+	case powervstypes.Name:
+		client, err := icpowervs.NewClient()
+		if err != nil {
+			return errors.Wrap(err, "failed to get IBM Cloud client")
+		}
+
+		zoneID, err := client.GetDNSZoneIDByName(context.TODO(), installConfig.Config.BaseDomain)
+		if err != nil {
+			return errors.Wrap(err, "failed ot get DNS zone ID")
+		}
+
+		if installConfig.Config.Publish == types.ExternalPublishingStrategy {
+			config.Spec.PublicZone = &configv1.DNSZone{
+				ID: zoneID,
+			}
+		}
+		config.Spec.PrivateZone = &configv1.DNSZone{
+			ID: zoneID,
+		}
+	case libvirttypes.Name, openstacktypes.Name, baremetaltypes.Name, nonetypes.Name, vspheretypes.Name, ovirttypes.Name:
 	default:
 		return errors.New("invalid Platform")
 	}
