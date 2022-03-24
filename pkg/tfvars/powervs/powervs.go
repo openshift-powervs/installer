@@ -71,7 +71,6 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		PowerVSResourceGroup: sources.PowerVSResourceGroup,
 		CISInstanceCRN:       sources.CISInstanceCRN,
 		ImageBucketFileName:  sources.ImageBucketFileName,
-		NetworkName:          *masterConfig.Network.Name,
 		VPCName:              sources.VPCName,
 		VPCSubnetName:        sources.VPCSubnetName,
 		BootstrapMemory:      masterConfig.Memory,
@@ -80,6 +79,9 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 		MasterProcessors:     masterConfig.Processors,
 		ProcType:             masterConfig.ProcType,
 		SysType:              masterConfig.SysType,
+	}
+	if masterConfig.Network.Name != nil {
+		cfg.NetworkName = *masterConfig.Network.Name
 	}
 
 	return json.MarshalIndent(cfg, "", "  ")
