@@ -10,6 +10,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: hashicorp/setup-terraform@v1
     - uses: actions/setup-go@v2
       with:
         go-version: '1.17.3'
@@ -27,9 +28,16 @@ jobs:
             echo "${unformatted}"
             exit 1
         fi
-        ##TODO: Enable verify-vendor.sh script before upstream code.
-        #IS_CONTAINER=FALSE bash ./hack/verify-vendor.sh
 
+    - name: Run tf fmt
+      run: |
+        unformatted=$(IS_CONTAINER=FALSE ./hack/tf-fmt.sh .) 
+        if [[ ! -z "${unformatted}" ]]; then
+            echo "fix the tf fmt issues"
+            echo "${unformatted}"
+            exit 1
+        fi
+ 
     - name: Run go lint
       run: |
         lint=$(IS_CONTAINER=FALSE ./hack/go-lint.sh -min_confidence 0.3 $(go list -f '{{.ImportPath }}' ./...))
