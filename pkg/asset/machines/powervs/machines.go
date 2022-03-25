@@ -29,7 +29,7 @@ func Machines(clusterID string, config *types.InstallConfig, pool *types.Machine
 	// Only the service instance is guaranteed to exist and be passed via the install config
 	// The other two, we should standardize a name including the cluster id.
 	image := fmt.Sprintf("rhcos-%s", clusterID)
-	network := fmt.Sprintf("pvs-net-%s", clusterID)
+	var network string
 	if platform.ClusterOSImage != "" {
 		image = platform.ClusterOSImage
 	}
