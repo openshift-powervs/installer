@@ -12,7 +12,6 @@ import (
 
 	"github.com/openshift/installer/pkg/asset"
 	"github.com/openshift/installer/pkg/asset/installconfig"
-	configaws "github.com/openshift/installer/pkg/asset/installconfig/aws"
 	"github.com/openshift/installer/pkg/rhcos"
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/alibabacloud"
@@ -23,6 +22,7 @@ import (
 	"github.com/openshift/installer/pkg/types/ibmcloud"
 	"github.com/openshift/installer/pkg/types/libvirt"
 	"github.com/openshift/installer/pkg/types/none"
+	"github.com/openshift/installer/pkg/types/nutanix"
 	"github.com/openshift/installer/pkg/types/openstack"
 	"github.com/openshift/installer/pkg/types/ovirt"
 	"github.com/openshift/installer/pkg/types/powervs"
@@ -87,8 +87,10 @@ func osImage(config *types.InstallConfig) (string, error) {
 			return config.Platform.AWS.AMIID, nil
 		}
 		region := config.Platform.AWS.Region
-		if !configaws.IsKnownRegion(config.Platform.AWS.Region, config.ControlPlane.Architecture) {
-			region = "us-east-1"
+		if !rhcos.AMIRegions(config.ControlPlane.Architecture).Has(region) {
+			const globalResourceRegion = "us-east-1"
+			logrus.Debugf("No AMI found in %s. Using AMI from %s.", region, globalResourceRegion)
+			region = globalResourceRegion
 		}
 		osimage, err := st.GetAMI(archName, region)
 		if err != nil {
@@ -178,6 +180,14 @@ func osImage(config *types.InstallConfig) (string, error) {
 		return "", fmt.Errorf("%s: No Power VS build found", st.FormatPrefix(archName))
 	case none.Name:
 		return "", nil
+	case nutanix.Name:
+		if config.Platform.Nutanix != nil && config.Platform.Nutanix.ClusterOSImage != "" {
+			return config.Platform.Nutanix.ClusterOSImage, nil
+		}
+		if a, ok := streamArch.Artifacts["nutanix"]; ok {
+			return rhcos.FindArtifactURL(a)
+		}
+		return "", fmt.Errorf("%s: No nutanix build found", st.FormatPrefix(archName))
 	default:
 		return "", fmt.Errorf("invalid platform %v", config.Platform.Name())
 	}

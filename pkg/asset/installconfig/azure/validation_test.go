@@ -9,6 +9,7 @@ import (
 	aznetwork "github.com/Azure/azure-sdk-for-go/profiles/2018-03-01/network/mgmt/network"
 	azres "github.com/Azure/azure-sdk-for-go/profiles/2018-03-01/resources/mgmt/resources"
 	azsubs "github.com/Azure/azure-sdk-for-go/profiles/2018-03-01/resources/mgmt/subscriptions"
+	azenc "github.com/Azure/azure-sdk-for-go/profiles/latest/compute/mgmt/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 	"github.com/openshift/installer/pkg/asset/installconfig/azure/mock"
@@ -42,7 +43,7 @@ var (
 		{Name: to.StringPtr("Standard_D2_v4"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("2")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("8")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("True")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V1,V2")}}},
 		{Name: to.StringPtr("Standard_D4_v4"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("4")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("16")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("True")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V1,V2")}}},
 		{Name: to.StringPtr("Standard_D2s_v3"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("4")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("16")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("True")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V1,V2")}}},
-		{Name: to.StringPtr("Standard_D8s_v3"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("4")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("16")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("True")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V1,V2")}}},
+		{Name: to.StringPtr("Standard_D8s_v3"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("4")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("16")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("True")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V1,V2")}, {Name: to.StringPtr("UltraSSDAvailable"), Value: to.StringPtr("True")}}},
 		{Name: to.StringPtr("Standard_D_v4"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("4")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("16")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("False")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V1,V2")}}},
 		{Name: to.StringPtr("Standard_Dc4_v4"), Capabilities: &[]azsku.ResourceSkuCapabilities{{Name: to.StringPtr("vCPUsAvailable"), Value: to.StringPtr("4")}, {Name: to.StringPtr("MemoryGB"), Value: to.StringPtr("16")}, {Name: to.StringPtr("PremiumIO"), Value: to.StringPtr("True")}, {Name: to.StringPtr("HyperVGenerations"), Value: to.StringPtr("V2")}}},
 	}
@@ -69,6 +70,10 @@ var (
 		ic.Platform.Azure.DefaultMachinePlatform.InstanceType = "Dne_D2_v4"
 	}
 
+	ultraSSDAvailableInstanceTypes = func(ic *types.InstallConfig) {
+		ic.Platform.Azure.DefaultMachinePlatform.InstanceType = "Standard_D8s_v3"
+	}
+
 	invalidateMachineCIDR = func(ic *types.InstallConfig) {
 		_, newCidr, _ := net.ParseCIDR("192.168.111.0/24")
 		ic.MachineNetwork = []types.MachineNetworkEntry{
@@ -92,6 +97,9 @@ var (
 	premiumDiskDefault                     = func(ic *types.InstallConfig) { ic.Azure.DefaultMachinePlatform.OSDisk.DiskType = "Premium_LRS" }
 	nonpremiumInstanceTypeDiskDefault      = func(ic *types.InstallConfig) { ic.Azure.DefaultMachinePlatform.InstanceType = "Standard_D_v4" }
 	unsupportedHyperVGeneration            = func(ic *types.InstallConfig) { ic.Azure.DefaultMachinePlatform.InstanceType = "Standard_Dc4_v4" }
+	enabledSSDCapabilityControlPlane       = func(ic *types.InstallConfig) { ic.ControlPlane.Platform.Azure.UltraSSDCapability = "Enabled" }
+	enabledSSDCapabilityCompute            = func(ic *types.InstallConfig) { ic.Compute[0].Platform.Azure.UltraSSDCapability = "Enabled" }
+	enabledSSDCapabilityDefault            = func(ic *types.InstallConfig) { ic.Azure.DefaultMachinePlatform.UltraSSDCapability = "Enabled" }
 
 	virtualNetworkAPIResult = &aznetwork.VirtualNetwork{
 		Name: &validVirtualNetwork,
@@ -126,6 +134,55 @@ var (
 				Locations:    &resourcesCapableRegionsList,
 			},
 		},
+	}
+
+	diskEncryptionSetID          = "test-encryption-set-id"
+	diskEncryptionSetName        = "test-encryption-set-name"
+	diskEncryptionSetType        = "test-encryption-set-type"
+	diskEncryptionSetLocation    = "disk-encryption-set-location"
+	validDiskEncryptionSetResult = &azenc.DiskEncryptionSet{
+		ID:       to.StringPtr(diskEncryptionSetID),
+		Name:     to.StringPtr(diskEncryptionSetName),
+		Type:     to.StringPtr(diskEncryptionSetType),
+		Location: to.StringPtr(diskEncryptionSetLocation),
+	}
+
+	validDiskEncryptionSetSubscriptionID = "test-encryption-set-subscription-id"
+	validDiskEncryptionSetResourceGroup  = "test-encryption-set-resource-group"
+	validDiskEncryptionSetName           = "test-encryption-set-name"
+	validDiskEncryptionSetConfig         = func() *azure.DiskEncryptionSet {
+		return &azure.DiskEncryptionSet{
+			SubscriptionID: validDiskEncryptionSetSubscriptionID,
+			ResourceGroup:  validDiskEncryptionSetResourceGroup,
+			Name:           validDiskEncryptionSetName,
+		}
+	}
+	invalidDiskEncryptionSetName   = "test-encryption-set-invalid-name"
+	invalidDiskEncryptionSetConfig = func() *azure.DiskEncryptionSet {
+		return &azure.DiskEncryptionSet{
+			SubscriptionID: validDiskEncryptionSetSubscriptionID,
+			ResourceGroup:  validDiskEncryptionSetResourceGroup,
+			Name:           invalidDiskEncryptionSetName,
+		}
+	}
+
+	validDiskEncryptionSetDefaultMachinePlatform = func(ic *types.InstallConfig) {
+		ic.Azure.DefaultMachinePlatform.OSDisk.DiskEncryptionSet = validDiskEncryptionSetConfig()
+	}
+	validDiskEncryptionSetControlPlane = func(ic *types.InstallConfig) {
+		ic.ControlPlane.Platform.Azure.OSDisk.DiskEncryptionSet = validDiskEncryptionSetConfig()
+	}
+	validDiskEncryptionSetCompute = func(ic *types.InstallConfig) {
+		ic.Compute[0].Platform.Azure.OSDisk.DiskEncryptionSet = validDiskEncryptionSetConfig()
+	}
+	invalidDiskEncryptionSetDefaultMachinePlatform = func(ic *types.InstallConfig) {
+		ic.Azure.DefaultMachinePlatform.OSDisk.DiskEncryptionSet = invalidDiskEncryptionSetConfig()
+	}
+	invalidDiskEncryptionSetControlPlane = func(ic *types.InstallConfig) {
+		ic.ControlPlane.Platform.Azure.OSDisk.DiskEncryptionSet = invalidDiskEncryptionSetConfig()
+	}
+	invalidDiskEncryptionSetCompute = func(ic *types.InstallConfig) {
+		ic.Compute[0].Platform.Azure.OSDisk.DiskEncryptionSet = invalidDiskEncryptionSetConfig()
 	}
 )
 
@@ -255,6 +312,36 @@ func TestAzureInstallConfigValidation(t *testing.T) {
 			edits:    editFunctions{unsupportedHyperVGeneration},
 			errorMsg: `^\[controlPlane.platform.azure.type: Invalid value: "Standard_Dc4_v4": only disks with HyperVGeneration V1 are supported, compute\[0\].platform.azure.type: Invalid value: "Standard_Dc4_v4": only disks with HyperVGeneration V1 are supported\]$`,
 		},
+		{
+			name:     "Unsupported UltraSSD capability in Control Plane",
+			edits:    editFunctions{enabledSSDCapabilityControlPlane, validInstanceTypes},
+			errorMsg: `controlPlane.platform.azure.type: Invalid value: "Standard_D4_v4": UltraSSD capability not supported for this instance type in the centralus region$`,
+		},
+		{
+			name:     "Unsupported UltraSSD capability in Compute",
+			edits:    editFunctions{enabledSSDCapabilityCompute, validInstanceTypes},
+			errorMsg: `compute\[0\].platform.azure.type: Invalid value: "Standard_D2_v4": UltraSSD capability not supported for this instance type in the centralus region$`,
+		},
+		{
+			name:     "Unsupported UltraSSD capability as default",
+			edits:    editFunctions{enabledSSDCapabilityDefault, validInstanceTypes},
+			errorMsg: `^\[controlPlane.platform.azure.type: Invalid value: "Standard_D4_v4": UltraSSD capability not supported for this instance type in the centralus region, compute\[0\].platform.azure.type: Invalid value: "Standard_D2_v4": UltraSSD capability not supported for this instance type in the centralus region\]$`,
+		},
+		{
+			name:     "Supported UltraSSD capability in Control Plane",
+			edits:    editFunctions{ultraSSDAvailableInstanceTypes, enabledSSDCapabilityControlPlane},
+			errorMsg: "",
+		},
+		{
+			name:     "Supported UltraSSD capability in Compute",
+			edits:    editFunctions{ultraSSDAvailableInstanceTypes, enabledSSDCapabilityCompute},
+			errorMsg: "",
+		},
+		{
+			name:     "Supported UltraSSD capability as default",
+			edits:    editFunctions{ultraSSDAvailableInstanceTypes, enabledSSDCapabilityDefault},
+			errorMsg: "",
+		},
 	}
 
 	mockCtrl := gomock.NewController(t)
@@ -291,7 +378,7 @@ func TestAzureInstallConfigValidation(t *testing.T) {
 	// ResourceProvider
 	azureClient.EXPECT().GetResourcesProvider(gomock.Any(), validResourceGroupNamespace).Return(resourcesProviderAPIResult, nil).AnyTimes()
 
-	//Resource SKUs
+	// Resource SKUs
 	azureClient.EXPECT().GetDiskSkus(gomock.Any(), validResourceSkuRegions).Return(nil, fmt.Errorf("invalid disk type")).AnyTimes()
 	azureClient.EXPECT().GetDiskSkus(gomock.Any(), invalidResourceSkuRegion).Return(nil, fmt.Errorf("invalid region")).AnyTimes()
 
@@ -436,6 +523,71 @@ func TestValidateAzureStackClusterOSImage(t *testing.T) {
 				assert.Regexp(t, test.err, err.ToAggregate())
 			} else {
 				assert.NoError(t, err.ToAggregate())
+			}
+		})
+	}
+}
+
+func TestAzureDiskEncryptionSet(t *testing.T) {
+	cases := []struct {
+		name     string
+		edits    editFunctions
+		errorMsg string
+	}{
+		{
+			name:     "Valid disk encryption set for default pool",
+			edits:    editFunctions{validDiskEncryptionSetDefaultMachinePlatform},
+			errorMsg: "",
+		},
+		{
+			name:     "Invalid disk encryption set for default pool",
+			edits:    editFunctions{invalidDiskEncryptionSetDefaultMachinePlatform},
+			errorMsg: fmt.Sprintf(`^platform.azure.defaultMachinePlatform.osDisk.diskEncryptionSet: Invalid value: azure.DiskEncryptionSet{SubscriptionID:"%s", ResourceGroup:"%s", Name:"%s"}: failed to get disk encryption set$`, validDiskEncryptionSetSubscriptionID, validDiskEncryptionSetResourceGroup, invalidDiskEncryptionSetName),
+		},
+		{
+			name:     "Valid disk encryption set for control-plane",
+			edits:    editFunctions{validDiskEncryptionSetControlPlane},
+			errorMsg: "",
+		},
+		{
+			name:     "Invalid disk encryption set for control-plane",
+			edits:    editFunctions{invalidDiskEncryptionSetControlPlane},
+			errorMsg: fmt.Sprintf(`^platform.azure.osDisk.diskEncryptionSet: Invalid value: azure.DiskEncryptionSet{SubscriptionID:"%s", ResourceGroup:"%s", Name:"%s"}: failed to get disk encryption set$`, validDiskEncryptionSetSubscriptionID, validDiskEncryptionSetResourceGroup, invalidDiskEncryptionSetName),
+		},
+		{
+			name:     "Valid disk encryption set for compute",
+			edits:    editFunctions{validDiskEncryptionSetCompute},
+			errorMsg: "",
+		},
+		{
+			name:     "Invalid disk encryption set for compute",
+			edits:    editFunctions{invalidDiskEncryptionSetCompute},
+			errorMsg: fmt.Sprintf(`^compute\[0\].platform.azure.osDisk.diskEncryptionSet: Invalid value: azure.DiskEncryptionSet{SubscriptionID:"%s", ResourceGroup:"%s", Name:"%s"}: failed to get disk encryption set$`, validDiskEncryptionSetSubscriptionID, validDiskEncryptionSetResourceGroup, invalidDiskEncryptionSetName),
+		},
+	}
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	azureClient := mock.NewMockAPI(mockCtrl)
+
+	// DiskEncryptionSet
+	azureClient.EXPECT().GetDiskEncryptionSet(gomock.Any(), validDiskEncryptionSetSubscriptionID, validDiskEncryptionSetResourceGroup, validDiskEncryptionSetName).Return(validDiskEncryptionSetResult, nil).AnyTimes()
+	azureClient.EXPECT().GetDiskEncryptionSet(gomock.Any(), validDiskEncryptionSetSubscriptionID, validDiskEncryptionSetResourceGroup, invalidDiskEncryptionSetName).Return(nil, fmt.Errorf("failed to get disk encryption set")).AnyTimes()
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			editedInstallConfig := validInstallConfig()
+			for _, edit := range tc.edits {
+				edit(editedInstallConfig)
+			}
+
+			errors := ValidateDiskEncryptionSet(azureClient, editedInstallConfig)
+			aggregatedErrors := errors.ToAggregate()
+			if tc.errorMsg != "" {
+				assert.Regexp(t, tc.errorMsg, aggregatedErrors)
+			} else {
+				assert.NoError(t, aggregatedErrors)
 			}
 		})
 	}
