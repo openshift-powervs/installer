@@ -10,7 +10,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.1
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/IBM-Cloud/bluemix-go v0.0.0-20211102075456-ffc4e11dfb16
-	github.com/IBM-Cloud/power-go-client v1.1.4
+	github.com/IBM-Cloud/power-go-client v1.1.5
 	github.com/IBM/go-sdk-core/v4 v4.9.0
 	github.com/IBM/go-sdk-core/v5 v5.9.1
 	github.com/IBM/networking-go-sdk v0.14.0
@@ -47,15 +47,15 @@ require (
 	github.com/openshift/cluster-api-provider-ibmcloud v0.0.0-20211008100740-4d7907adbd6b
 	github.com/openshift/cluster-api-provider-libvirt v0.2.1-0.20191219173431-2336783d4603
 	github.com/openshift/cluster-api-provider-ovirt v0.1.1-0.20211111151530-06177b773958
-	github.com/openshift/library-go v0.0.0-20211214183058-58531ccbde67
+	github.com/openshift/library-go v0.0.0-20220121154930-b7889002d63e
 	github.com/openshift/machine-api-provider-nutanix v0.0.0-20220217170301-9c5eed11237a
-	github.com/openshift/machine-api-provider-powervs v0.0.0-20220303154846-89bb5bec120e
+	github.com/openshift/machine-api-provider-powervs v0.0.2-0.20220404072532-0bd184db2e40
 	github.com/openshift/machine-config-operator v0.0.0
 	github.com/ovirt/go-ovirt v0.0.0-20210308100159-ac0bcbc88d7c
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.10.1
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/prometheus/common v0.28.0
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.8.1
@@ -67,6 +67,7 @@ require (
 	github.com/vmware/govmomi v0.24.0
 	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 	google.golang.org/api v0.44.0
@@ -169,7 +170,6 @@ require (
 	go.mongodb.org/mongo-driver v1.8.3 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
