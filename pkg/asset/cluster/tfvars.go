@@ -13,6 +13,7 @@ import (
 	ibmcloudprovider "github.com/openshift/cluster-api-provider-ibmcloud/pkg/apis/ibmcloudprovider/v1beta1"
 	libvirtprovider "github.com/openshift/cluster-api-provider-libvirt/pkg/apis/libvirtproviderconfig/v1beta1"
 	ovirtprovider "github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1"
+	nutanixprovider "github.com/openshift/machine-api-provider-nutanix/pkg/apis/nutanixprovider/v1beta1"
 	powervsprovider "github.com/openshift/machine-api-provider-powervs/pkg/apis/powervsprovider/v1alpha1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -30,6 +31,7 @@ import (
 	awsconfig "github.com/openshift/installer/pkg/asset/installconfig/aws"
 	gcpconfig "github.com/openshift/installer/pkg/asset/installconfig/gcp"
 	ovirtconfig "github.com/openshift/installer/pkg/asset/installconfig/ovirt"
+	vsphereconfig "github.com/openshift/installer/pkg/asset/installconfig/vsphere"
 	"github.com/openshift/installer/pkg/asset/machines"
 	"github.com/openshift/installer/pkg/asset/manifests"
 	"github.com/openshift/installer/pkg/asset/openshiftinstall"
@@ -43,6 +45,7 @@ import (
 	gcptfvars "github.com/openshift/installer/pkg/tfvars/gcp"
 	ibmcloudtfvars "github.com/openshift/installer/pkg/tfvars/ibmcloud"
 	libvirttfvars "github.com/openshift/installer/pkg/tfvars/libvirt"
+	nutanixtfvars "github.com/openshift/installer/pkg/tfvars/nutanix"
 	openstacktfvars "github.com/openshift/installer/pkg/tfvars/openstack"
 	ovirttfvars "github.com/openshift/installer/pkg/tfvars/ovirt"
 	powervstfvars "github.com/openshift/installer/pkg/tfvars/powervs"
@@ -56,6 +59,7 @@ import (
 	"github.com/openshift/installer/pkg/types/ibmcloud"
 	"github.com/openshift/installer/pkg/types/libvirt"
 	"github.com/openshift/installer/pkg/types/none"
+	"github.com/openshift/installer/pkg/types/nutanix"
 	"github.com/openshift/installer/pkg/types/openstack"
 	"github.com/openshift/installer/pkg/types/ovirt"
 	"github.com/openshift/installer/pkg/types/powervs"
@@ -442,7 +446,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			return err
 		}
 		auth := ibmcloudtfvars.Auth{
-			APIKey: client.Authenticator.ApiKey,
+			APIKey: client.APIKey,
 		}
 
 		// Get master and worker machine info
@@ -733,6 +737,29 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 		// Set this flag to use an existing folder specified in the install-config. Otherwise, create one.
 		preexistingFolder := installConfig.Config.Platform.VSphere.Folder != ""
 
+		// Must use the Managed Object ID for a port group (e.g. dvportgroup-5258)
+		// instead of the name since port group names aren't always unique in vSphere.
+		// https://bugzilla.redhat.com/show_bug.cgi?id=1918005
+		controlPlaneConfig := controlPlaneConfigs[0]
+		vim25Client, _, err := vsphereconfig.CreateVSphereClients(context.TODO(),
+			controlPlaneConfig.Workspace.Server,
+			installConfig.Config.VSphere.Username,
+			installConfig.Config.VSphere.Password)
+		if err != nil {
+			return errors.Wrapf(err, "unable to connect to vCenter %s. Ensure provided information is correct and client certs have been added to system trust.", controlPlaneConfig.Workspace.Server)
+		}
+
+		finder := vsphereconfig.NewFinder(vim25Client)
+		networkID, err := vsphereconfig.GetNetworkMoID(context.TODO(),
+			vim25Client,
+			finder,
+			controlPlaneConfig.Workspace.Datacenter,
+			installConfig.Config.VSphere.Cluster,
+			controlPlaneConfig.Network.Devices[0].NetworkName)
+		if err != nil {
+			return errors.Wrap(err, "failed to get vSphere network ID")
+		}
+
 		data, err = vspheretfvars.TFVars(
 			vspheretfvars.TFVarsSources{
 				ControlPlaneConfigs: controlPlaneConfigs,
@@ -742,6 +769,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				ImageURL:            string(*rhcosImage),
 				PreexistingFolder:   preexistingFolder,
 				DiskType:            installConfig.Config.Platform.VSphere.DiskType,
+				NetworkID:           networkID,
 			},
 		)
 		if err != nil {
@@ -811,6 +839,38 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				AdditionalTrustBundle: installConfig.Config.AdditionalTrustBundle,
 				Architecture:          installConfig.Config.ControlPlane.Architecture,
 				Publish:               installConfig.Config.Publish,
+			},
+		)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get %s Terraform variables", platform)
+		}
+		t.FileList = append(t.FileList, &asset.File{
+			Filename: TfPlatformVarsFileName,
+			Data:     data,
+		})
+	case nutanix.Name:
+		if rhcosImage == nil {
+			return errors.New("unable to retrieve rhcos image")
+		}
+		controlPlanes, err := mastersAsset.Machines()
+		if err != nil {
+			return errors.Wrapf(err, "error getting control plane machines")
+		}
+		controlPlaneConfigs := make([]*nutanixprovider.NutanixMachineProviderConfig, len(controlPlanes))
+		for i, c := range controlPlanes {
+			controlPlaneConfigs[i] = c.Spec.ProviderSpec.Value.Object.(*nutanixprovider.NutanixMachineProviderConfig)
+		}
+
+		data, err = nutanixtfvars.TFVars(
+			nutanixtfvars.TFVarsSources{
+				PrismCentralAddress:   installConfig.Config.Nutanix.PrismCentral,
+				Port:                  installConfig.Config.Nutanix.Port,
+				Username:              installConfig.Config.Nutanix.Username,
+				Password:              installConfig.Config.Nutanix.Password,
+				ImageURL:              string(*rhcosImage),
+				BootstrapIgnitionData: bootstrapIgn,
+				ClusterID:             clusterID.InfraID,
+				ControlPlaneConfigs:   controlPlaneConfigs,
 			},
 		)
 		if err != nil {
