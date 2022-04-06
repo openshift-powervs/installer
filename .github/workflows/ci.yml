@@ -30,13 +30,7 @@ jobs:
         fi
 
     - name: Run tf fmt
-      run: |
-        unformatted=$(IS_CONTAINER=FALSE ./hack/tf-fmt.sh .) 
-        if [[ ! -z "${unformatted}" ]]; then
-            echo "fix the tf fmt issues"
-            echo "${unformatted}"
-            exit 1
-        fi
+      run: IS_CONTAINER=FALSE ./hack/tf-fmt.sh 
  
     - name: Run go lint
       run: |
