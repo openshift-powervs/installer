@@ -604,7 +604,7 @@ github.com/openshift/cluster-api-provider-ovirt/pkg/apis/ovirtprovider/v1beta1
 ## explicit; go 1.17
 github.com/openshift/library-go/pkg/config/clusteroperator/v1helpers
 github.com/openshift/library-go/pkg/route/routeapihelpers
-# github.com/openshift/machine-api-provider-nutanix v0.0.0-20220217170301-9c5eed11237a
+# github.com/openshift/machine-api-provider-nutanix v0.0.0-20220411113147-b5eb2bceec1d
 ## explicit; go 1.17
 github.com/openshift/machine-api-provider-nutanix/pkg/apis
 github.com/openshift/machine-api-provider-nutanix/pkg/apis/nutanixprovider/v1beta1

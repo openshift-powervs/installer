@@ -1249,8 +1249,8 @@ github.com/openshift/machine-api-operator v0.2.1-0.20210104142355-8e6ae0acdfcf/g
 github.com/openshift/machine-api-operator v0.2.1-0.20210504014029-a132ec00f7dd/go.mod h1:DFZBMPtC2TYZH5NE9+2JQIpbZAnruqc9F26QmbOm9pw=
 github.com/openshift/machine-api-operator v0.2.1-0.20210820103535-d50698c302f5/go.mod h1:ko7xmso6c25h9UL6Ai0I5l+6OgyVf+ebinAYXnwlGNg=
 github.com/openshift/machine-api-operator v0.2.1-0.20211111133920-c8bba3e64310/go.mod h1:8kWuB/zhnlBsNOyD1yz0epINZX5IodG3Z4iDwQrYKx0=
-github.com/openshift/machine-api-provider-nutanix v0.0.0-20220217170301-9c5eed11237a h1:9i922uP9bjNS/Zep4WRZVTF2asEe5IYAhEvesxB+eBs=
-github.com/openshift/machine-api-provider-nutanix v0.0.0-20220217170301-9c5eed11237a/go.mod h1:2eXVQO0eleBs5LL2PGdBt2zvBuBng2+rzIaVDpRHzFA=
+github.com/openshift/machine-api-provider-nutanix v0.0.0-20220411113147-b5eb2bceec1d h1:l8zHaSsRNLi69AF6I1XaUA4PJjupwFDJ8/LO8oi5vyQ=
+github.com/openshift/machine-api-provider-nutanix v0.0.0-20220411113147-b5eb2bceec1d/go.mod h1:yKhy53ISjmgpgIbADDyIL4pqsudo84MzYTkpQDm/hKA=
 github.com/openshift/machine-api-provider-powervs v0.0.2-0.20220404072532-0bd184db2e40 h1:3JXHuK1rWcP3indBuBeajT26ldC4SE93j0am+HGKQXc=
 github.com/openshift/machine-api-provider-powervs v0.0.2-0.20220404072532-0bd184db2e40/go.mod h1:otI3j5wzp7SqorpSekXtj6TyEi3UOn9UTYw3bKWNVes=
 github.com/openshift/machine-config-operator v0.0.1-0.20201009041932-4fe8559913b8 h1:C4gCipkWTDp0B9jb0wZdLgB+HWC7EzVVwQOeNaKnTRA=
