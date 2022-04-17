@@ -81,31 +81,32 @@ module "master" {
     ibm = ibm.powervs
   }
   source            = "./master"
-
   cloud_instance_id = var.powervs_cloud_instance_id
   cluster_id        = var.cluster_id
   resource_group    = var.powervs_resource_group
   instance_count    = var.master_count
 
-  api_key             = var.powervs_api_key
-  powervs_region      = var.powervs_region
-  powervs_zone        = var.powervs_zone
-  vpc_region          = var.powervs_vpc_region
-  vpc_zone            = var.powervs_vpc_zone
-  memory              = var.powervs_master_memory
-  processors          = var.powervs_master_processors
-  ignition            = var.ignition_master
-  sys_type            = var.powervs_sys_type
-  proc_type           = var.powervs_proc_type
-  ssh_key_id          = ibm_pi_key.cluster_key.key_id
-  image_id            = ibm_pi_image.boot_image.image_id
-  dhcp_network_id     = module.pi_network.dhcp_network_id
-  dhcp_id             = module.pi_network.dhcp_id
-  lb_ext_id           = module.loadbalancer.lb_ext_id
-  lb_int_id           = module.loadbalancer.lb_int_id
-  machine_cfg_pool_id = module.loadbalancer.machine_cfg_pool_id
-  api_pool_int_id     = module.loadbalancer.api_pool_int_id
-  api_pool_ext_id     = module.loadbalancer.api_pool_ext_id
+  api_key                     = var.powervs_api_key
+  powervs_region              = var.powervs_region
+  powervs_zone                = var.powervs_zone
+  vpc_region                  = var.powervs_vpc_region
+  vpc_zone                    = var.powervs_vpc_zone
+  memory                      = var.powervs_master_memory
+  processors                  = var.powervs_master_processors
+  ignition                    = var.ignition_master
+  sys_type                    = var.powervs_sys_type
+  proc_type                   = var.powervs_proc_type
+  ssh_key_id                  = ibm_pi_key.cluster_key.key_id
+  image_id                    = ibm_pi_image.boot_image.image_id
+  dhcp_network_id             = module.pi_network.dhcp_network_id
+  dhcp_id                     = module.pi_network.dhcp_id
+  lb_ext_id                   = module.loadbalancer.lb_ext_id
+  lb_int_id                   = module.loadbalancer.lb_int_id
+  machine_cfg_pool_id         = module.loadbalancer.machine_cfg_pool_id
+  api_pool_int_id             = module.loadbalancer.api_pool_int_id
+  api_pool_ext_id             = module.loadbalancer.api_pool_ext_id
+  bootstrap_api_member_int_id = module.bootstrap.api_member_int_id
+  bootstrap_api_member_ext_id = module.bootstrap.api_member_ext_id
 }
 
 resource "ibm_pi_image" "boot_image" {

@@ -60,7 +60,7 @@ resource "ibm_pi_instance" "bootstrap" {
 }
 
 resource "time_sleep" "wait_for_bootstrap_macs" {
-  create_duration = "30s"
+  create_duration = "45s"
 
   depends_on = [ibm_pi_instance.bootstrap]
 }

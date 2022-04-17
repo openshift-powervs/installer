@@ -17,7 +17,7 @@ resource "ibm_pi_instance" "master" {
 }
 
 resource "time_sleep" "wait_for_master_macs" {
-  create_duration = "30s"
+  create_duration = "45s"
 
   depends_on = [ibm_pi_instance.master]
 }

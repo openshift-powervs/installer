@@ -165,13 +165,12 @@ func validOpenStackPlatform() *openstack.Platform {
 
 func validNutanixPlatform() *nutanix.Platform {
 	return &nutanix.Platform{
-		PrismCentral:            "test-pc",
-		PrismElementUUID:        "test-pe",
-		DefaultStorageContainer: "test-storage-container",
-		Username:                "test-username",
-		Password:                "test-password",
-		SubnetUUID:              "test-subnet",
-		Port:                    "8080",
+		PrismCentral:     "test-pc",
+		PrismElementUUID: "test-pe",
+		Username:         "test-username",
+		Password:         "test-password",
+		SubnetUUID:       "test-subnet",
+		Port:             "8080",
 	}
 }
 
@@ -1483,6 +1482,29 @@ func TestValidateInstallConfig(t *testing.T) {
 				return c
 			}(),
 			expectedError: `^platform\.nutanix\.prismCentral: Required value: must specify the Prism Central$`,
+		},
+		{
+			name: "invalid credentials mode for nutanix",
+			installConfig: func() *types.InstallConfig {
+				c := validInstallConfig()
+				c.Platform = types.Platform{
+					Nutanix: validNutanixPlatform(),
+				}
+				c.CredentialsMode = types.PassthroughCredentialsMode
+				return c
+			}(),
+			expectedError: `credentialsMode: Unsupported value: "Passthrough": supported values: "Manual"$`,
+		},
+		{
+			name: "valid credentials mode for nutanix",
+			installConfig: func() *types.InstallConfig {
+				c := validInstallConfig()
+				c.Platform = types.Platform{
+					Nutanix: validNutanixPlatform(),
+				}
+				c.CredentialsMode = types.ManualCredentialsMode
+				return c
+			}(),
 		},
 		{
 			name: "valid baseline capability set",
