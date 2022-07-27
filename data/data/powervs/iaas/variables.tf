@@ -1,7 +1,7 @@
-variable "powervs_api_key" {
+variable "ibmcloud_api_key" {
   type        = string
   description = "IBM Cloud API key associated with user's identity"
-  default     = "<key>"
+  default     = ""
 }
 
 variable "powervs_resource_group" {

@@ -162,9 +162,9 @@ func (d *DNS) Generate(dependencies asset.Parents) error {
 			ID: zoneID,
 		}
 	case powervstypes.Name:
-		client, err := icpowervs.NewClient()
+		client, err := icpowervs.NewClient(icpowervs.IBMCloudEP)
 		if err != nil {
-			return errors.Wrap(err, "failed to get IBM PowerVS client")
+			return errors.Wrap(err, "failed to get IBM Power VS client")
 		}
 
 		zoneID, err := client.GetDNSZoneIDByName(context.TODO(), installConfig.Config.BaseDomain)

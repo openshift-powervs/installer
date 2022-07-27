@@ -13,6 +13,7 @@ import (
 	"github.com/IBM/platform-services-go-sdk/resourcemanagerv2"
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 //go:generate mockgen -source=./client.go -destination=./mock/powervsclient_generated.go -package=mock
@@ -29,6 +30,8 @@ type API interface {
 // Client makes calls to the PowerVS API.
 type Client struct {
 	APIKey        string
+	IAMEP         string
+	EPType        APIEndpointType
 	managementAPI *resourcemanagerv2.ResourceManagerV2
 	controllerAPI *resourcecontrollerv2.ResourceControllerV2
 	vpcAPI        *vpcv1.VpcV1
@@ -58,14 +61,15 @@ type DNSZoneResponse struct {
 }
 
 // NewClient initializes a client with a session.
-func NewClient() (*Client, error) {
-	bxCli, err := NewBxClient()
+func NewClient(t APIEndpointType) (*Client, error) {
+	bxCli, err := NewBxClient(t)
 	if err != nil {
 		return nil, err
 	}
 
 	client := &Client{
-		APIKey: bxCli.APIKey,
+		APIKey: bxCli.bxConfig.BluemixAPIKey,
+		IAMEP:  bxCli.GetIAMEndpointURL(),
 	}
 
 	if err := client.loadSDKServices(); err != nil {
@@ -147,7 +151,7 @@ func (c *Client) GetDNSZones(ctx context.Context) ([]DNSZoneResponse, error) {
 
 	listResourceInstancesResponse, _, err := c.controllerAPI.ListResourceInstances(options)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get cis instance")
+		return nil, errors.Wrap(err, "failed to get CIS instances")
 	}
 
 	var allZones []DNSZoneResponse
@@ -155,6 +159,9 @@ func (c *Client) GetDNSZones(ctx context.Context) ([]DNSZoneResponse, error) {
 		crnstr := instance.CRN
 		authenticator := &core.IamAuthenticator{
 			ApiKey: c.APIKey,
+		}
+		if c.IAMEP != "" {
+			authenticator.URL = c.IAMEP
 		}
 		zonesService, err := zonesv1.NewZonesV1(&zonesv1.ZonesV1Options{
 			Authenticator: authenticator,
@@ -189,8 +196,12 @@ func (c *Client) GetDNSZones(ctx context.Context) ([]DNSZoneResponse, error) {
 }
 
 func (c *Client) loadResourceManagementAPI() error {
+	// @TODO: use NewIamAuthenticatorBuilder, IamAuthenticatorBuilder's SetAPIKey() & SetURL() funcs
 	authenticator := &core.IamAuthenticator{
 		ApiKey: c.APIKey,
+	}
+	if c.IAMEP != "" {
+		authenticator.URL = c.IAMEP
 	}
 	options := &resourcemanagerv2.ResourceManagerV2Options{
 		Authenticator: authenticator,
@@ -207,12 +218,18 @@ func (c *Client) loadResourceControllerAPI() error {
 	authenticator := &core.IamAuthenticator{
 		ApiKey: c.APIKey,
 	}
+	if c.IAMEP != "" {
+		authenticator.URL = c.IAMEP
+	}
 	options := &resourcecontrollerv2.ResourceControllerV2Options{
 		Authenticator: authenticator,
 	}
 	resourceControllerV2Service, err := resourcecontrollerv2.NewResourceControllerV2(options)
 	if err != nil {
 		return err
+	}
+	if c.IAMEP != "" {
+		resourceControllerV2Service.SetServiceURL(c.IAMEP)
 	}
 	c.controllerAPI = resourceControllerV2Service
 	return nil
@@ -221,6 +238,9 @@ func (c *Client) loadResourceControllerAPI() error {
 func (c *Client) loadVPCV1API() error {
 	authenticator := &core.IamAuthenticator{
 		ApiKey: c.APIKey,
+	}
+	if c.IAMEP != "" {
+		authenticator.URL = c.IAMEP
 	}
 	vpcService, err := vpcv1.NewVpcV1(&vpcv1.VpcV1Options{
 		Authenticator: authenticator,
@@ -235,20 +255,29 @@ func (c *Client) loadVPCV1API() error {
 // GetAuthenticatorAPIKeyDetails gets detailed information on the API key used
 // for authentication to the IBM Cloud APIs.
 func (c *Client) GetAuthenticatorAPIKeyDetails(ctx context.Context) (*iamidentityv1.APIKey, error) {
+	logrus.Debugf("GetAuthenticatorAPIKeyDetails metadata client: %v", c)
 	authenticator := &core.IamAuthenticator{
 		ApiKey: c.APIKey,
+	}
+	if c.IAMEP != "" {
+		authenticator.URL = c.IAMEP
 	}
 	iamIdentityService, err := iamidentityv1.NewIamIdentityV1(&iamidentityv1.IamIdentityV1Options{
 		Authenticator: authenticator,
 	})
 	if err != nil {
+		logrus.Debugf("GetAuthenticatorAPIKeyDetails NewIamIdentityV1 error: %s", err.Error())
 		return nil, err
 	}
-
+	if c.IAMEP != "" {
+		iamIdentityService.SetServiceURL(c.IAMEP)
+	}
 	options := iamIdentityService.NewGetAPIKeysDetailsOptions()
 	options.SetIamAPIKey(c.APIKey)
 	details, _, err := iamIdentityService.GetAPIKeysDetailsWithContext(ctx, options)
 	if err != nil {
+		logrus.Debugf("GetAuthenticatorAPIKeyDetails GetAPIKeysDetailsWithContext error: %s", err.Error())
+
 		return nil, err
 	}
 	// NOTE: details.Apikey

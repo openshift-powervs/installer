@@ -3,6 +3,7 @@ package installconfig
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/openshift/installer/pkg/asset"
 	alibabacloudconfig "github.com/openshift/installer/pkg/asset/installconfig/alibabacloud"
@@ -126,7 +127,10 @@ func (a *PlatformProvisionCheck) Generate(dependencies asset.Parents) error {
 		}
 		err = alibabacloudconfig.ValidateForProvisioning(client, ic.Config, ic.AlibabaCloud)
 	case powervs.Name:
-		client, err := powervsconfig.NewClient()
+		if pvsDebug := os.Getenv("IBM_POWERVS_DEV"); pvsDebug == "TRUE" {
+			return nil
+		}
+		client, err := powervsconfig.NewClient(powervsconfig.IBMCloudEP)
 		if err != nil {
 			return err
 		}

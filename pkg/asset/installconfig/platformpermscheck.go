@@ -3,6 +3,7 @@ package installconfig
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
 
@@ -92,10 +93,14 @@ func (a *PlatformPermsCheck) Generate(dependencies asset.Parents) error {
 	case ibmcloud.Name:
 		// TODO: IBM[#90]: platformpermscheck
 	case powervs.Name:
-		bxCli, err := powervsconfig.NewBxClient()
+		if pvsDebug := os.Getenv("IBM_POWERVS_DEV"); pvsDebug == "TRUE" {
+			return nil
+		}
+		bxCli, err := powervsconfig.NewBxClient(powervsconfig.PowerVSEP)
 		if err != nil {
 			return err
 		}
+		// @TODO: I think we'll need to either call this twice, or split it into Power permissions and IBMCloud permissions
 		err = bxCli.ValidateAccountPermissions()
 		if err != nil {
 			return err

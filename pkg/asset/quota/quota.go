@@ -146,7 +146,7 @@ func (a *PlatformQuotaCheck) Generate(dependencies asset.Parents) error {
 		}
 		summarizeReport(reports)
 	case powervs.Name:
-		bxCli, err := configpowervs.NewBxClient()
+		bxCli, err := configpowervs.NewBxClient(configpowervs.PowerVSEP)
 		if err != nil {
 			return errors.Wrap(err, "failed to create bluemix client")
 		}

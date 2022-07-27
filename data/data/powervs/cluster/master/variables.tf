@@ -18,9 +18,14 @@ variable "resource_group" {
   description = "The name of the Power VS resource group to which the user belongs."
 }
 
-variable "api_key" {
+variable "ibmcloud_api_key" {
   type        = string
-  description = "IBM Cloud API key associated with user's identity"
+  description = "IBM Cloud API key associated with user's identity."
+}
+
+variable "powervs_api_key" {
+  type        = string
+  description = "IBM Cloud API key associated with user's identity. The same as the IBM Cloud API Key unless different endpoints are being used."
 }
 
 variable "vpc_region" {

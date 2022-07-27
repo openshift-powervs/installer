@@ -15,12 +15,14 @@ import (
 	"github.com/pkg/errors"
 
 	survey "github.com/AlecAivazis/survey/v2"
-	"github.com/IBM-Cloud/bluemix-go"
+	bx "github.com/IBM-Cloud/bluemix-go"
 	"github.com/IBM-Cloud/bluemix-go/api/account/accountv2"
 	"github.com/IBM-Cloud/bluemix-go/authentication"
+	bxep "github.com/IBM-Cloud/bluemix-go/endpoints"
 	"github.com/IBM-Cloud/bluemix-go/http"
 	"github.com/IBM-Cloud/bluemix-go/rest"
 	bxsession "github.com/IBM-Cloud/bluemix-go/session"
+
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
 	"github.com/IBM/go-sdk-core/v5/core"
@@ -30,17 +32,25 @@ import (
 )
 
 var (
-	defSessionTimeout   time.Duration = 9000000000000000000.0
-	defRegion                         = "us_south"
-	defaultAuthFilePath               = filepath.Join(os.Getenv("HOME"), ".powervs", "config.json")
+	defSessionTimeout    time.Duration = 9000000000000000000.0
+	defaultAuthDir                     = filepath.Join(os.Getenv("HOME"), ".powervs")
+	defaultAuthFilePath                = filepath.Join(defaultAuthDir, "config.json")
+	defaultPVSEPFilePath               = filepath.Join(defaultAuthDir, "power_vs_endpoints.json")
+	defaultICEPFilePath                = filepath.Join(defaultAuthDir, "ic_endpoints.json")
+)
+
+type APIEndpointType string
+
+const (
+	PowerVSEP  APIEndpointType = "powervs"
+	IBMCloudEP APIEndpointType = "ibmcloud"
 )
 
 //BxClient is struct which provides bluemix session details
 type BxClient struct {
-	*bxsession.Session
-	APIKey       string
+	bxConfig     *bx.Config
 	PISession    *ibmpisession.IBMPISession
-	User         *User
+	User         *User // replace with config's IBMID
 	AccountAPIV2 accountv2.Accounts
 }
 
@@ -52,15 +62,18 @@ type User struct {
 }
 
 // PISessionVars is an object that holds the variables required to create an ibmpisession object.
+// TODO: This should be renamed as it's being used to create the bluemix session
 type PISessionVars struct {
-	ID     string `json:"id,omitempty"`
-	APIKey string `json:"apikey,omitempty"`
-	Region string `json:"region,omitempty"`
-	Zone   string `json:"zone,omitempty"`
+	ID        string `json:"id,omitempty"`
+	ICAPIKey  string `json:"icapikey,omitempty"`
+	PVSAPIKey string `json:"pvsapikey,omitempty"`
+	ICEP      string `json:"icep,omitempty"`
+	PVSEP     string `json:"pvsep,omitempty"`
+	Region    string `json:"region,omitempty"`
+	Zone      string `json:"zone,omitempty"`
 }
 
-func authenticateAPIKey(sess *bxsession.Session) error {
-	config := sess.Config
+func authenticateAPIKey(config *bx.Config) error {
 	tokenRefresher, err := authentication.NewIAMAuthRepository(config, &rest.Client{
 		DefaultHeader: gohttp.Header{
 			"User-Agent": []string{http.UserAgent()},
@@ -72,10 +85,11 @@ func authenticateAPIKey(sess *bxsession.Session) error {
 	return tokenRefresher.AuthenticateAPIKey(config.BluemixAPIKey)
 }
 
-func fetchUserDetails(sess *bxsession.Session) (*User, error) {
-	config := sess.Config
+func fetchUserDetails(config *bx.Config) (*User, error) {
 	user := User{}
 	var bluemixToken string
+
+	//logrus.Debugf("config.IAMAccessToken: %v", config.IAMAccessToken)
 
 	if strings.HasPrefix(config.IAMAccessToken, "Bearer") {
 		bluemixToken = config.IAMAccessToken[7:len(config.IAMAccessToken)]
@@ -90,76 +104,129 @@ func fetchUserDetails(sess *bxsession.Session) (*User, error) {
 		return &user, err
 	}
 
+	logrus.Debug("")
 	claims := token.Claims.(jwt.MapClaims)
 	if email, ok := claims["email"]; ok {
+		logrus.Debug("user email")
 		user.Email = email.(string)
 	}
 	user.ID = claims["id"].(string)
+	logrus.Debugf("user id: %s", user.ID)
 	user.Account = claims["account"].(map[string]interface{})["bss"].(string)
-
+	logrus.Debugf("user account: %s", user.Account)
 	return &user, nil
 }
 
-//NewBxClient func returns bluemix client
-func NewBxClient() (*BxClient, error) {
-	c := &BxClient{}
-
-	var pisv PISessionVars
-	// Grab variables from the installer written authFilePath
-	logrus.Debug("Gathering variables from AuthFile")
-	err := getPISessionVarsFromAuthFile(&pisv)
-	if err != nil {
-		return nil, err
+// GetIAMEndpointURL retrievs the IAM Endpoint URL specifid
+// by the user	 via the endpoints file, if it exists locally.
+func (c *BxClient) GetIAMEndpointURL() string {
+	logrus.Debug("GetIAMEndpointURL")
+	if c.bxConfig.EndpointsFile == "" {
+		return ""
 	}
+	// find IBMCLOUD_IAM_API_ENDPOINT value. We've already
+	// verified that this file exists in NewBxClient
+	epLocator := bxep.NewEndpointLocator(c.bxConfig.Region, "public", c.bxConfig.EndpointsFile)
+	if ep, err := epLocator.IAMEndpoint(); err == nil {
+		return ep
+	} else {
+		logrus.Debug(err.Error())
+	}
+	logrus.Debug("GetIAMEndpointURL: no ep")
+	return ""
+}
+
+//NewBxClient func returns bluemix client
+func NewBxClient(t APIEndpointType) (*BxClient, error) {
+
+	logrus.Debug("NewBxClient entering")
+
+	var (
+		pisv      PISessionVars
+		bxSession *bxsession.Session
+		bxClient  = &BxClient{bxConfig: &bx.Config{}}
+	)
 
 	// Grab variables from the users environment
 	logrus.Debug("Gathering variables from user environment")
-	err = getPISessionVarsFromEnv(&pisv)
+	if err := getPISessionVarsFromEnv(&pisv); err != nil {
+		return nil, err
+	}
+
+	// Grab variables from the installer written authFilePath
+	logrus.Debug("Gathering variables from AuthFile")
+	if err := getPISessionVarsFromAuthFile(&pisv); err != nil {
+		return nil, err
+	}
+
+	switch t {
+	case PowerVSEP:
+		bxClient.bxConfig.BluemixAPIKey = pisv.PVSAPIKey
+		bxClient.bxConfig.EndpointsFile = defaultPVSEPFilePath
+		logrus.Debugf("NewBxClient, API Key is Power Key: %s", bxClient.bxConfig.BluemixAPIKey)
+	case IBMCloudEP:
+		bxClient.bxConfig.BluemixAPIKey = pisv.ICAPIKey
+		bxClient.bxConfig.EndpointsFile = defaultICEPFilePath
+		logrus.Debugf("NewBxClient, API Key is IC Key: %s", bxClient.bxConfig.BluemixAPIKey)
+	}
+
+	if _, err := os.Stat(bxClient.bxConfig.EndpointsFile); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, errors.Wrap(err, "error accessing endpoints file:")
+		} else {
+			logrus.Debugf("endpoints file not present: %s", bxClient.bxConfig.EndpointsFile)
+			bxClient.bxConfig.EndpointsFile = ""
+		}
+	} else {
+		logrus.Debugf("using endpoints file at %s", bxClient.bxConfig.EndpointsFile)
+	}
+
+	var err error
+
+	bxSession, err = bxsession.New(bxClient.bxConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	// Prompt the user for the remaining variables.
-	err = getPISessionVarsFromUser(&pisv)
+	endpoint, err := bxClient.bxConfig.EndpointLocator.IAMEndpoint()
 	if err != nil {
+		logrus.Debug("UH OH. DEV DEBUG ERROR COND")
+		return nil, err
+	}
+	logrus.Debugf("iamendpoint: %v", endpoint)
+	if err = authenticateAPIKey(bxClient.bxConfig); err != nil {
+		return nil, err
+	}
+
+	if bxClient.User, err = fetchUserDetails(bxClient.bxConfig); err != nil {
+		logrus.Debug("fetching user details")
+		return nil, err
+	}
+
+	// is this right? or should it be the e-mail address?
+	//pisv.ID = "clnperez@us.ibm.com"
+	pisv.ID = bxClient.User.ID
+
+	bxClient.bxConfig.Region = powervs.Regions[pisv.Region].VPCRegion
+
+	// Prompt the user for the remaining variables.
+	if err := getPISessionVarsFromUser(&pisv); err != nil {
 		return nil, err
 	}
 
 	// Save variables to disk.
-	err = savePISessionVars(&pisv)
-	if err != nil {
+	if err := savePISessionVars(&pisv); err != nil {
 		return nil, err
 	}
 
-	c.APIKey = pisv.APIKey
-
-	bxSess, err := bxsession.New(&bluemix.Config{
-		BluemixAPIKey: pisv.APIKey,
-	})
-	if err != nil {
-		return nil, err
+	if accClient, err := accountv2.New(bxSession); err != nil {
+		return nil, errors.Wrap(err, "error retreiving accountv2 client:")
+	} else {
+		bxClient.AccountAPIV2 = accClient.Accounts()
 	}
 
-	c.Session = bxSess
-
-	err = authenticateAPIKey(bxSess)
-	if err != nil {
-		return nil, err
-	}
-
-	c.User, err = fetchUserDetails(bxSess)
-	if err != nil {
-		return nil, err
-	}
-
-	accClient, err := accountv2.New(bxSess)
-	if err != nil {
-		return nil, err
-	}
-
-	c.AccountAPIV2 = accClient.Accounts()
-	c.Session.Config.Region = powervs.Regions[pisv.Region].VPCRegion
-	return c, nil
+	logrus.Debugf("succesfully created client")
+	return bxClient, nil
 }
 
 //GetAccountType func return the type of account TRAIL/PAID
@@ -216,7 +283,7 @@ func (c *BxClient) ValidateCloudConnectionInPowerVSRegion(ctx context.Context, s
 	}
 
 	if len(getAllResp.CloudConnections) >= 2 {
-		return fmt.Errorf("cannot create new Cloud connection in Power VS. Only two Cloud connections are allowed per zone")
+		return fmt.Errorf("cannot create 	new Cloud connection in Power VS. Only two Cloud connections are allowed per zone")
 	}
 
 	for _, cc := range getAllResp.CloudConnections {
@@ -242,8 +309,10 @@ func (c *BxClient) ValidateCloudConnectionInPowerVSRegion(ctx context.Context, s
 
 // NewPISession updates pisession details, return error on fail
 func (c *BxClient) NewPISession() error {
-	var pisv PISessionVars
-
+	var (
+		pisv  PISessionVars
+		epURL string = c.GetIAMEndpointURL()
+	)
 	// Grab variables from the installer written authFilePath
 	logrus.Debug("Gathering variables from AuthFile")
 	err := getPISessionVarsFromAuthFile(&pisv)
@@ -252,7 +321,8 @@ func (c *BxClient) NewPISession() error {
 	}
 
 	var authenticator core.Authenticator = &core.IamAuthenticator{
-		ApiKey: c.APIKey,
+		ApiKey: c.bxConfig.BluemixAPIKey,
+		URL:    epURL,
 	}
 
 	// Create the session
@@ -260,8 +330,10 @@ func (c *BxClient) NewPISession() error {
 		Authenticator: authenticator,
 		UserAccount:   c.User.Account,
 		Region:        pisv.Region,
-		Zone:          pisv.Zone,
-		Debug:         false,
+		// @TODO: don't hardcode
+		URL:   "https://dal.power-iaas.test.cloud.ibm.com",
+		Zone:  pisv.Zone,
+		Debug: os.Getenv("IBM_POWERVS_DEV") == "TRUE",
 	}
 
 	c.PISession, err = ibmpisession.NewIBMPISession(options)
@@ -273,7 +345,7 @@ func (c *BxClient) NewPISession() error {
 
 // GetBxClientAPIKey returns the API key used by the Blue Mix Client.
 func (c *BxClient) GetBxClientAPIKey() string {
-	return c.APIKey
+	return c.bxConfig.BluemixAPIKey
 }
 
 func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
@@ -291,13 +363,11 @@ func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
 		return nil
 	}
 
-	content, err := ioutil.ReadFile(authFilePath)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(content, pisv)
-	if err != nil {
+	if content, err := ioutil.ReadFile(authFilePath); err == nil {
+		if err := json.Unmarshal(content, pisv); err != nil {
+			return err
+		}
+	} else {
 		return err
 	}
 
@@ -307,21 +377,25 @@ func getPISessionVarsFromAuthFile(pisv *PISessionVars) error {
 func getPISessionVarsFromEnv(pisv *PISessionVars) error {
 
 	if pisv == nil {
-		return errors.New("nil var: PiSessionVars")
+		return errors.New("getPISessionVarsFromEnv nil var: PiSessionVars")
 	}
 
 	if len(pisv.ID) == 0 {
 		pisv.ID = os.Getenv("IBMID")
 	}
 
-	if len(pisv.APIKey) == 0 {
+	if len(pisv.ICAPIKey) == 0 {
 		// APIKeyEnvVars is a list of environment variable names containing an IBM Cloud API key.
 		var APIKeyEnvVars = []string{"IC_API_KEY", "IBMCLOUD_API_KEY", "BM_API_KEY", "BLUEMIX_API_KEY"}
-		pisv.APIKey = getEnv(APIKeyEnvVars)
+		pisv.ICAPIKey = getEnv(APIKeyEnvVars)
+	}
+
+	if len(pisv.PVSAPIKey) == 0 {
+		pisv.PVSAPIKey = os.Getenv("POWER_VS_API_KEY")
 	}
 
 	if len(pisv.Region) == 0 {
-		var regionEnvVars = []string{"IBMCLOUD_REGION", "IC_REGION"}
+		var regionEnvVars = []string{"IBMCLOUD_RqEGION", "IC_REGION"}
 		pisv.Region = getEnv(regionEnvVars)
 	}
 
@@ -330,6 +404,7 @@ func getPISessionVarsFromEnv(pisv *PISessionVars) error {
 		pisv.Zone = getEnv(zoneEnvVars)
 	}
 
+	logrus.Debugf("getPISessionVarsFromEnv: pisv: %v", pisv)
 	return nil
 }
 
@@ -350,12 +425,12 @@ func getPISessionVarsFromUser(pisv *PISessionVars) error {
 			},
 		}, &pisv.ID)
 		if err != nil {
-			return errors.New("error saving the IBM Cloud User ID")
+			return errors.Wrap(err, "error saving the IBM Cloud User ID")
 		}
 
 	}
 
-	if len(pisv.APIKey) == 0 {
+	if len(pisv.ICAPIKey) == 0 {
 		err = survey.Ask([]*survey.Question{
 			{
 				Prompt: &survey.Password{
@@ -363,9 +438,9 @@ func getPISessionVarsFromUser(pisv *PISessionVars) error {
 					Help:    "The API key installation.\nhttps://cloud.ibm.com/iam/apikeys",
 				},
 			},
-		}, &pisv.APIKey)
+		}, &pisv.ICAPIKey)
 		if err != nil {
-			return errors.New("error saving the API Key")
+			return errors.Wrap(err, "error saving the API Key")
 		}
 
 	}

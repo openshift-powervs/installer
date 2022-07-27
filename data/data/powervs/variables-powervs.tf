@@ -4,8 +4,17 @@
 variable "powervs_api_key" {
   type        = string
   description = "IBM Cloud API key associated with user's identity"
-  default     = "<key>"
+  default     = ""
 }
+
+# Two API keys are configurable for the case that there are different service
+# endpoints for IBM Cloud (VPCs, load balancers, DNS, etc.) vs Power VS (compute).
+variable "powervs_ibmcloud_api_key" {
+  type        = string
+  description = "IBM Cloud API key associated with user's identity"
+  default     = ""
+}
+
 
 variable "powervs_vpc_region" {
   type        = string

@@ -30,6 +30,7 @@ import (
 	aztypes "github.com/openshift/installer/pkg/asset/installconfig/azure"
 	gcpconfig "github.com/openshift/installer/pkg/asset/installconfig/gcp"
 	ovirtconfig "github.com/openshift/installer/pkg/asset/installconfig/ovirt"
+	powervsconfig "github.com/openshift/installer/pkg/asset/installconfig/powervs"
 	vsphereconfig "github.com/openshift/installer/pkg/asset/installconfig/vsphere"
 	"github.com/openshift/installer/pkg/asset/machines"
 	"github.com/openshift/installer/pkg/asset/manifests"
@@ -690,7 +691,12 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 			Data:     data,
 		})
 	case powervs.Name:
-		APIKey, err := installConfig.PowerVS.APIKey(ctx)
+		pAPIKey, err := installConfig.PowerVS.APIKey(ctx, powervsconfig.PowerVSEP)
+		if err != nil {
+			return err
+		}
+
+		icAPIKey, err := installConfig.PowerVS.APIKey(ctx, powervsconfig.IBMCloudEP)
 		if err != nil {
 			return err
 		}
@@ -717,7 +723,8 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				MasterConfigs:        masterConfigs,
 				Region:               installConfig.Config.Platform.PowerVS.Region,
 				Zone:                 installConfig.Config.Platform.PowerVS.Zone,
-				APIKey:               APIKey,
+				APIKey:               pAPIKey,
+				ICAPIKey:             icAPIKey,
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
 				ImageBucketName:      osImage[0],

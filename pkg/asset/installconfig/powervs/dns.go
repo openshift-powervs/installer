@@ -20,7 +20,7 @@ type Zone struct {
 
 // GetDNSZone returns a DNS Zone chosen by survey.
 func GetDNSZone() (*Zone, error) {
-	client, err := NewClient()
+	client, err := NewClient(IBMCloudEP)
 	if err != nil {
 		return nil, err
 	}

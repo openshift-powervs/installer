@@ -3,6 +3,10 @@ package powervs
 import (
 	"context"
 	"fmt"
+	gohttp "net/http"
+	"os"
+	"sync"
+
 	"github.com/IBM-Cloud/bluemix-go"
 	"github.com/IBM-Cloud/bluemix-go/authentication"
 	"github.com/IBM-Cloud/bluemix-go/http"
@@ -11,8 +15,8 @@ import (
 	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/IBM/networking-go-sdk/zonesv1"
 	"github.com/IBM/platform-services-go-sdk/resourcecontrollerv2"
-	gohttp "net/http"
-	"sync"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 //go:generate mockgen -source=./metadata.go -destination=./mock/powervsmetadata_generated.go -package=mock
@@ -20,7 +24,7 @@ import (
 // MetadataAPI represents functions that eventually call out to the API
 type MetadataAPI interface {
 	AccountID(ctx context.Context) (string, error)
-	APIKey(ctx context.Context) (string, error)
+	APIKey(ctx context.Context, t APIEndpointType) (string, error)
 	CISInstanceCRN(ctx context.Context) (string, error)
 }
 
@@ -31,6 +35,7 @@ type Metadata struct {
 	BaseDomain string
 
 	accountID      string
+	endpointURL    string
 	apiKey         string
 	cisInstanceCRN string
 	client         *Client
@@ -50,7 +55,7 @@ func (m *Metadata) AccountID(ctx context.Context) (string, error) {
 	defer m.mutex.Unlock()
 
 	if m.client == nil {
-		client, err := NewClient()
+		client, err := NewClient(PowerVSEP)
 		if err != nil {
 			return "", err
 		}
@@ -58,6 +63,7 @@ func (m *Metadata) AccountID(ctx context.Context) (string, error) {
 		m.client = client
 	}
 
+	logrus.Debug("metadata AccountID")
 	if m.accountID == "" {
 		apiKeyDetails, err := m.client.GetAuthenticatorAPIKeyDetails(ctx)
 		if err != nil {
@@ -67,17 +73,19 @@ func (m *Metadata) AccountID(ctx context.Context) (string, error) {
 		m.accountID = *apiKeyDetails.AccountID
 	}
 
+	logrus.Debug("metadata AccountID exit")
+
 	return m.accountID, nil
 }
 
 // APIKey returns the IBM Cloud account API Key associated with the authentication
 // credentials.
-func (m *Metadata) APIKey(ctx context.Context) (string, error) {
+func (m *Metadata) APIKey(ctx context.Context, t APIEndpointType) (string, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	if m.client == nil {
-		client, err := NewClient()
+		client, err := NewClient(t)
 		if err != nil {
 			return "", err
 		}
@@ -92,21 +100,29 @@ func (m *Metadata) APIKey(ctx context.Context) (string, error) {
 	return m.apiKey, nil
 }
 
-// getCISInstanceCRN gets the CRN name for the specified base domain.
-func getCISInstanceCRN(APIKey string, BaseDomain string) (string, error) {
-	var CISInstanceCRN string = ""
-	var bxSession *bxsession.Session
-	var err error
-	var tokenProviderEndpoint string = "https://iam.cloud.ibm.com"
-	var tokenRefresher *authentication.IAMAuthRepository
-	var authenticator *core.IamAuthenticator
-	var controllerSvc *resourcecontrollerv2.ResourceControllerV2
-	var listInstanceOptions *resourcecontrollerv2.ListResourceInstancesOptions
-	var listResourceInstancesResponse *resourcecontrollerv2.ResourceInstancesList
-	var instance resourcecontrollerv2.ResourceInstance
-	var zonesService *zonesv1.ZonesV1
-	var listZonesOptions *zonesv1.ListZonesOptions
-	var listZonesResponse *zonesv1.ListZonesResp
+// getCISInstanceCRN gets the CRN name for the specified DNS base domain.
+func getCISInstanceCRN(APIKey string, BaseDomain string, iamEPURL string) (string, error) {
+
+	logrus.Debugf("getCISInstanceCRN APIKey %s, BaseDomain %s, epURL, %s", APIKey, BaseDomain, iamEPURL)
+	var (
+		tokenProviderEndpoint         = "https://iam.cloud.ibm.com"
+		CISInstanceCRN                string
+		bxSession                     *bxsession.Session
+		err                           error
+		tokenRefresher                *authentication.IAMAuthRepository
+		authenticator                 *core.IamAuthenticator
+		controllerSvc                 *resourcecontrollerv2.ResourceControllerV2
+		listInstanceOptions           *resourcecontrollerv2.ListResourceInstancesOptions
+		listResourceInstancesResponse *resourcecontrollerv2.ResourceInstancesList
+		instance                      resourcecontrollerv2.ResourceInstance
+		zonesService                  *zonesv1.ZonesV1
+		listZonesOptions              *zonesv1.ListZonesOptions
+		listZonesResponse             *zonesv1.ListZonesResp
+	)
+
+	if iamEPURL != "" {
+		tokenProviderEndpoint = iamEPURL
+	}
 
 	bxSession, err = bxsession.New(&bluemix.Config{
 		BluemixAPIKey:         APIKey,
@@ -130,6 +146,7 @@ func getCISInstanceCRN(APIKey string, BaseDomain string) (string, error) {
 	}
 	authenticator = &core.IamAuthenticator{
 		ApiKey: APIKey,
+		URL:    tokenProviderEndpoint,
 	}
 	err = authenticator.Validate()
 	if err != nil {
@@ -139,7 +156,8 @@ func getCISInstanceCRN(APIKey string, BaseDomain string) (string, error) {
 	controllerSvc, err = resourcecontrollerv2.NewResourceControllerV2(&resourcecontrollerv2.ResourceControllerV2Options{
 		Authenticator: authenticator,
 		ServiceName:   "cloud-object-storage",
-		URL:           "https://resource-controller.cloud.ibm.com",
+		// @TODO: Obvs un-hardcode this. do we even need to set it? it should do the default right thing
+		//URL: "https://resource-controller.test.cloud.ibm.com",
 	})
 	if err != nil {
 		return CISInstanceCRN, fmt.Errorf("getCISInstanceCRN: creating ControllerV2 Service: %v", err)
@@ -189,30 +207,51 @@ func (m *Metadata) CISInstanceCRN(ctx context.Context) (string, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
+	if m.cisInstanceCRN != "" {
+		return m.cisInstanceCRN, nil
+	}
+
+	// b/c ibmcloud and powervs are in different dc's, testing in staging is
+	// split and messy. we can't re-use the same endpoint URLs.
+	split := os.Getenv("IBM_POWERVS_DEV")
+	if m.client != nil && split == "TRUE" && m.client.EPType != IBMCloudEP {
+		if tempClient, err := NewClient(IBMCloudEP); err != nil {
+			return "", errors.Wrap(err, "CISInstanceCRN: error cretaing new client")
+		} else {
+			cisInstanceCRN, err := getCISInstanceCRN(tempClient.GetAPIKey(), m.BaseDomain, tempClient.IAMEP)
+			if err != nil {
+				return "", err
+			}
+			m.cisInstanceCRN = cisInstanceCRN
+			return m.cisInstanceCRN, nil
+		}
+	}
 	if m.client == nil {
-		client, err := NewClient()
+		client, err := NewClient(IBMCloudEP)
 		if err != nil {
 			return "", err
 		}
-
 		m.client = client
+		logrus.Debugf("Metadata CISInstanceCRN, created new client with IBMCloudEP: %v", client)
+
+	} else {
+		logrus.Debugf("Metadata CISInstanceCRN, existing client being used: %v", m.client)
 	}
 
 	if m.apiKey == "" {
 		m.apiKey = m.client.GetAPIKey()
 	}
 
-	if m.cisInstanceCRN == "" {
-		var cisInstanceCRN string = ""
-		var err error
-
-		cisInstanceCRN, err = getCISInstanceCRN(m.apiKey, m.BaseDomain)
-		if err != nil {
-			return "", err
-		}
-
-		m.cisInstanceCRN = cisInstanceCRN
+	if m.endpointURL == "" {
+		m.endpointURL = m.client.IAMEP
 	}
+
+	cisInstanceCRN, err := getCISInstanceCRN(m.apiKey, m.BaseDomain, m.endpointURL)
+	if err != nil {
+		return "", err
+	}
+
+	m.cisInstanceCRN = cisInstanceCRN
 
 	return m.cisInstanceCRN, nil
 }

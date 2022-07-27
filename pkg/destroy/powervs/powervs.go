@@ -123,7 +123,8 @@ func GetRegion(zone string) (region string, err error) {
 
 // ClusterUninstaller holds the various options for the cluster we want to delete.
 type ClusterUninstaller struct {
-	APIKey         string
+	PVSAPIKey      string
+	ICAPIKey       string
 	BaseDomain     string
 	CISInstanceCRN string
 	ClusterName    string
@@ -160,20 +161,28 @@ type ClusterUninstaller struct {
 // New returns an IBMCloud destroyer from ClusterMetadata.
 func New(logger logrus.FieldLogger, metadata *types.ClusterMetadata) (providers.Destroyer, error) {
 	var (
-		bxClient *powervs.BxClient
-		APIKey   string
-		err      error
+		pBxClient, icBxClient *powervs.BxClient
+		icAPIKey, pAPIKey     string
+		err                   error
 	)
 
-	bxClient, err = powervs.NewBxClient()
+	pBxClient, err = powervs.NewBxClient(powervs.PowerVSEP)
 	if err != nil {
 		return nil, err
 	}
-	APIKey = bxClient.GetBxClientAPIKey()
-	if APIKey == "" {
-		return nil, errors.New("powervs.GetSession did not return an API key")
+	pAPIKey = pBxClient.GetBxClientAPIKey()
+	if pAPIKey == "" {
+		return nil, errors.New(fmt.Sprintf("powervs.GetSession did not return an API key (%s)", powervs.PowerVSEP))
 	}
 
+	icBxClient, err = powervs.NewBxClient(powervs.IBMCloudEP)
+	if err != nil {
+		return nil, err
+	}
+	icAPIKey = icBxClient.GetBxClientAPIKey()
+	if icAPIKey == "" {
+		return nil, errors.New(fmt.Sprintf("powervs.GetSession did not return an API key (%s)", powervs.PowerVSEP))
+	}
 	logger.Debugf("powervs.New: metadata.InfraID = %v", metadata.InfraID)
 	logger.Debugf("powervs.New: metadata.ClusterPlatformMetadata.PowerVS.BaseDomain = %v", metadata.ClusterPlatformMetadata.PowerVS.BaseDomain)
 	logger.Debugf("powervs.New: metadata.ClusterPlatformMetadata.PowerVS.CISInstanceCRN = %v", metadata.ClusterPlatformMetadata.PowerVS.CISInstanceCRN)
@@ -194,7 +203,8 @@ func New(logger logrus.FieldLogger, metadata *types.ClusterMetadata) (providers.
 	}
 
 	return &ClusterUninstaller{
-		APIKey:             APIKey,
+		PVSAPIKey:          pAPIKey,
+		ICAPIKey:           icAPIKey,
 		BaseDomain:         metadata.ClusterPlatformMetadata.PowerVS.BaseDomain,
 		ClusterName:        metadata.ClusterName,
 		Context:            context.Background(),
@@ -384,57 +394,72 @@ func (o *ClusterUninstaller) executeStageFunction(f struct {
 
 func (o *ClusterUninstaller) loadSDKServices() error {
 
-	if o.APIKey == "" {
+	if o.PVSAPIKey == "" || o.ICAPIKey == "" {
 		return fmt.Errorf("loadSDKServices: missing APIKey in metadata.json")
 	}
 
-	var bxSession *bxsession.Session
-	var tokenProviderEndpoint string = "https://iam.cloud.ibm.com"
-	var err error
+	var (
+		// @TODO CLN : unhardcode these after testing
+		pvsEP                               = "test.cloud.ibm.com"
+		vpcEP                               = "cloud.ibm.com"
+		stagingTokenProviderEndpoint string = "https://iam." + pvsEP
+		prodTokenProviderEndpoint    string = "https://iam." + vpcEP
 
-	bxSession, err = bxsession.New(&bluemix.Config{
-		BluemixAPIKey:         o.APIKey,
-		TokenProviderEndpoint: &tokenProviderEndpoint,
+		pBxSession, icBxSession         *bxsession.Session
+		pAuthenticator, icAuthenticator *core.IamAuthenticator
+		err                             error
+	)
+
+	pBxSession, err = bxsession.New(&bluemix.Config{
+		BluemixAPIKey:         o.PVSAPIKey,
+		TokenProviderEndpoint: &stagingTokenProviderEndpoint,
 		Debug:                 false,
 	})
 	if err != nil {
-		return fmt.Errorf("loadSDKServices: bxsession.New: %v", err)
+		return fmt.Errorf("loadSDKServices: error creating bxSession for Power VS bxsession.New: %v", err)
 	}
 
-	tokenRefresher, err := authentication.NewIAMAuthRepository(bxSession.Config, &rest.Client{
+	pTokenRefresher, err := authentication.NewIAMAuthRepository(pBxSession.Config, &rest.Client{
 		DefaultHeader: gohttp.Header{
 			"User-Agent": []string{http.UserAgent()},
 		},
 	})
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
 		return fmt.Errorf("loadSDKServices: authentication.NewIAMAuthRepository: %v", err)
 	}
-	err = tokenRefresher.AuthenticateAPIKey(bxSession.Config.BluemixAPIKey)
+	err = pTokenRefresher.AuthenticateAPIKey(pBxSession.Config.BluemixAPIKey)
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
-		return fmt.Errorf("loadSDKServices: tokenRefresher.AuthenticateAPIKey: %v", err)
+		o.Logger.Debugf("loadSDKServices: pBxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: pTokenRefresher = %v", pTokenRefresher)
+		return fmt.Errorf("loadSDKServices: pTokenRefresher.AuthenticateAPIKey: %v", err)
 	}
 
-	user, err := fetchUserDetails(bxSession, 2)
+	// 'user' only used for PISession
+	user, err := fetchUserDetails(pBxSession, 2)
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: pBxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: pTokenRefresher = %v", pTokenRefresher)
 		return fmt.Errorf("loadSDKServices: fetchUserDetails: %v", err)
 	}
 
-	ctrlv2, err := controllerv2.New(bxSession)
+	// Here's where we get into needing to use the right bxSession (staging vs prod...or whatever endpoints the user specified)
+
+	// This gets the service instance, which, though it's a Power VS concept, is provisioned via the IBM Cloud Catalog.
+	// However, for testing of staging vs prod, we're using Staging to create these.
+	// This may break the split endpoints clean delination of Power VS vs IBM Cloud.
+	// For now, use the pBxSession and hope it's only used for getting the Service Instance details...
+	ctrlv2, err := controllerv2.New(pBxSession)
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		return fmt.Errorf("loadSDKServices: controllerv2.New: %v", err)
 	}
 
 	resourceClientV2 := ctrlv2.ResourceServiceInstanceV2()
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		return fmt.Errorf("loadSDKServices: ctrlv2.ResourceServiceInstanceV2: %v", err)
 	}
@@ -446,8 +471,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	serviceInstance, err := resourceClientV2.GetInstance(o.ServiceGUID)
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -456,8 +481,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	region, err := GetRegion(serviceInstance.RegionID)
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -465,14 +490,14 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 		return fmt.Errorf("loadSDKServices: GetRegion: %v", err)
 	}
 
-	var authenticator core.Authenticator = &core.IamAuthenticator{
-		ApiKey: o.APIKey,
+	pAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.PVSAPIKey,
 	}
 
-	err = authenticator.Validate()
+	err = pAuthenticator.Validate()
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -481,7 +506,7 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 	}
 
 	var options *ibmpisession.IBMPIOptions = &ibmpisession.IBMPIOptions{
-		Authenticator: authenticator,
+		Authenticator: pAuthenticator,
 		Debug:         false,
 		Region:        region,
 		UserAccount:   user.Account,
@@ -490,8 +515,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.piSession, err = ibmpisession.NewIBMPISession(options)
 	if (err != nil) || (o.piSession == nil) {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -506,8 +531,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.instanceClient = instance.NewIBMPIInstanceClient(ctx, o.piSession, o.ServiceGUID)
 	if o.instanceClient == nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -518,8 +543,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.imageClient = instance.NewIBMPIImageClient(ctx, o.piSession, o.ServiceGUID)
 	if o.imageClient == nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -531,8 +556,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.jobClient = instance.NewIBMPIJobClient(ctx, o.piSession, o.ServiceGUID)
 	if o.jobClient == nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -545,8 +570,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.keyClient = instance.NewIBMPIKeyClient(ctx, o.piSession, o.ServiceGUID)
 	if o.keyClient == nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -560,8 +585,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.cloudConnectionClient = instance.NewIBMPICloudConnectionClient(ctx, o.piSession, o.ServiceGUID)
 	if o.cloudConnectionClient == nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -576,8 +601,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	o.dhcpClient = instance.NewIBMPIDhcpClient(ctx, o.piSession, o.ServiceGUID)
 	if o.dhcpClient == nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -591,14 +616,60 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 		return fmt.Errorf("loadSDKServices: loadSDKServices: o.dhcpClient is nil")
 	}
 
-	authenticator = &core.IamAuthenticator{
-		ApiKey: o.APIKey,
+	pAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.PVSAPIKey,
 	}
 
-	err = authenticator.Validate()
+	err = pAuthenticator.Validate()
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", pBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", pTokenRefresher)
+		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
+		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
+		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
+		o.Logger.Debugf("loadSDKServices: serviceInstance = %v", serviceInstance)
+		o.Logger.Debugf("loadSDKServices: o.piSession = %v", o.piSession)
+		o.Logger.Debugf("loadSDKServices: o.instanceClient = %v", o.instanceClient)
+		o.Logger.Debugf("loadSDKServices: o.imageClient = %v", o.imageClient)
+		o.Logger.Debugf("loadSDKServices: o.jobClient = %v", o.jobClient)
+		return fmt.Errorf("loadSDKServices: loadSDKServices: authenticator.Validate: %v", err)
+	}
+
+	// Now need to set up a new bsSession & authenticator for the IBM Cloud side...
+
+	icBxSession, err = bxsession.New(&bluemix.Config{
+		BluemixAPIKey:         o.ICAPIKey,
+		TokenProviderEndpoint: &prodTokenProviderEndpoint,
+		Debug:                 false,
+	})
+	if err != nil {
+		return fmt.Errorf("loadSDKServices: error creating bxSession for IBM Cloud bxsession.New: %v", err)
+	}
+	icAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.ICAPIKey,
+	}
+
+	icTokenRefresher, err := authentication.NewIAMAuthRepository(icBxSession.Config, &rest.Client{
+		DefaultHeader: gohttp.Header{
+			"User-Agent": []string{http.UserAgent()},
+		},
+	})
+	if err != nil {
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		return fmt.Errorf("loadSDKServices: authentication.NewIAMAuthRepository: %v", err)
+	}
+	err = icTokenRefresher.AuthenticateAPIKey(icBxSession.Config.BluemixAPIKey)
+	if err != nil {
+		o.Logger.Debugf("loadSDKServices: pBxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: pTokenRefresher = %v", icTokenRefresher)
+		return fmt.Errorf("loadSDKServices: pTokenRefresher.AuthenticateAPIKey: %v", err)
+	}
+
+	// What does Validate() do? Do all of these need to be dumped? They don't all pertain to VPC.
+	err = icAuthenticator.Validate()
+	if err != nil {
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -612,12 +683,12 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 
 	// https://raw.githubusercontent.com/IBM/vpc-go-sdk/master/vpcv1/vpc_v1.go
 	o.vpcSvc, err = vpcv1.NewVpcV1(&vpcv1.VpcV1Options{
-		Authenticator: authenticator,
-		URL:           "https://" + o.VPCRegion + ".iaas.cloud.ibm.com/v1",
+		Authenticator: icAuthenticator,
+		URL:           "https://" + o.VPCRegion + ".iaas." + vpcEP + "/v1",
 	})
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -632,21 +703,22 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 	userAgentString := fmt.Sprintf("OpenShift/4.x Destroyer/%s", version.Raw)
 	o.vpcSvc.Service.SetUserAgent(userAgentString)
 
-	authenticator = &core.IamAuthenticator{
-		ApiKey: o.APIKey,
+	icAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.ICAPIKey,
 	}
 
-	err = authenticator.Validate()
+	err = icAuthenticator.Validate()
 	if err != nil {
+		// @TODO CLN
 	}
 
 	// Instantiate the service with an API key based IAM authenticator
 	o.managementSvc, err = resourcemanagerv2.NewResourceManagerV2(&resourcemanagerv2.ResourceManagerV2Options{
-		Authenticator: authenticator,
+		Authenticator: icAuthenticator,
 	})
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -659,23 +731,23 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 		return fmt.Errorf("loadSDKServices: loadSDKServices: creating ResourceManagerV2 Service: %v", err)
 	}
 
-	authenticator = &core.IamAuthenticator{
-		ApiKey: o.APIKey,
+	icAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.ICAPIKey,
 	}
 
-	err = authenticator.Validate()
+	err = icAuthenticator.Validate()
 	if err != nil {
 	}
 
 	// Instantiate the service with an API key based IAM authenticator
 	o.controllerSvc, err = resourcecontrollerv2.NewResourceControllerV2(&resourcecontrollerv2.ResourceControllerV2Options{
-		Authenticator: authenticator,
+		Authenticator: icAuthenticator,
 		ServiceName:   "cloud-object-storage",
-		URL:           "https://resource-controller.cloud.ibm.com",
+		URL:           "https://resource-controller." + vpcEP,
 	})
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -689,21 +761,21 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 		return fmt.Errorf("loadSDKServices: loadSDKServices: creating ControllerV2 Service: %v", err)
 	}
 
-	authenticator = &core.IamAuthenticator{
-		ApiKey: o.APIKey,
+	icAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.ICAPIKey,
 	}
 
-	err = authenticator.Validate()
+	err = icAuthenticator.Validate()
 	if err != nil {
 	}
 
 	o.zonesSvc, err = zonesv1.NewZonesV1(&zonesv1.ZonesV1Options{
-		Authenticator: authenticator,
+		Authenticator: icAuthenticator,
 		Crn:           &o.CISInstanceCRN,
 	})
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -722,8 +794,8 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 	zoneOptions := o.zonesSvc.NewListZonesOptions()
 	zoneResources, detailedResponse, err := o.zonesSvc.ListZonesWithContext(ctx, zoneOptions)
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)
@@ -746,22 +818,22 @@ func (o *ClusterUninstaller) loadSDKServices() error {
 		}
 	}
 
-	authenticator = &core.IamAuthenticator{
-		ApiKey: o.APIKey,
+	icAuthenticator = &core.IamAuthenticator{
+		ApiKey: o.ICAPIKey,
 	}
 
-	err = authenticator.Validate()
+	err = icAuthenticator.Validate()
 	if err != nil {
 	}
 
 	o.dnsRecordsSvc, err = dnsrecordsv1.NewDnsRecordsV1(&dnsrecordsv1.DnsRecordsV1Options{
-		Authenticator:  authenticator,
+		Authenticator:  icAuthenticator,
 		Crn:            &o.CISInstanceCRN,
 		ZoneIdentifier: &zoneID,
 	})
 	if err != nil {
-		o.Logger.Debugf("loadSDKServices: bxSession = %v", bxSession)
-		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", tokenRefresher)
+		o.Logger.Debugf("loadSDKServices: bxSession = %v", icBxSession)
+		o.Logger.Debugf("loadSDKServices: tokenRefresher = %v", icTokenRefresher)
 		o.Logger.Debugf("loadSDKServices: ctrlv2 = %v", ctrlv2)
 		o.Logger.Debugf("loadSDKServices: resourceClientV2 = %v", resourceClientV2)
 		o.Logger.Debugf("loadSDKServices: o.ServiceGUID = %v", o.ServiceGUID)

@@ -1,4 +1,6 @@
 variable "cluster_key_id" { type = string }
+variable "powervs_api_key" { type = string }
+variable "powervs_ibmcloud_api_key" { type = string }
 variable "dhcp_network_id" { type = string }
 variable "dhcp_id" { type = string }
 variable "vpc_id" { type = string }

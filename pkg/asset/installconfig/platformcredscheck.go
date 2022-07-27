@@ -3,6 +3,7 @@ package installconfig
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
 
@@ -72,7 +73,11 @@ func (a *PlatformCredsCheck) Generate(dependencies asset.Parents) error {
 			return errors.Wrap(err, "creating IBM Cloud session")
 		}
 	case powervs.Name:
-		bxCli, err := powervsconfig.NewBxClient()
+		// @TODO: I think we'll need to either call this twice, or split it into Power permissions and IBMCloud permissions
+		if os.Getenv("IBM_POWERVS_DEV") == "TRUE" {
+			return nil
+		}
+		bxCli, err := powervsconfig.NewBxClient(powervsconfig.PowerVSEP)
 		if err != nil {
 			return err
 		}

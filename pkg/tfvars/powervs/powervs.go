@@ -15,6 +15,7 @@ import (
 type config struct {
 	ServiceInstanceID    string `json:"powervs_cloud_instance_id"`
 	APIKey               string `json:"powervs_api_key"`
+	ICAPIKey             string `json:"powervs_ibmcloud_api_key"`
 	SSHKey               string `json:"powervs_ssh_key"`
 	PowerVSRegion        string `json:"powervs_region"`
 	PowerVSZone          string `json:"powervs_zone"`
@@ -39,6 +40,7 @@ type config struct {
 type TFVarsSources struct {
 	MasterConfigs        []*machinev1.PowerVSMachineProviderConfig
 	APIKey               string
+	ICAPIKey             string
 	SSHKey               string
 	Region               string
 	Zone                 string
@@ -79,6 +81,7 @@ func TFVars(sources TFVarsSources) ([]byte, error) {
 	cfg := &config{
 		ServiceInstanceID:    serviceInstanceID,
 		APIKey:               sources.APIKey,
+		ICAPIKey:             sources.ICAPIKey,
 		SSHKey:               sources.SSHKey,
 		PowerVSRegion:        sources.Region,
 		PowerVSZone:          sources.Zone,

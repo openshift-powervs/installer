@@ -1,5 +1,5 @@
 provider "ibm" {
-  ibmcloud_api_key = var.powervs_api_key
+  ibmcloud_api_key = var.powervs_ibmcloud_api_key
 }
 
 data "ibm_resource_group" "group" {
