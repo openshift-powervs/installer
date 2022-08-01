@@ -1,6 +1,6 @@
 provider "ibm" {
   alias            = "vpc"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  ibmcloud_api_key = var.powervs_ibmcloud_api_key
   region           = var.powervs_vpc_region
   zone             = var.powervs_vpc_zone
 }
@@ -53,7 +53,7 @@ module "master" {
   resource_group    = var.powervs_resource_group
   instance_count    = var.master_count
 
-  ibmcloud_api_key    = var.ibmcloud_api_key
+  ibmcloud_api_key    = var.powervs_ibmcloud_api_key
   powervs_api_key     = var.powervs_api_key
   powervs_region      = var.powervs_region
   powervs_zone        = var.powervs_zone
