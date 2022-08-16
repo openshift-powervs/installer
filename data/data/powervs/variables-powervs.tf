@@ -43,6 +43,12 @@ variable "powervs_resource_group" {
   description = "The cloud instance resource group"
 }
 
+// for use with development only
+variable "powervs_staging_resource_group" {
+  type        = string
+  description = "The cloud instance resource group"
+}
+
 variable "powervs_cloud_instance_id" {
   type        = string
   description = "The cloud instance ID of your account"

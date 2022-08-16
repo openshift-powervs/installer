@@ -10,6 +10,9 @@ type Platform struct {
 	// PowerVSResourceGroup is the resource group in which Power VS resources will be created.
 	PowerVSResourceGroup string `json:"powervsResourceGroup"`
 
+        // StagingResourceGroup is the resource group in which Power VS resources will be created.
+        StagingResourceGroup string `json:"stagingResourceGroup,omitempty"`
+
 	// Region specifies the IBM Cloud colo region where the cluster will be created.
 	Region string `json:"region"`
 

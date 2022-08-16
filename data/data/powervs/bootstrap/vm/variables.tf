@@ -20,7 +20,7 @@ variable "cloud_instance_id" {
 
 variable "resource_group" {
   type        = string
-  description = "The name of the Power VS resource group to which the user belongs."
+  description = "The name of the IBM Cloud IAM resource group to which the user belongs."
 }
 
 variable "image_id" {

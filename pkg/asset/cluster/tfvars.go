@@ -727,6 +727,7 @@ func (t *TerraformVariables) Generate(parents asset.Parents) error {
 				ICAPIKey:             icAPIKey,
 				SSHKey:               installConfig.Config.SSHKey,
 				PowerVSResourceGroup: installConfig.Config.PowerVS.PowerVSResourceGroup,
+				StagingResourceGroup: installConfig.Config.PowerVS.StagingResourceGroup,
 				ImageBucketName:      osImage[0],
 				ImageBucketFileName:  osImage[1],
 				NetworkName:          installConfig.Config.PowerVS.PVSNetworkName,

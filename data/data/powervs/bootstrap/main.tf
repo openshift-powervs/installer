@@ -18,7 +18,7 @@ module "vm" {
   }
   source = "./vm"
 
-  resource_group        = var.powervs_resource_group
+  resource_group        = var.powervs_staging_resource_group == "" ?  var.powervs_resource_group : var.powervs_staging_resource_group
   cluster_id            = var.cluster_id
   ssh_key_id            = var.cluster_key_id
   cos_bucket_location   = var.powervs_cos_bucket_location

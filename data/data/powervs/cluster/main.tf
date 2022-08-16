@@ -32,7 +32,7 @@ module "pi_network" {
 
   cluster_id        = var.cluster_id
   cloud_instance_id = var.powervs_cloud_instance_id
-  resource_group    = var.powervs_resource_group
+  resource_group    = var.powervs_staging_resource_group == "" ?  var.powervs_resource_group : var.powervs_staging_resource_group
   vpc_crn           = module.vpc.vpc_crn
 }
 
@@ -50,7 +50,7 @@ module "master" {
   source            = "./master"
   cloud_instance_id = var.powervs_cloud_instance_id
   cluster_id        = var.cluster_id
-  resource_group    = var.powervs_resource_group
+  resource_group    = var.powervs_staging_resource_group == "" ?  var.powervs_resource_group : var.powervs_staging_resource_group
   instance_count    = var.master_count
 
   ibmcloud_api_key    = var.powervs_ibmcloud_api_key
