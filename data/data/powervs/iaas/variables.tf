@@ -27,3 +27,8 @@ variable "service_tags" {
   description = "A list of tags for our resource instance."
   default     = []
 }
+
+variable "powervs_ep_file" { 
+    type    = string
+    default = ""
+}

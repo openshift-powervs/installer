@@ -118,3 +118,7 @@ variable "api_pool_ext_id" {
   description = "The ID of the public load balancer pool for the API server."
 }
 
+variable "powervs_ep_file" {
+  type        = string
+  description = "json file with ep overrides. dev only."
+}

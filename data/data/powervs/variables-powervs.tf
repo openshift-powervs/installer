@@ -5,6 +5,7 @@ variable "powervs_api_key" {
   type        = string
   description = "IBM Cloud API key associated with user's identity"
   default     = ""
+  sensitive   = true
 }
 
 # Two API keys are configurable for the case that there are different service
@@ -13,6 +14,14 @@ variable "powervs_ibmcloud_api_key" {
   type        = string
   description = "IBM Cloud API key associated with user's identity"
   default     = ""
+  sensitive   = true
+}
+
+# Dev-Use only
+variable "powervs_ep_file" {
+  type        = string
+  description = "IBM Cloud endpoint overrides for staging. A local json file path."
+  default     = "/home/christy/.powervs/power_vs_endpoints.json"
 }
 
 

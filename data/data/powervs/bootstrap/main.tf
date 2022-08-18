@@ -1,15 +1,16 @@
 provider "ibm" {
-  alias            = "vpc"
-  ibmcloud_api_key = var.powervs_ibmcloud_api_key
-  region           = var.powervs_vpc_region
-  zone             = var.powervs_vpc_zone
+  alias               = "vpc"
+  ibmcloud_api_key    = var.powervs_ibmcloud_api_key
+  region              = var.powervs_vpc_region
+  zone                = var.powervs_vpc_zone
 }
 
 provider "ibm" {
-  alias            = "powervs"
-  ibmcloud_api_key = var.powervs_api_key
-  region           = var.powervs_region
-  zone             = var.powervs_zone
+  alias               = "powervs"
+  ibmcloud_api_key    = var.powervs_api_key
+  region              = var.powervs_region
+  zone                = var.powervs_zone
+  endpoints_file_path = var.powervs_ep_file
 }
 
 module "vm" {

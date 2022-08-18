@@ -6,10 +6,11 @@ provider "ibm" {
 }
 
 provider "ibm" {
-  alias            = "powervs"
-  ibmcloud_api_key = var.powervs_api_key
-  region           = var.powervs_region
-  zone             = var.powervs_zone
+  alias               = "powervs"
+  ibmcloud_api_key    = var.powervs_api_key
+  region              = var.powervs_region
+  zone                = var.powervs_zone
+  endpoints_file_path = var.powervs_ep_file
 }
 
 module "vpc" {
@@ -53,6 +54,7 @@ module "master" {
   resource_group    = var.powervs_staging_resource_group == "" ?  var.powervs_resource_group : var.powervs_staging_resource_group
   instance_count    = var.master_count
 
+  powervs_ep_file     = var.powervs_ep_file
   ibmcloud_api_key    = var.powervs_ibmcloud_api_key
   powervs_api_key     = var.powervs_api_key
   powervs_region      = var.powervs_region
